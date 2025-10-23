@@ -7,7 +7,7 @@ def set_background():
         """
         <style>
         .stApp {
-            background-image: url("/static/bg.jpg");
+            background-image: url("/static/1704273575813.jpg");
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -99,3 +99,4 @@ if uploaded_file:
             mime="video/mp4"
 
         )
+
