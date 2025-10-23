@@ -2,6 +2,23 @@ import streamlit as st
 import tempfile
 from analyzer import process_video
 
+def set_background():
+    st.markdown(
+        """
+        <style>
+        .stApp {
+            background-image: url("/static/bg.jpg");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
+set_background()
+
 st.title("Motion Analyzer")
 
 with st.sidebar:
@@ -80,4 +97,5 @@ if uploaded_file:
             data=video_bytes,
             file_name="analyzed_ski_video.mp4",
             mime="video/mp4"
+
         )
