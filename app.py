@@ -16,7 +16,6 @@ def set_background():
         """,
         unsafe_allow_html=True
     )
-
 set_background()
 
 st.title("Motion Analyzer")
@@ -99,6 +98,7 @@ if uploaded_file:
             mime="video/mp4"
 
         )
+
 
 
 
