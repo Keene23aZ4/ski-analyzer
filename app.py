@@ -1,21 +1,39 @@
 import streamlit as st
 import tempfile
+import base64
+from pathlib import Path
 from analyzer import process_video
 
 def set_background():
-    st.markdown(
-        """
-        <style>
-        .stApp {
-            background-image: url("/static/1704273575813.jpg");
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
+    img_path = Path(__file__).parent / "static" / "1704273575813.jpg"
+    if img_path.exists():
+        encoded = base64.b64encode(img_path.read_bytes()).decode()
+        mime = "image/jpeg"
+        st.markdown(
+            f"""
+            <style>
+            .stApp {{
+                background-image: url("data:{mime};base64,{encoded}");
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
+            }}
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
+    else:
+        # 画像がない場合は何もしない（またはデフォルト色を設定）
+        st.markdown(
+            """
+            <style>
+            .stApp {
+                background-color: #ffffff;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
 set_background()
 
 st.title("Motion Analyzer")
@@ -98,6 +116,7 @@ if uploaded_file:
             mime="video/mp4"
 
         )
+
 
 
 
