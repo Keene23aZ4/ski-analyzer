@@ -112,12 +112,12 @@ with st.sidebar:
     background_option = st.radio(t["background"], t["background_options"])
 
     all_angles = [
-        "Knee Ext/Flex",
-        "Knee Abd/Add",
-        "Hip Ext/Flex",
-        "Hip Abd/Add",
-        "Torso Tilt",
-        "Inclination Angle"
+        t["Knee Ext/Flex"],
+        t["Knee Abd/Add"],
+        t["Hip Ext/Flex"],
+        t["Hip Abd/Add"],
+        t["Torso Tilt"],
+        t["Inclination Angle"]
     ]
 
     select_all = st.checkbox(t["select_all"], value=True)
@@ -181,6 +181,7 @@ if uploaded_file:
             file_name="analyzed_ski_video.mp4",
             mime="video/mp4"
         )
+
 
 
 
