@@ -1,2 +1,8 @@
 [server]
 enableStaticServing = true
+[theme]
+primaryColor="#ff0000" # 赤
+backgroundColor="#000000" # 黒
+secondaryBackgroundColor="#696969" # ダークグレー
+textColor="#696969" # 白
+font="sans serif"
