@@ -48,7 +48,6 @@ translations = {
         "Inclination Angle": "内傾角度"
     },
     "简体中文": {
-        {
         "title": "滑雪动作分析应用",
         "sidebar_title": "致所有滑雪者",
         "caption": "可视化骨骼结构、关节角度、前倾角度和内倾角度的变化",
@@ -182,6 +181,7 @@ if uploaded_file:
             file_name="analyzed_ski_video.mp4",
             mime="video/mp4"
         )
+
 
 
 
