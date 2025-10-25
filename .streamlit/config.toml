@@ -1,7 +1,6 @@
 [server]
 enableStaticServing = true
 [theme]
-primaryColor="#ff0000" # 赤
-backgroundColor="#000000" # 黒
-textColor="#696969" # 白
+primaryColor="#ff0000" 
+textColor="#696969" 
 font="sans serif"
