@@ -5,7 +5,7 @@ from pathlib import Path
 from analyzer import process_video
 
 # 言語選択
-language = st.sidebar.selectbox("Language / 言語 /言语", ["English", "日本語", "简体中文"])
+language = st.sidebar.selectbox("Language / 言語 /言语", ["English", "日本語", "简体中文", "繁体中文"])
 
 # 翻訳辞書
 translations = {
@@ -66,6 +66,25 @@ translations = {
         "Torso Tilt": "前倾角度",
         "Inclination Angle": "内倾角度"
     },
+    "繁体中文": {
+        "title": "滑雪動作分析應用程式",
+        "sidebar_title": "致所有滑雪者",
+        "caption": "可視化骨骼結構、關節角度、前傾角度與內傾角度的變化",
+        "background": "選擇是否顯示影片背景",
+        "background_options": ["顯示", "隱藏"],
+        "select_all": "選擇所有關節角度",
+        "angle_prompt": "選擇要顯示的關節角度",
+        "upload": "上傳影片",
+        "analyzing": "分析中... {percent}/100%",
+        "done": "分析完成",
+        "download": "下載",
+        "Knee Ext/Flex": "膝關節 伸展／屈曲",
+        "Knee Abd/Add": "膝關節 外展／內收",
+        "Hip Ext/Flex": "髖關節 伸展／屈曲",
+        "Hip Abd/Add": "髖關節 外展／內收",
+        "Torso Tilt": "前傾角度",
+        "Inclination Angle": "內傾角度"
+    }        
 }
 t = translations[language]
 
@@ -181,6 +200,7 @@ if uploaded_file:
             file_name="analyzed_ski_video.mp4",
             mime="video/mp4"
         )
+
 
 
 
