@@ -5,7 +5,7 @@ from pathlib import Path
 from analyzer import process_video
 
 # 言語選択
-language = st.sidebar.selectbox("Language / 言語", ["English", "日本語", "简体中文"])
+language = st.sidebar.selectbox("Language / 言語 /言语", ["English", "日本語", "简体中文"])
 
 # 翻訳辞書
 translations = {
@@ -181,6 +181,7 @@ if uploaded_file:
             file_name="analyzed_ski_video.mp4",
             mime="video/mp4"
         )
+
 
 
 
