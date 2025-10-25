@@ -24,7 +24,7 @@ translations = {
     },
     "日本語": {
         "title": "滑走動作分析システム",
-        "sidebar_title": "すべてのスキーヤーにおくる",
+        "sidebar_title": "",
         "caption": "骨格構造と関節角度の変化を可視化",
         "background": "動画の背景の有無を選択",
         "background_options": ["表示", "非表示"],
@@ -150,3 +150,4 @@ if uploaded_file:
             file_name="analyzed_ski_video.mp4",
             mime="video/mp4"
         )
+
