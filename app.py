@@ -12,7 +12,7 @@ translations = {
     "English": {
         "title": "Motion Analyzer",
         "sidebar_title": "FOR ALL SKIERS",
-        "caption": "Visualization of Skeletal Structure and Joint Angle Variations",
+        "caption": "Visualization of Skeletal Structure, Joint Angle, Inclination Angle, Torso Tilt Angle",
         "background": "Background",
         "background_options": ["Show original video", "Hide background"],
         "select_all": "Select all joint angles",
@@ -181,6 +181,7 @@ if uploaded_file:
             file_name="analyzed_ski_video.mp4",
             mime="video/mp4"
         )
+
 
 
 
