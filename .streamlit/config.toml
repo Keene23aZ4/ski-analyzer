@@ -2,7 +2,7 @@
 enableStaticServing = true
 [theme]
 primaryColor="#ff0000" # 赤
-backgroundColor="#000000" # ダークグレー
-secondaryBackgroundColor="#696969" # 黒
+backgroundColor="#c0c0c0" # ダークグレー
+secondaryBackgroundColor="#c0c0c0" # 黒
 textColor="#000000" # 白
 font="sans serif"
