@@ -21,11 +21,17 @@ translations = {
         "analyzing": "ANALYZING... {percent}/100%",
         "done": "Successfully done",
         "download": "Download here"
+        "Knee Ext/Flex": "Knee Ext/Flex",
+        "Knee Abd/Add": "Knee Abd/Add",
+        "Hip Ext/Flex": "Hip Ext/Flex",
+        "Hip Abd/Add": "Hip Abd/Add",
+        "Torso Tilt": "Torso Tilt",
+        "Inclination Angle": "Inclination Angle"
     },
     "日本語": {
         "title": "滑走動作分析システム",
         "sidebar_title": "",
-        "caption": "できること　骨格構造、関節角度、前傾角度、内傾角度の変化を可視化",
+        "caption": "骨格構造、関節角度、前傾角度、内傾角度の変化を可視化",
         "background": "動画の背景の有無を選択",
         "background_options": ["表示", "非表示"],
         "select_all": "すべての関節角度を選択する",
@@ -150,6 +156,7 @@ if uploaded_file:
             file_name="analyzed_ski_video.mp4",
             mime="video/mp4"
         )
+
 
 
 
