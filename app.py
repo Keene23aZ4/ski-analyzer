@@ -20,7 +20,7 @@ translations = {
         "upload": "Upload your video",
         "analyzing": "ANALYZING... {percent}/100%",
         "done": "Successfully done",
-        "download": "Download here"
+        "download": "Download here",
         "Knee Ext/Flex": "Knee Ext/Flex",
         "Knee Abd/Add": "Knee Abd/Add",
         "Hip Ext/Flex": "Hip Ext/Flex",
@@ -156,6 +156,7 @@ if uploaded_file:
             file_name="analyzed_ski_video.mp4",
             mime="video/mp4"
         )
+
 
 
 
