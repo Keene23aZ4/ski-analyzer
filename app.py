@@ -4,6 +4,41 @@ import base64
 from pathlib import Path
 from analyzer import process_video
 
+# 言語選択
+language = st.sidebar.selectbox("Language / 言語", ["English", "日本語"])
+
+# 翻訳辞書
+translations = {
+    "English": {
+        "title": "Motion Analyzer",
+        "sidebar_title": "FOR ALL SKIERS",
+        "caption": "Visualization of Skeletal Structure and Joint Angle Variations",
+        "background": "Background",
+        "background_options": ["Show original video", "Hide background"],
+        "select_all": "Select all joint angles",
+        "angle_prompt": "Joint angles to display",
+        "upload": "Upload your video",
+        "analyzing": "ANALYZING... {percent}/100%",
+        "done": "Successfully done",
+        "download": "Download here"
+    },
+    "日本語": {
+        "title": "滑走動作分析システム",
+        "sidebar_title": "すべてのスキーヤーにおくる",
+        "caption": "骨格構造と関節角度の変化を可視化",
+        "background": "動画の背景の有無を選択",
+        "background_options": ["表示", "非表示"],
+        "select_all": "すべての関節角度を選択する",
+        "angle_prompt": "表示する関節角度",
+        "upload": "動画をアップロード",
+        "analyzing": "解析中... {percent}/100%",
+        "done": "解析完了",
+        "download": "ダウンロード"
+    }
+}
+t = translations[language]
+
+# 背景画像設定
 def set_background():
     img_path = Path(__file__).parent / "static" / "1704273575813.jpg"
     if img_path.exists():
@@ -23,7 +58,6 @@ def set_background():
             unsafe_allow_html=True
         )
     else:
-        # 画像がない場合は何もしない（またはデフォルト色を設定）
         st.markdown(
             """
             <style>
@@ -36,16 +70,16 @@ def set_background():
         )
 set_background()
 
-st.title("Motion Analyzer")
+# タイトル
+st.title(t["title"])
 
+# サイドバー
 with st.sidebar:
-    st.title("FOR ALL SKIERS")
-    st.caption("Visualization of Skeletal Structure and Joint Angle Variations")
+    st.title(t["sidebar_title"])
+    st.caption(t["caption"])
 
-    # 背景選択（ラジオボタン）
-    background_option = st.radio("Background", ["Show original video", "Hide background"])
+    background_option = st.radio(t["background"], t["background_options"])
 
-    # 関節角度選択肢
     all_angles = [
         "Knee Ext/Flex",
         "Knee Abd/Add",
@@ -55,17 +89,18 @@ with st.sidebar:
         "Inclination Angle"
     ]
 
-    select_all = st.checkbox("Select all joint angles", value=True)
+    select_all = st.checkbox(t["select_all"], value=True)
     if select_all:
         angle_options = all_angles
     else:
         angle_options = st.multiselect(
-            "Joint angles to display",
+            t["angle_prompt"],
             all_angles,
             default=["Knee Ext/Flex", "Hip Ext/Flex", "Torso Tilt"]
         )
 
-uploaded_file = st.file_uploader("Upload your video", type=["mp4", "mov"])
+# ファイルアップロード
+uploaded_file = st.file_uploader(t["upload"], type=["mp4", "mov"])
 if uploaded_file:
     with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as tmp:
         tmp.write(uploaded_file.read())
@@ -85,14 +120,14 @@ if uploaded_file:
             unsafe_allow_html=True
         )
         progress_text.markdown(
-            f"<p style='text-align:center; color:#007BFF; font-size:18px;'>ANALYZING... {percent}/100% </p>",
+            f"<p style='text-align:center; color:#007BFF; font-size:18px;'>{t['analyzing'].format(percent=percent)}</p>",
             unsafe_allow_html=True
         )
 
     output_path = process_video(
         input_path,
         progress_callback=update_progress,
-        show_background=(background_option == "Show original video"),
+        show_background=(background_option == t["background_options"][0]),
         selected_angles=angle_options
     )
 
@@ -103,22 +138,15 @@ if uploaded_file:
         unsafe_allow_html=True
     )
     progress_text.markdown(
-        "<p style='text-align:center; color:white; font-size:20px;'>Successfully done</p>",
+        f"<p style='text-align:center; color:white; font-size:20px;'>{t['done']}</p>",
         unsafe_allow_html=True
     )
 
     with open(output_path, "rb") as f:
         video_bytes = f.read()
         st.download_button(
-            label="Download here",
+            label=t["download"],
             data=video_bytes,
             file_name="analyzed_ski_video.mp4",
             mime="video/mp4"
-
         )
-
-
-
-
-
-
