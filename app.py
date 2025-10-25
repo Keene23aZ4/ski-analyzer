@@ -11,7 +11,7 @@ language = st.sidebar.selectbox("Language / 言語 /语言 /語言/ 언어", ["E
 translations = {
     "English": {
         "title": "Motion Analyzer",
-        "sidebar_title": "FOR ALL SKIERS",
+        "sidebar_title": "FOR ALL SKIER",
         "caption": "Visualization of Skeletal Structure, Joint Angle, Inclination Angle and Torso Tilt Angle",
         "background": "Background",
         "background_options": ["Show original video", "Hide background"],
@@ -219,6 +219,7 @@ if uploaded_file:
             file_name="analyzed_ski_video.mp4",
             mime="video/mp4"
         )
+
 
 
 
