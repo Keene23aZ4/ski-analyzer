@@ -5,7 +5,7 @@ from pathlib import Path
 from analyzer import process_video
 
 # 言語選択
-language = st.sidebar.selectbox("Language / 言語", ["English", "日本語"])
+language = st.sidebar.selectbox("Language / 言語", ["English", "日本語", "简体中文"])
 
 # 翻訳辞書
 translations = {
@@ -39,8 +39,34 @@ translations = {
         "upload": "動画をアップロード",
         "analyzing": "解析中... {percent}/100%",
         "done": "解析完了",
-        "download": "ダウンロード"
-    }
+        "download": "ダウンロード",
+        "Knee Ext/Flex": "膝関節 伸展・屈曲",
+        "Knee Abd/Add": "膝関節 内外転",
+        "Hip Ext/Flex": "股関節 伸展・屈曲",
+        "Hip Abd/Add": "股関節 内外転",
+        "Torso Tilt": "前傾角度",
+        "Inclination Angle": "内傾角度"
+    },
+    "简体中文": {
+        {
+        "title": "滑雪动作分析应用",
+        "sidebar_title": "致所有滑雪者",
+        "caption": "可视化骨骼结构、关节角度、前倾角度和内倾角度的变化",
+        "background": "选择是否显示视频背景",
+        "background_options": ["显示", "隐藏"],
+        "select_all": "选择所有关节角度",
+        "angle_prompt": "选择要显示的关节角度",
+        "upload": "上传视频",
+        "analyzing": "分析中... {percent}/100%",
+        "done": "分析完成",
+        "download": "下载",
+        "Knee Ext/Flex": "膝关节 伸展/屈曲",
+        "Knee Abd/Add": "膝关节 外展/内收",
+        "Hip Ext/Flex": "髋关节 伸展/屈曲",
+        "Hip Abd/Add": "髋关节 外展/内收",
+        "Torso Tilt": "前倾角度",
+        "Inclination Angle": "内倾角度"
+    },
 }
 t = translations[language]
 
@@ -156,6 +182,7 @@ if uploaded_file:
             file_name="analyzed_ski_video.mp4",
             mime="video/mp4"
         )
+
 
 
 
