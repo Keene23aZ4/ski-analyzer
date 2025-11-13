@@ -134,7 +134,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                             elif inclination_angle <= 10.0:
                                 turn_phase = "neutral"
                             else:
-                                if left_abduction_angle > right_abduction_angle:
+                                if (left_knee_angle＋left_hip_angle＋left_abduction_angle＋left_knee_abduction) > (right_knee_angle＋right_hip_angle＋right_abduction_angle＋right_knee_abduction):
                                     turn_phase = "Left"
                                 else:
                                     turn_phase = "Right"
@@ -191,6 +191,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
     os.remove(temp_output_path)
 
     return final_output
+
 
 
 
