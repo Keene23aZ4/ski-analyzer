@@ -133,7 +133,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                             if np.isnan(inclination_angle):
                                 turn_phase = "--"
                             elif inclination_angle <= 10.0:
-                                turn_phase = "ニュートラル"
+                                turn_phase = "neutral"
                             else:
                                 left_knee_sum = left_knee_abduction + left_knee_angle
                                 right_knee_sum = right_knee_abduction + right_knee_angle
@@ -204,6 +204,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
     os.remove(temp_output_path)
 
     return final_output
+
 
 
 
