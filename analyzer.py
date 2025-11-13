@@ -151,7 +151,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
                                 turn_phase = f"{primary} ({phase})"
 
-                            angle_texts.append(f"Turn Phase:         {turn_phase}")
+                            angle_texts.append(f"Turn Phase: {turn_phase}")
 
                           
                     overlay = image.copy()
@@ -204,3 +204,4 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
     os.remove(temp_output_path)
 
     return final_output
+
