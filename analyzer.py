@@ -134,13 +134,11 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                             elif inclination_angle <= 10.0:
                                 turn_phase = "neutral"
                             else:
-                                if (left_knee_angle＋left_hip_angle＋left_abduction_angle＋left_knee_abduction) > (right_knee_angle＋right_hip_angle＋right_abduction_angle＋right_knee_abduction):
-                                    turn_phase = "Left"
-                                else:
-                                    turn_phase = "Right"
+                                left_total = left_hip_angle + left_abduction_angle + left_knee_abduction
+                                right_total = right_hip_angle + right_abduction_angle + right_knee_abduction
+                                 turn_phase = "Left" if left_total > right_total else "Right"
                             angle_texts.append(f"Turn Phase:         {turn_phase}")
-
-                            
+                          
                     overlay = image.copy()
                     alpha = 0.6
                     for i, text in enumerate(angle_texts):
@@ -191,6 +189,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
     os.remove(temp_output_path)
 
     return final_output
+
 
 
 
