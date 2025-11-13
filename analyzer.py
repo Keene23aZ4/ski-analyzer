@@ -129,15 +129,30 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                         if "Inclination Angle" in selected_angles:
                             inclination_display = "--" if np.isnan(inclination_angle) else f"{inclination_angle:.1f}"
                             angle_texts.append(f"Inclination Angle: {inclination_display}")
+                            
                             if np.isnan(inclination_angle):
                                 turn_phase = "--"
                             elif inclination_angle <= 10.0:
-                                turn_phase = "neutral"
+                                turn_phase = "ニュートラル"
                             else:
-                                left_total = left_knee_abduction + left_knee_angle
-                                right_total = right_knee_abduction + right_knee_angle
-                                turn_phase = "Left" if left_total > right_total else "Right"
+                                left_knee_sum = left_knee_abduction + left_knee_angle
+                                right_knee_sum = right_knee_abduction + right_knee_angle
+
+                                if left_knee_sum > right_knee_sum:
+                                    primary = "Left"
+                                    left_hip_sum = left_hip_angle + left_abduction_angle
+                                    right_hip_sum = right_hip_angle + right_abduction_angle
+                                    phase = "First Half" if left_hip_sum > right_hip_sum else "Second Half"
+                                else:
+                                    primary = "Right"
+                                    right_hip_sum = right_hip_angle + right_abduction_angle
+                                    left_hip_sum = left_hip_angle + left_abduction_angle
+                                    phase = "First Half" if right_hip_sum > left_hip_sum else "Second Half"
+
+                                turn_phase = f"{primary} ({phase})"
+
                             angle_texts.append(f"Turn Phase:         {turn_phase}")
+
                           
                     overlay = image.copy()
                     alpha = 0.6
@@ -189,6 +204,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
     os.remove(temp_output_path)
 
     return final_output
+
 
 
 
