@@ -127,8 +127,14 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                         if "Torso Tilt" in selected_angles:
                             angle_texts.append(f"Torso Tilt:        {'--' if np.isnan(torso_angle) else f'{torso_angle:.1f}°'}")
                         if "Inclination Angle" in selected_angles:
-                            angle_texts.append(f"Inclination Angle: {'--' if np.isnan(inclination_angle) else f'{inclination_angle:.1f}°'}")
-
+                            if np.isnan(inclination_angle):
+                                inclination_display = "--"
+                            elif inclination_angle <= 12.5:
+                                inclination_display = "ニュートラル"
+                            else:
+                                inclination_display = f"{inclination_angle:.1f}°"
+                            angle_texts.append(f"Inclination Angle: {inclination_display}")
+                            
                     overlay = image.copy()
                     alpha = 0.6
                     for i, text in enumerate(angle_texts):
@@ -177,4 +183,5 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     os.remove(temp_output_path)
+
     return final_output
