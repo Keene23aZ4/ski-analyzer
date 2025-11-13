@@ -108,7 +108,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     left_knee_abduction = calculate_angle(hip_mid, joints["left_knee"], joints["left_ankle"])
                     right_knee_abduction = calculate_angle(hip_mid, joints["right_knee"], joints["right_ankle"])
 
-                    def safe(val): return "--" if np.isnan(val) else f"{int(val)}°"
+                    def safe(val): return "--" if np.isnan(val) else f"{int(val)}"
 
                     angle_texts = []
                     if selected_angles:
@@ -125,17 +125,17 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                             angle_texts += [f"L-Hip Abd/Add:     {safe(left_abduction_angle)}",
                                             f"R-Hip Abd/Add:     {safe(right_abduction_angle)}"]
                         if "Torso Tilt" in selected_angles:
-                            angle_texts.append(f"Torso Tilt:        {'--' if np.isnan(torso_angle) else f'{torso_angle:.1f}°'}")
+                            angle_texts.append(f"Torso Tilt:        {'--' if np.isnan(torso_angle) else f'{torso_angle:.1f}'}")
                         if "Inclination Angle" in selected_angles:
-                            inclination_display = "--" if np.isnan(inclination_angle) else f"{inclination_angle:.1f}°"
+                            inclination_display = "--" if np.isnan(inclination_angle) else f"{inclination_angle:.1f}"
                             angle_texts.append(f"Inclination Angle: {inclination_display}")
                             if np.isnan(inclination_angle):
                                 turn_phase = "--"
                             elif inclination_angle <= 10.0:
                                 turn_phase = "neutral"
                             else:
-                                left_total = left_hip_angle + left_abduction_angle + left_knee_abduction
-                                right_total = right_hip_angle + right_abduction_angle + right_knee_abduction
+                                left_total = left_knee_abduction + left_knee_angle
+                                right_total = right_knee_abduction + right_knee_angle
                                 turn_phase = "Left" if left_total > right_total else "Right"
                             angle_texts.append(f"Turn Phase:         {turn_phase}")
                           
@@ -189,6 +189,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
     os.remove(temp_output_path)
 
     return final_output
+
 
 
 
