@@ -163,35 +163,6 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     for i, text in enumerate(angle_texts):
                         y_pos = 30 + i * 30
                         cv2.putText(image, text, (10, y_pos), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 0), 2)
-# グリッドデータ構築
-                    grid_data = [
-                        ["L-Knee Ext/Flex", safe(left_knee_angle)],
-                        ["R-Knee Ext/Flex", safe(right_knee_angle)],
-                        ["L-Knee Abd/Add", safe(left_knee_abduction)],
-                        ["R-Knee Abd/Add", safe(right_knee_abduction)],
-                        ["L-Hip Ext/Flex", safe(left_hip_angle)],
-                        ["R-Hip Ext/Flex", safe(right_hip_angle)],
-                        ["L-Hip Abd/Add", safe(left_abduction_angle)],
-                        ["R-Hip Abd/Add", safe(right_abduction_angle)],
-                        ["Inclination Angle", "--" if np.isnan(inclination_angle) else f"{inclination_angle:.1f}°"],
-                        ["Turn Phase", turn_phase]
-                    ]
-
-# グリッド描画
-                    cell_width = 200
-                    cell_height = 40
-                    start_x = 10
-                    start_y = 30
-                    
-                    for i, (label, value) in enumerate(grid_data):
-                        top_left = (start_x, start_y + i * cell_height)
-                        bottom_right = (start_x + cell_width * 2, start_y + (i + 1) * cell_height)
-                        cv2.rectangle(image, top_left, bottom_right, (255, 255, 255), -1)
-                        cv2.rectangle(image, top_left, bottom_right, (0, 0, 0), 1)
-                        cv2.putText(image, label, (top_left[0] + 5, top_left[1] + 25),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 1)
-                        cv2.putText(image, value, (top_left[0] + cell_width + 5, top_left[1] + 25),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 1)
 
                     connections = [
                         ("left_ankle", "left_knee"),
@@ -233,4 +204,3 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
     os.remove(temp_output_path)
 
     return final_output
-
