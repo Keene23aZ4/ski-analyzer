@@ -127,10 +127,12 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                         if "Torso Tilt" in selected_angles:
                             angle_texts.append(f"Torso Tilt:        {'--' if np.isnan(torso_angle) else f'{torso_angle:.1f}°'}")
                         if "Inclination Angle" in selected_angles:
+                            inclination_display = "--" if np.isnan(inclination_angle) else f"{inclination_angle:.1f}°"
+                            angle_texts.append(f"Inclination Angle: {inclination_display}")
                             if np.isnan(inclination_angle):
                                 turn_phase = "--"
                             elif inclination_angle <= 10.0:
-                                turn_phase = "ニュートラル"
+                                turn_phase = "neutral"
                             else:
                                 if left_knee_angle > right_knee_angle:
                                     turn_phase = "Left"
@@ -189,4 +191,5 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
     os.remove(temp_output_path)
 
     return final_output
+
 
