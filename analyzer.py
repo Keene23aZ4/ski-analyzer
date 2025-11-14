@@ -76,9 +76,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
             image_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             results = pose.process(image_rgb)
             image = frame.copy() if show_background else np.zeros_like(frame)
-            canvas = np.zeros((height, width * 2, 3), dtype=np.uint8)
-            canvas[0:height, 0:width] = image
-
+        
             if results.pose_landmarks:
                 lm = results.pose_landmarks.landmark
                 joints = {}
@@ -154,10 +152,15 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
                     for name, (x, y) in joints.items():
                         cv2.circle(image, (x, y), 5, (0, 255, 0), -1)
-
-                    # 解析情報を image のコピーに重ねる
-                    canvas = image.copy()
-
+                        
+                    pip_scale = 0.25
+                    pip_width = int(width * pip_scale)
+                    pip_height = int(height * pip_scale)
+                    pip_frame = cv2.resize(image, (pip_width, pip_height))
+                    canvas = np.zeros((height, width * 2, 3), dtype=np.uint8)
+                    canvas[10:10+pip_height, 10:10+pip_width] = pip_frame
+                    cv2.rectangle(canvas, (10, 10), (10 + pip_width, 10 + pip_height), (0, 255, 255), 2)
+                  
                     grid_data = [
                         ["L-Knee Ext/Flex", safe(left_knee_angle)],
                         ["R-Knee Ext/Flex", safe(right_knee_angle)],
@@ -199,6 +202,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
 
 
