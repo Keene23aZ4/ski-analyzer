@@ -5,35 +5,32 @@ import os
 import subprocess
 
 def calculate_angle(a, b, c):
-    a = np.array(a)
-    b = np.array(b)
-    c = np.array(c)
-    ba = a - b
-    bc = c - b
+    a, b, c = np.array(a), np.array(b), np.array(c)
+    ba, bc = a - b, c - b
     cosine = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
-    angle = np.degrees(np.arccos(np.clip(cosine, -1.0, 1.0)))
-    return angle
+    return np.degrees(np.arccos(np.clip(cosine, -1.0, 1.0)))
 
 def calculate_torso_angle(shoulder_mid, hip_mid):
     vector = np.array([hip_mid[0] - shoulder_mid[0], hip_mid[1] - shoulder_mid[1]])
     vertical = np.array([0, 1])
     cosine = np.dot(vector, vertical) / (np.linalg.norm(vector) * np.linalg.norm(vertical))
-    angle = np.degrees(np.arccos(np.clip(cosine, -1.0, 1.0)))
-    return angle
+    return np.degrees(np.arccos(np.clip(cosine, -1.0, 1.0)))
 
 def calculate_inclination_angle(center, foot_mid):
-    dx = foot_mid[0] - center[0]
-    dy = foot_mid[1] - center[1]
+    dx, dy = foot_mid[0] - center[0], foot_mid[1] - center[1]
     if dy == 0:
         return np.nan
-    angle_rad = np.arctan(abs(dx) / abs(dy))
-    return np.degrees(angle_rad)
+    return np.degrees(np.arctan(abs(dx) / abs(dy)))
 
 def merge_audio(original_path, processed_path):
+    if not os.path.exists(original_path):
+        raise FileNotFoundError(f"Original video file not found: {original_path}")
+    if not os.path.exists(processed_path):
+        raise FileNotFoundError(f"Processed video file not found: {processed_path}")
+
     output_path = os.path.splitext(processed_path)[0] + "_with_audio.mp4"
     command = [
-        'ffmpeg',
-        '-y',
+        'ffmpeg', '-y',
         '-i', original_path,
         '-i', processed_path,
         '-c:v', 'copy',
@@ -43,13 +40,10 @@ def merge_audio(original_path, processed_path):
         output_path
     ]
     result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
     if not os.path.exists(output_path):
         print("FFmpeg stderr:", result.stderr.decode())
         raise FileNotFoundError(f"Failed to create output file: {output_path}")
-
     return output_path
-
 
 def process_video(input_path, progress_callback=None, show_background=True, selected_angles=None):
     mp_pose = mp.solutions.pose
@@ -71,7 +65,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     temp_output_path = os.path.splitext(input_path)[0] + "_processed_temp.mp4"
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    out = cv2.VideoWriter(temp_output_path, fourcc, fps, (width, height))
+    out = cv2.VideoWriter(temp_output_path, fourcc, fps, (width * 2, height))
 
     with mp_pose.Pose() as pose:
         while ret:
@@ -82,12 +76,10 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
             image_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             results = pose.process(image_rgb)
             image = frame.copy() if show_background else np.zeros_like(frame)
-            
-            canvas_width = width * 2
-            canvas_height = height
-            canvas = np.zeros((canvas_height, canvas_width, 3), dtype=np.uint8)              
+
+            canvas = np.zeros((height, width * 2, 3), dtype=np.uint8)
             canvas[0:height, 0:width] = image
-            
+
             if results.pose_landmarks:
                 lm = results.pose_landmarks.landmark
                 joints = {}
@@ -119,10 +111,58 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     left_knee_abduction = calculate_angle(hip_mid, joints["left_knee"], joints["left_ankle"])
                     right_knee_abduction = calculate_angle(hip_mid, joints["right_knee"], joints["right_ankle"])
 
-                    def safe(val): return "--" if np.isnan(val) else f"{int(val)}"
-                        
-                    overlay = image.copy()
+                    def safe(val): return "--" if np.isnan(val) else f"{int(val)}°"
+                    inclination_display = "--" if np.isnan(inclination_angle) else f"{inclination_angle:.1f}°"
 
+                    if np.isnan(inclination_angle):
+                        turn_phase = "--"
+                    elif inclination_angle <= 10.0:
+                        turn_phase = "ニュートラル"
+                    else:
+                        left_knee_sum = left_knee_abduction + left_knee_angle
+                        right_knee_sum = right_knee_abduction + right_knee_angle
+                        if left_knee_sum > right_knee_sum:
+                            primary = "Left"
+                            left_hip_sum = left_hip_angle + left_abduction_angle
+                            right_hip_sum = right_hip_angle + right_abduction_angle
+                            phase = "First Half" if left_hip_sum > right_hip_sum else "Second Half"
+                        else:
+                            primary = "Right"
+                            right_hip_sum = right_hip_angle + right_abduction_angle
+                            left_hip_sum = left_hip_angle + left_abduction_angle
+                            phase = "First Half" if right_hip_sum > left_hip_sum else "Second Half"
+                        turn_phase = f"{primary} ({phase})"
+
+                    grid_data = [
+                        ["L-Knee Ext/Flex", safe(left_knee_angle)],
+                        ["R-Knee Ext/Flex", safe(right_knee_angle)],
+                        ["L-Knee Abd/Add", safe(left_knee_abduction)],
+                        ["R-Knee Abd/Add", safe(right_knee_abduction)],
+                        ["L-Hip Ext/Flex", safe(left_hip_angle)],
+                        ["R-Hip Ext/Flex", safe(right_hip_angle)],
+                        ["L-Hip Abd/Add", safe(left_abduction_angle)],
+                        ["R-Hip Abd/Add", safe(right_abduction_angle)],
+                        ["Inclination Angle", inclination_display],
+                        ["Turn Phase", turn_phase]
+                    ]
+
+                    cell_width, cell_height = 180, 40
+                    start_x, start_y = width + 10, 30
+                                        for i, (label, value) in enumerate(grid_data):
+                        top_left = (start_x, start_y + i * cell_height)
+                        bottom_right = (start_x + cell_width * 2, start_y + (i + 1) * cell_height)
+                        cv2.rectangle(canvas, top_left, bottom_right, (255, 255, 255), -1)
+                        cv2.rectangle(canvas, top_left, bottom_right, (0, 0, 0), 1)
+                        cv2.putText(canvas, label, (top_left[0] + 5, top_left[1] + 25),
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 1)
+                        cv2.putText(canvas, value, (top_left[0] + cell_width + 5, top_left[1] + 25),
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 1)
+
+                    # 左下にターンフェーズ表示
+                    cv2.putText(canvas, f"TURN PHASE: {turn_phase}",
+                                (10, height - 30), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), 2)
+
+                    # 骨格ライン描画（元の image に描画）
                     connections = [
                         ("left_ankle", "left_knee"),
                         ("left_knee", "left_hip"),
@@ -139,77 +179,20 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     ]
                     for a, b in connections:
                         if a in joints and b in joints:
-                            pt1 = joints[a]
-                            pt2 = joints[b]
+                            pt1, pt2 = joints[a], joints[b]
                             color = (255, 0, 255) if (a, b) in [
                                 ("left_hip", "right_hip"),
                                 ("left_shoulder", "right_shoulder"),
                                 ("left_shoulder", "left_hip"),
                                 ("right_shoulder", "right_hip")
                             ] else (0, 255, 255)
-                            cv2.line(image, pt1, pt2, color, 2)
+                            cv2.line(canvas, pt1, pt2, color, 2)
 
-                    # 関節点の描画
+                    # 関節点描画
                     for name, (x, y) in joints.items():
-                        cv2.circle(image, (x, y), 5, (0, 255, 0), -1)
-                    def safe(val): return "--" if np.isnan(val) else f"{int(val)}°"
-                    inclination_display = "--" if np.isnan(inclination＿angle) else f"{inclination_angle:.1f}°"
-                    # Turn Phase 判定
-                    if np.isnan(inclination_angle):
-                        turn_phase = "--"
-                    elif inclination_angle <= 10.0:
-                        turn_phase = "ニュートラル"
-                    else:
-                        left_knee_sum = left_knee_abduction + left_knee_angle
-                        right_knee_sum = right_knee_abduction + right_knee_angle
-                        
-                        if left_knee_sum > right_knee_sum:
-                            primary = "Left"
-                            left_hip_sum = left_hip_angle + left_abduction_angle
-                            right_hip_sum = right_hip_angle + right_abduction_angle
-                            phase = "First Half" if left_hip_sum > right_hip_sum else "Second Half"
-                        else:
-                            primary = "Right"
-                            right_hip_sum = right_hip_angle + right_abduction_angle
-                            left_hip_sum = left_hip_angle + left_abduction_angle
-                            phase = "First Half" if right_hip_sum > left_hip_sum else "Second Half"
-                        turn_phase = f"{primary} ({phase})"
-                        
+                        cv2.circle(canvas, (x, y), 5, (0, 255, 0), -1)
 
-
-                    # グリッドデータ構築
-                    grid_data = [
-                        ["L-Knee Ext/Flex", safe(left_knee_angle)],
-                        ["R-Knee Ext/Flex", safe(right_knee_angle)],
-                        ["L-Knee Abd/Add", safe(left_knee_abduction)],
-                        ["R-Knee Abd/Add", safe(right_knee_abduction)],
-                        ["L-Hip Ext/Flex", safe(left_hip_angle)],
-                        ["R-Hip Ext/Flex", safe(right_hip_angle)],
-                        ["L-Hip Abd/Add", safe(left_abduction_angle)],
-                        ["R-Hip Abd/Add", safe(right_abduction_angle)],
-                        ["Inclination Angle", inclination_display],
-                        ["Turn Phase", turn_phase]
-                    ]
-                    # グリッド描画（右上）
-                    cell_width = 180
-                    cell_height = 40
-                    start_x = width // 2 + 10
-                    start_y = 30
-
-                    for i, (label, value) in enumerate(grid_data):
-                        top_left = (start_x, start_y + i * cell_height)
-                        bottom_right = (start_x + cell_width * 2, start_y + (i + 1) * cell_height)
-                        cv2.rectangle(image, top_left, bottom_right, (255, 255, 255), -1)
-                        cv2.rectangle(image, top_left, bottom_right, (0, 0, 0), 1)
-                        cv2.putText(image, label, (top_left[0] + 5, top_left[1] + 25),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 1)
-                        cv2.putText(image, value, (top_left[0] + cell_width + 5, top_left[1] + 25),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 1)
-
-                    # ターンフェーズ表示（左下）
-                    cv2.putText(image, f"TURN PHASE: {turn_phase}",
-                                (10, height - 30), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), 2)
-
+            # 書き出し
             out.write(canvas)
             ret, frame = cap.read()
 
@@ -217,14 +200,4 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
     out.release()
 
     final_output = merge_audio(input_path, temp_output_path)
-   
     return final_output
-
-
-
-
-
-
-
-
-
