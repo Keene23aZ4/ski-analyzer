@@ -195,7 +195,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     #グリッド描画（右上）
                     for i, (label, value) in enumerate(grid_data):
                         topleft = (startx, starty + i * cellheight)
-                        bottomright = (startx + cellwidth  2, starty + (i + 1)  cell_height)
+                        bottomright = (startx + cellwidth * 2, starty + (i + 1) * cell_height)
                         cv2.rectangle(canvas, topleft, bottomright, (255, 255, 255), -1)
                         cv2.rectangle(canvas, topleft, bottomright, (0, 0, 0), 1)
                         cv2.putText(canvas, label, (topleft[0] + 5, topleft[1] + 25),
@@ -216,6 +216,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
 
 
