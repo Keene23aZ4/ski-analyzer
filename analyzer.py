@@ -76,6 +76,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
             image_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             results = pose.process(image_rgb)
             image = frame.copy() if show_background else np.zeros_like(frame)
+            canvas = np.zeros((height, width * 2, 3), dtype=np.uint8)
         
             if results.pose_landmarks:
                 lm = results.pose_landmarks.landmark
@@ -157,7 +158,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     pip_width = int(width * pip_scale)
                     pip_height = int(height * pip_scale)
                     pip_frame = cv2.resize(image, (pip_width, pip_height))
-                    canvas = np.zeros((height, width * 2, 3), dtype=np.uint8)
+      
                     canvas[10:10+pip_height, 10:10+pip_width] = pip_frame
                     cv2.rectangle(canvas, (10, 10), (10 + pip_width, 10 + pip_height), (0, 255, 255), 2)
                   
@@ -202,9 +203,3 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
-
-
-
-
-
-
