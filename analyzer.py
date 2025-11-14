@@ -148,7 +148,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
                     cell_width, cell_height = 180, 40
                     start_x, start_y = width + 10, 30
-                                        for i, (label, value) in enumerate(grid_data):
+                    for i, (label, value) in enumerate(grid_data):
                         top_left = (start_x, start_y + i * cell_height)
                         bottom_right = (start_x + cell_width * 2, start_y + (i + 1) * cell_height)
                         cv2.rectangle(canvas, top_left, bottom_right, (255, 255, 255), -1)
@@ -201,3 +201,4 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
