@@ -193,6 +193,60 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     # 関節点の描画
                     for name, (x, y) in joints.items():
                         cv2.circle(image, (x, y), 5, (0, 255, 0), -1)
+                    def safe(val): return "--" if np.isnan(val) else f"{int(val)}°"
+                        inclination_display = "--" if np.isnan(inclinationangle) else f"{inclinationangle:.1f}°"
+                    # Turn Phase 判定
+                    if np.isnan(inclinationangle):
+                        turn_phase = "--"
+                    elif inclinationangle <= 10.0:
+                        turn_phase = "ニュートラル"
+                    else:
+                        left_knee_sum = leftkneeabduction + leftkneeangle
+                        right_knee_sum = rightkneeabduction + rightkneeangle
+                        
+                        if left_knee_sum > right_knee_sum:
+                            primary = "Left"
+                            left_hip_sum = lefthipangle + leftabductionangle
+                            right_hip_sum = righthipangle + rightabductionangle
+                            phase = "First Half" if left_hip_sum > right_hip_sum else "Second Half"
+                        else:
+                            primary = "Right"
+                            right_hip_sum = righthipangle + rightabductionangle
+                            left_hip_sum = lefthipangle + leftabductionangle
+                            phase = "First Half" if right_hip_sum > left_hip_sum else "Second Half"
+                        turn_phase = f"{primary} ({phase})"
+                    # グリッドデータ構築
+                    grid_data = [
+                        ["L-Knee Ext/Flex", safe(leftkneeangle)],
+                        ["R-Knee Ext/Flex", safe(rightkneeangle)],
+                        ["L-Knee Abd/Add", safe(leftkneeabduction)],
+                        ["R-Knee Abd/Add", safe(rightkneeabduction)],
+                        ["L-Hip Ext/Flex", safe(lefthipangle)],
+                        ["R-Hip Ext/Flex", safe(righthipangle)],
+                        ["L-Hip Abd/Add", safe(leftabductionangle)],
+                        ["R-Hip Abd/Add", safe(rightabductionangle)],
+                        ["Inclination Angle", inclination_display],
+                        ["Turn Phase", turn_phase]
+                    ]
+                    # グリッド描画（右上）
+                    cell_width = 180
+                    cell_height = 40
+                    start_x = width // 2 + 10
+                    start_y = 30
+
+                    for i, (label, value) in enumerate(grid_data):
+                        top_left = (start_x, start_y + i * cell_height)
+                        bottom_right = (start_x + cell_width * 2, start_y + (i + 1) * cell_height)
+                        cv2.rectangle(image, top_left, bottom_right, (255, 255, 255), -1)
+                        cv2.rectangle(image, top_left, bottom_right, (0, 0, 0), 1)
+                        cv2.putText(image, label, (top_left[0] + 5, top_left[1] + 25),
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 1)
+                        cv2.putText(image, value, (top_left[0] + cell_width + 5, top_left[1] + 25),
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 1)
+
+                    # ターンフェーズ表示（左下）
+                    cv2.putText(image, f"TURN PHASE: {turn_phase}",
+                                (10, height - 30), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), 2)
 
             out.write(image)
             ret, frame = cap.read()
@@ -204,4 +258,5 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
     os.remove(temp_output_path)
 
     return final_output
+
 
