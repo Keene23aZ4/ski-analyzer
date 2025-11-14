@@ -194,7 +194,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     for name, (x, y) in joints.items():
                         cv2.circle(image, (x, y), 5, (0, 255, 0), -1)
                     def safe(val): return "--" if np.isnan(val) else f"{int(val)}°"
-                        inclination_display = "--" if np.isnan(inclinationangle) else f"{inclinationangle:.1f}°"
+                    inclination_display = "--" if np.isnan(inclinationangle) else f"{inclinationangle:.1f}°"
                     # Turn Phase 判定
                     if np.isnan(inclinationangle):
                         turn_phase = "--"
@@ -258,5 +258,6 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
     os.remove(temp_output_path)
 
     return final_output
+
 
 
