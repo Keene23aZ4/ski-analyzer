@@ -33,7 +33,7 @@ def merge_audio(original_path, processed_path):
         'ffmpeg', '-y',
         '-i', original_path,
         '-i', processed_path,
-        '-c:v', 'copy',
+        '-c:v', 'libx264',
         '-c:a', 'aac',
         '-map', '0:a?',
         '-map', '1:v',
@@ -65,7 +65,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     temp_output_path = os.path.splitext(input_path)[0] + "_processed_temp.mp4"
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    out = cv2.VideoWriter(temp_output_path, fourcc, fps, (width * 2, height))
+    out = cv2.VideoWriter(temp_output_path, fourcc, fps, (width, height))
 
     with mp_pose.Pose() as pose:
         while ret:
@@ -76,9 +76,6 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
             image_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             results = pose.process(image_rgb)
             image = frame.copy() if show_background else np.zeros_like(frame)
-
-            canvas = np.zeros((height, width * 2, 3), dtype=np.uint8)
-            canvas[0:height, 0:width] = image
 
             if results.pose_landmarks:
                 lm = results.pose_landmarks.landmark
@@ -133,6 +130,32 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                             phase = "First Half" if right_hip_sum > left_hip_sum else "Second Half"
                         turn_phase = f"{primary} ({phase})"
 
+                    # 骨格ラインと関節点は image に描画
+                    connections = [
+                        ("left_ankle", "left_knee"), ("left_knee", "left_hip"),
+                        ("right_ankle", "right_knee"), ("right_knee", "right_hip"),
+                        ("left_hip", "right_hip"), ("left_shoulder", "right_shoulder"),
+                        ("left_shoulder", "left_wrist"), ("right_shoulder", "right_wrist"),
+                        ("right_shoulder", "right_hip"), ("left_shoulder", "left_hip"),
+                        ("right_elbow", "right_wrist"), ("left_elbow", "left_wrist")
+                    ]
+                    for a, b in connections:
+                        if a in joints and b in joints:
+                            pt1, pt2 = joints[a], joints[b]
+                            color = (255, 0, 255) if (a, b) in [
+                                ("left_hip", "right_hip"),
+                                ("left_shoulder", "right_shoulder"),
+                                ("left_shoulder", "left_hip"),
+                                ("right_shoulder", "right_hip")
+                            ] else (0, 255, 255)
+                            cv2.line(image, pt1, pt2, color, 2)
+
+                    for name, (x, y) in joints.items():
+                        cv2.circle(image, (x, y), 5, (0, 255, 0), -1)
+
+                    # 解析情報を image のコピーに重ねる
+                    canvas = image.copy()
+
                     grid_data = [
                         ["L-Knee Ext/Flex", safe(left_knee_angle)],
                         ["R-Knee Ext/Flex", safe(right_knee_angle)],
@@ -142,11 +165,13 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                         ["R-Hip Ext/Flex", safe(right_hip_angle)],
                         ["L-Hip Abd/Add", safe(left_abduction_angle)],
                         ["R-Hip Abd/Add", safe(right_abduction_angle)],
-                        ["Inclination Angle", inclination_display]
+                        ["Inclination Angle", inclination_display],
+                        ["Turn Phase", turn_phase]
                     ]
 
                     cell_width, cell_height = 180, 40
-                    start_x, start_y = width + 10, 30
+                    start_x, start_y = width - cell_width * 2 - 10, 30  # 右端に寄せる
+
                     for i, (label, value) in enumerate(grid_data):
                         top_left = (start_x, start_y + i * cell_height)
                         bottom_right = (start_x + cell_width * 2, start_y + (i + 1) * cell_height)
@@ -161,38 +186,6 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     cv2.putText(canvas, f"TURN PHASE: {turn_phase}",
                                 (10, height - 30), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), 2)
 
-                    # 骨格ライン描画（元の image に描画）
-                    connections = [
-                        ("left_ankle", "left_knee"),
-                        ("left_knee", "left_hip"),
-                        ("right_ankle", "right_knee"),
-                        ("right_knee", "right_hip"),
-                        ("left_hip", "right_hip"),
-                        ("left_shoulder", "right_shoulder"),
-                        ("left_shoulder", "left_wrist"),
-                        ("right_shoulder", "right_wrist"),
-                        ("right_shoulder", "right_hip"),
-                        ("left_shoulder", "left_hip"),
-                        ("right_elbow", "right_wrist"),
-                        ("left_elbow", "left_wrist")
-                    ]
-                    for a, b in connections:
-                        if a in joints and b in joints:
-                            pt1, pt2 = joints[a], joints[b]
-                            color = (255, 0, 255) if (a, b) in [
-                                ("left_hip", "right_hip"),
-                                ("left_shoulder", "right_shoulder"),
-                                ("left_shoulder", "left_hip"),
-                                ("right_shoulder", "right_hip")
-                            ] else (0, 255, 255)
-                            cv2.line(canvas, pt1, pt2, color, 2)
-
-                    # 関節点描画
-                    for name, (x, y) in joints.items():
-                        cv2.circle(canvas, (x, y), 5, (0, 255, 0), -1)
-                        
-                    canvas = image.copy()
-
             # 書き出し
             out.write(canvas)
             ret, frame = cap.read()
@@ -202,10 +195,3 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
-
-
-
-
-
-
-
