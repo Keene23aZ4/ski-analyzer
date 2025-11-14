@@ -163,6 +163,12 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                             left_hip_sum = left_hip_angle + left_abduction_angle
                             phase = "First Half" if right_hip_sum > left_hip_sum else "Second Half"
                         turn_phase = f"{primary} ({phase})"
+                        
+                    canvas_width = width * 2
+                    canvas_height = height
+                    canvas = np.zeros((canvas_height, canvas_width, 3), dtype=np.uint8)              
+                    canvas[0:height, 0:width] = image
+
                     # グリッドデータ構築
                     grid_data = [
                         ["L-Knee Ext/Flex", safe(left_knee_angle)],
@@ -196,7 +202,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     cv2.putText(image, f"TURN PHASE: {turn_phase}",
                                 (10, height - 30), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), 2)
 
-            out.write(image)
+            out.write(canvas)
             ret, frame = cap.read()
 
     cap.release()
@@ -206,6 +212,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
     os.remove(temp_output_path)
 
     return final_output
+
 
 
 
