@@ -166,6 +166,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                         ["R-Hip Ext/Flex", safe(right_hip_angle)],
                         ["L-Hip Abd/Add", safe(left_abduction_angle)],
                         ["R-Hip Abd/Add", safe(right_abduction_angle)],
+                        ["Torso Tilt", f"{torso_angle:.1f}°"],
                         ["Inclination Angle", inclination_display]
                     ]
 
@@ -184,7 +185,9 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
                     # 左下にターンフェーズ表示
                     cv2.putText(canvas, f"TURN PHASE: {turn_phase}",
-                                (10, height - 30), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), 2)
+                                (canvas.shape[1] // 2 - 150, canvas.shape[0] - 30),
+                                cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), 2)
+
 
             # 書き出し
             out.write(canvas)
@@ -195,5 +198,6 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
 
