@@ -194,37 +194,37 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     for name, (x, y) in joints.items():
                         cv2.circle(image, (x, y), 5, (0, 255, 0), -1)
                     def safe(val): return "--" if np.isnan(val) else f"{int(val)}°"
-                    inclination_display = "--" if np.isnan(inclinationangle) else f"{inclinationangle:.1f}°"
+                    inclination_display = "--" if np.isnan(inclination＿angle) else f"{inclination_angle:.1f}°"
                     # Turn Phase 判定
-                    if np.isnan(inclinationangle):
+                    if np.isnan(inclination_angle):
                         turn_phase = "--"
-                    elif inclinationangle <= 10.0:
+                    elif inclination_angle <= 10.0:
                         turn_phase = "ニュートラル"
                     else:
-                        left_knee_sum = leftkneeabduction + leftkneeangle
-                        right_knee_sum = rightkneeabduction + rightkneeangle
+                        left_knee_sum = left_knee_abduction + left_knee_angle
+                        right_knee_sum = right_knee_abduction + right_knee_angle
                         
                         if left_knee_sum > right_knee_sum:
                             primary = "Left"
-                            left_hip_sum = lefthipangle + leftabductionangle
-                            right_hip_sum = righthipangle + rightabductionangle
+                            left_hip_sum = left_hip_angle + left_abduction_angle
+                            right_hip_sum = right_hip_angle + right_abduction_angle
                             phase = "First Half" if left_hip_sum > right_hip_sum else "Second Half"
                         else:
                             primary = "Right"
-                            right_hip_sum = righthipangle + rightabductionangle
-                            left_hip_sum = lefthipangle + leftabductionangle
+                            right_hip_sum = right_hip_angle + right_abduction_angle
+                            left_hip_sum = left_hip_angle + left_abduction_angle
                             phase = "First Half" if right_hip_sum > left_hip_sum else "Second Half"
                         turn_phase = f"{primary} ({phase})"
                     # グリッドデータ構築
                     grid_data = [
-                        ["L-Knee Ext/Flex", safe(leftkneeangle)],
-                        ["R-Knee Ext/Flex", safe(rightkneeangle)],
-                        ["L-Knee Abd/Add", safe(leftkneeabduction)],
-                        ["R-Knee Abd/Add", safe(rightkneeabduction)],
-                        ["L-Hip Ext/Flex", safe(lefthipangle)],
-                        ["R-Hip Ext/Flex", safe(righthipangle)],
-                        ["L-Hip Abd/Add", safe(leftabductionangle)],
-                        ["R-Hip Abd/Add", safe(rightabductionangle)],
+                        ["L-Knee Ext/Flex", safe(left_knee_angle)],
+                        ["R-Knee Ext/Flex", safe(right_knee_angle)],
+                        ["L-Knee Abd/Add", safe(left_knee_abduction)],
+                        ["R-Knee Abd/Add", safe(right_knee_abduction)],
+                        ["L-Hip Ext/Flex", safe(left_hip_angle)],
+                        ["R-Hip Ext/Flex", safe(right_hip_angle)],
+                        ["L-Hip Abd/Add", safe(left_abduction_angle)],
+                        ["R-Hip Abd/Add", safe(right_abduction_angle)],
                         ["Inclination Angle", inclination_display],
                         ["Turn Phase", turn_phase]
                     ]
@@ -258,6 +258,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
     os.remove(temp_output_path)
 
     return final_output
+
 
 
 
