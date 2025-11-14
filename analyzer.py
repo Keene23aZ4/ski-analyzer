@@ -191,6 +191,22 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     # 関節点描画
                     for name, (x, y) in joints.items():
                         cv2.circle(canvas, (x, y), 5, (0, 255, 0), -1)
+                        
+                    canvas = image.copy()
+                    #グリッド描画（右上）
+                    for i, (label, value) in enumerate(grid_data):
+                        topleft = (startx, starty + i * cellheight)
+                        bottomright = (startx + cellwidth  2, starty + (i + 1)  cell_height)
+                        cv2.rectangle(canvas, topleft, bottomright, (255, 255, 255), -1)
+                        cv2.rectangle(canvas, topleft, bottomright, (0, 0, 0), 1)
+                        cv2.putText(canvas, label, (topleft[0] + 5, topleft[1] + 25),
+                                    cv2.FONTHERSHEYSIMPLEX, 0.6, (0, 0, 0), 1)
+                        cv2.putText(canvas, value, (topleft[0] + cellwidth + 5, top_left[1] + 25),
+                                    cv2.FONTHERSHEYSIMPLEX, 0.6, (0, 0, 0), 1)
+                    #ターンフェーズ表示（左下）
+                    cv2.putText(canvas, f"TURN PHASE: {turn_phase}",
+                                (10, height - 30), cv2.FONTHERSHEYSIMPLEX, 1.0, (0, 255, 0), 2)
+
 
             # 書き出し
             out.write(canvas)
@@ -201,5 +217,6 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
 
