@@ -42,8 +42,14 @@ def merge_audio(original_path, processed_path):
         '-map', '1:v',
         output_path
     ]
-    subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    if not os.path.exists(output_path):
+        print("FFmpeg stderr:", result.stderr.decode())
+        raise FileNotFoundError(f"Failed to create output file: {output_path}")
+
     return output_path
+
 
 def process_video(input_path, progress_callback=None, show_background=True, selected_angles=None):
     mp_pose = mp.solutions.pose
@@ -213,6 +219,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
     final_output = merge_audio(input_path, temp_output_path)
    
     return final_output
+
 
 
 
