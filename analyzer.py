@@ -194,13 +194,13 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     canvas = image.copy()
                     #グリッド描画（右上）
                     for i, (label, value) in enumerate(grid_data):
-                        topleft = (startx, starty + i * cellheight)
-                        bottomright = (startx + cellwidth * 2, starty + (i + 1) * cell_height)
-                        cv2.rectangle(canvas, topleft, bottomright, (255, 255, 255), -1)
-                        cv2.rectangle(canvas, topleft, bottomright, (0, 0, 0), 1)
-                        cv2.putText(canvas, label, (topleft[0] + 5, topleft[1] + 25),
+                        top_left = (start_x, start_y + i * cellheight)
+                        bottom_right = (start_x + cellwidth * 2, start_y + (i + 1) * cell_height)
+                        cv2.rectangle(canvas, top_left, bottom_right, (255, 255, 255), -1)
+                        cv2.rectangle(canvas, top_left, bottom_right, (0, 0, 0), 1)
+                        cv2.putText(canvas, label, (top_left[0] + 5, top_left[1] + 25),
                                     cv2.FONTHERSHEYSIMPLEX, 0.6, (0, 0, 0), 1)
-                        cv2.putText(canvas, value, (topleft[0] + cellwidth + 5, top_left[1] + 25),
+                        cv2.putText(canvas, value, (top_left[0] + cellwidth + 5, top_left[1] + 25),
                                     cv2.FONTHERSHEYSIMPLEX, 0.6, (0, 0, 0), 1)
                     #ターンフェーズ表示（左下）
                     cv2.putText(canvas, f"TURN PHASE: {turn_phase}",
@@ -216,6 +216,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
 
 
