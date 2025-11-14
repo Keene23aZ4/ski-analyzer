@@ -76,7 +76,12 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
             image_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             results = pose.process(image_rgb)
             image = frame.copy() if show_background else np.zeros_like(frame)
-
+            
+            canvas_width = width * 2
+            canvas_height = height
+            canvas = np.zeros((canvas_height, canvas_width, 3), dtype=np.uint8)              
+            canvas[0:height, 0:width] = image
+            
             if results.pose_landmarks:
                 lm = results.pose_landmarks.landmark
                 joints = {}
@@ -164,10 +169,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                             phase = "First Half" if right_hip_sum > left_hip_sum else "Second Half"
                         turn_phase = f"{primary} ({phase})"
                         
-                    canvas_width = width * 2
-                    canvas_height = height
-                    canvas = np.zeros((canvas_height, canvas_width, 3), dtype=np.uint8)              
-                    canvas[0:height, 0:width] = image
+
 
                     # グリッドデータ構築
                     grid_data = [
@@ -212,6 +214,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
     os.remove(temp_output_path)
 
     return final_output
+
 
 
 
