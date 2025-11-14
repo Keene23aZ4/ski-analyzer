@@ -109,60 +109,8 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     right_knee_abduction = calculate_angle(hip_mid, joints["right_knee"], joints["right_ankle"])
 
                     def safe(val): return "--" if np.isnan(val) else f"{int(val)}"
-
-                    angle_texts = []
-                    if selected_angles:
-                        if "Knee Ext/Flex" in selected_angles:
-                            angle_texts += [f"L-Knee Ext/Flex:   {safe(left_knee_angle)}",
-                                            f"R-Knee Ext/Flex:   {safe(right_knee_angle)}"]
-                        if "Knee Abd/Add" in selected_angles:
-                            angle_texts += [f"L-Knee Abd/Add:    {safe(left_knee_abduction)}",
-                                            f"R-Knee Abd/Add:    {safe(right_knee_abduction)}"]
-                        if "Hip Ext/Flex" in selected_angles:
-                            angle_texts += [f"L-Hip Ext/Flex:    {safe(left_hip_angle)}",
-                                            f"R-Hip Ext/Flex:    {safe(right_hip_angle)}"]
-                        if "Hip Abd/Add" in selected_angles:
-                            angle_texts += [f"L-Hip Abd/Add:     {safe(left_abduction_angle)}",
-                                            f"R-Hip Abd/Add:     {safe(right_abduction_angle)}"]
-                        if "Torso Tilt" in selected_angles:
-                            angle_texts.append(f"Torso Tilt:        {'--' if np.isnan(torso_angle) else f'{torso_angle:.1f}'}")
-                        if "Inclination Angle" in selected_angles:
-                            inclination_display = "--" if np.isnan(inclination_angle) else f"{inclination_angle:.1f}"
-                            angle_texts.append(f"Inclination Angle: {inclination_display}")
-                            
-                            if np.isnan(inclination_angle):
-                                turn_phase = "--"
-                            elif inclination_angle <= 10.0:
-                                turn_phase = "neutral"
-                            else:
-                                left_knee_sum = left_knee_abduction + left_knee_angle
-                                right_knee_sum = right_knee_abduction + right_knee_angle
-
-                                if left_knee_sum > right_knee_sum:
-                                    primary = "Left"
-                                    left_hip_sum = left_hip_angle + left_abduction_angle
-                                    right_hip_sum = right_hip_angle + right_abduction_angle
-                                    phase = "First Half" if left_hip_sum > right_hip_sum else "Second Half"
-                                else:
-                                    primary = "Right"
-                                    right_hip_sum = right_hip_angle + right_abduction_angle
-                                    left_hip_sum = left_hip_angle + left_abduction_angle
-                                    phase = "First Half" if right_hip_sum > left_hip_sum else "Second Half"
-
-                                turn_phase = f"{primary} ({phase})"
-
-                            angle_texts.append(f"Turn Phase: {turn_phase}")
-
-                          
+                        
                     overlay = image.copy()
-                    alpha = 0.6
-                    for i, text in enumerate(angle_texts):
-                        y_pos = 30 + i * 30
-                        cv2.rectangle(overlay, (5, y_pos - 25), (400, y_pos + 5), (255, 255, 255), -1)
-                    cv2.addWeighted(overlay, alpha, image, 1 - alpha, 0, image)
-                    for i, text in enumerate(angle_texts):
-                        y_pos = 30 + i * 30
-                        cv2.putText(image, text, (10, y_pos), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 0), 2)
 
                     connections = [
                         ("left_ankle", "left_knee"),
@@ -258,6 +206,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
     os.remove(temp_output_path)
 
     return final_output
+
 
 
 
