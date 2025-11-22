@@ -254,3 +254,4 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
 
+
