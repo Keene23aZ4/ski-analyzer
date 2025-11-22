@@ -159,14 +159,13 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                             phase = "First Half" if right_hip_sum > left_hip_sum else "Second Half"
                         turn_phase = f"{primary} ({phase})"
                         # ターンフェーズ判定の直後
-                    title_img_path = "image/turn_phase_title.png"
+                    title_img_path = "images/turn_phase_title.png"
                     if os.path.exists(title_img_path):
                         title_img = cv2.imread(title_img_path)
                         if title_img is not None:
-                            target_width, target_height = 300, 100
-                            title_img = cv2.resize(title_img, (target_width, target_height))
-                            canvas[height + 50:height + 50 + target_height,
-                            50:50 + target_width] = title_img
+                            title_img = cv2.resize(title_img, (300, 100))
+                            canvas[height + 50:height + 150, 50:350] = title_img
+
                     
                     if turn_phase == "Neutral":
                         phase_img_path = "image/turn_phase_neutral.png"
@@ -241,11 +240,9 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                 if phase_img_path and os.path.exists(phase_img_path):
                     phase_img = cv2.imread(phase_img_path)
                     if phase_img is not None:
-                        target_width, target_height = 300, 100
-                        phase_img = cv2.resize(phase_img, (target_width, target_height))
-                        x_offset = 50
-                        y_offset = height + 50  # 左下に配置
-                        canvas[y_offset:y_offset+target_height, x_offset:x_offset+target_width] = phase_img
+                        phase_img = cv2.resize(phase_img, (300, 100))
+                        canvas[height + 160:height + 260, 50:350] = phase_img
+
                         # 書き出し
             out.write(canvas)
             ret, frame = cap.read()
@@ -255,6 +252,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
 
 
