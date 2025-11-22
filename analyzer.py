@@ -184,16 +184,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
                     canvas[0:height, 0:width] = image
                         
-                    pip_scale = 0.25
-                    pip_width = int(width * pip_scale)
-                    pip_height = int(height * pip_scale)
-                    pip_frame = cv2.resize(image, (pip_width, pip_height))
-                    canvas[10:10+pip_height, 10:10+pip_width] = pip_frame
-                    cv2.rectangle(canvas, (10, 10), (10 + pip_width, 10 + pip_height), (0, 255, 255), 2)
-      
-                    canvas[10:10+pip_height, 10:10+pip_width] = pip_frame
-                    cv2.rectangle(canvas, (10, 10), (10 + pip_width, 10 + pip_height), (0, 255, 255), 2)
-                  
+                                      
                     grid_data = [
                         ["L-Knee Ext/Flex", safe(left_knee_angle)],
                         ["R-Knee Ext/Flex", safe(right_knee_angle)],
@@ -234,6 +225,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
 
 
