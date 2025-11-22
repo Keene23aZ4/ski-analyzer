@@ -217,7 +217,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
                     # 左下にターンフェーズ表示
                     cv2.putText(canvas, f"TURN PHASE: {turn_phase}",
-                                (canvas.shape[1] // 2 - 150, canvas.shape[0] - 30),
+                                (50, height + 50),
                                 cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), 2)
 
 
@@ -230,6 +230,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
 
 
