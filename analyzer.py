@@ -208,18 +208,20 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     canvas[10:10+pip_height, 10:10+pip_width] = pip_frame
                     cv2.rectangle(canvas, (10, 10), (10 + pip_width, 10 + pip_height), (0, 255, 255), 2)
                   
-                    grid_data = [
-                        ["L-Knee Ext/Flex", safe(left_knee_angle)],
-                        ["R-Knee Ext/Flex", safe(right_knee_angle)],
-                        ["L-Knee Abd/Add", safe(left_knee_abduction)],
-                        ["R-Knee Abd/Add", safe(right_knee_abduction)],
-                        ["L-Hip Ext/Flex", safe(left_hip_angle)],
-                        ["R-Hip Ext/Flex", safe(right_hip_angle)],
-                        ["L-Hip Abd/Add", safe(left_abduction_angle)],
-                        ["R-Hip Abd/Add", safe(right_abduction_angle)],
-                        ["Torso Tilt", f"{torso_angle:.1f}°"],
-                        ["Inclination Angle", inclination_display]
-                    ]
+                    grid_data = []           
+                    if all(k in joints for k in required):
+                        grid_data = [
+                            ["L-Knee Ext/Flex", safe(left_knee_angle)],
+                            ["R-Knee Ext/Flex", safe(right_knee_angle)],
+                            ["L-Knee Abd/Add", safe(left_knee_abduction)],
+                            ["R-Knee Abd/Add", safe(right_knee_abduction)],
+                            ["L-Hip Ext/Flex", safe(left_hip_angle)],
+                            ["R-Hip Ext/Flex", safe(right_hip_angle)],
+                            ["L-Hip Abd/Add", safe(left_abduction_angle)],
+                            ["R-Hip Abd/Add", safe(right_abduction_angle)],
+                            ["Torso Tilt", f"{torso_angle:.1f}°"],
+                            ["Inclination Angle", inclination_display]
+                        ]
 
                     cell_width, cell_height = 180, 40
                     start_x, start_y = width - cell_width * 2 - 10, 30  # 右端に寄せる
@@ -249,6 +251,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
 
 
