@@ -103,7 +103,26 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
             image_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             results = pose.process(image_rgb)
             image = frame.copy() if show_background else np.zeros_like(frame)
-            canvas = np.zeros((height, width * 2, 3), dtype=np.uint8)
+            canvas = np.zeros((height*2, width*2, 3), dtype=np.uint8)
+            canvas[0:height, 0:width] = image
+            # 右上にグリッド描画
+            cell_width, cell_height = 180, 40
+            start_x, start_y = width + 30, 30  # 右上に配置
+            for i, (label, value) in enumerate(grid_data):
+                top_left = (start_x, start_y + i * cell_height)
+                bottom_right = (start_x + cell_width * 2, start_y + (i + 1) * cell_height)
+                cv2.rectangle(canvas, top_left, bottom_right, (255, 255, 255), -1)
+                cv2.rectangle(canvas, top_left, bottom_right, (0, 0, 0), 1)
+                cv2.putText(canvas, label, (top_left[0] + 5, top_left[1] + 25),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 1)
+                cv2.putText(canvas, value, (top_left[0] + cell_width + 5, top_left[1] + 25),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 1)
+
+            # 左下にターンフェーズ表示
+            cv2.putText(canvas, f"TURN PHASE: {turn_phase}",
+                        (50, height + 50),
+                        cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), 2)
+
         
             if results.pose_landmarks:
                 lm = results.pose_landmarks.landmark
@@ -230,6 +249,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
 
 
