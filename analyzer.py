@@ -61,7 +61,7 @@ def merge_audio(original_path, processed_path):
             raise FileNotFoundError(f"Failed to create output file: {output_path}")
 
     return output_path
-
+    
 def safe(val):
     return "--" if np.isnan(val) else f"{int(val)}°"
 def process_video(input_path, progress_callback=None, show_background=True, selected_angles=None):
@@ -225,6 +225,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
 
 
