@@ -242,7 +242,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                 
                 # タイトル画像（上）
                 title_img_path = "images/turn_phase_title.png"
-                if os.path.exists(title_img_path)
+                if os.path.exists(title_img_path):
                     title_img = cv2.imread(title_img_path)
                     if title_img is not None:
                         title_canvas = resize_with_aspect_ratio(title_img, 300, 100)
@@ -263,6 +263,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
 
 
