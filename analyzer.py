@@ -31,6 +31,8 @@ def merge_audio(original_path, processed_path):
         raise FileNotFoundError(f"Processed video file not found: {processed_path}")
 
     output_path = os.path.splitext(processed_path)[0] + "_with_audio.mp4"
+
+    # 音声がある場合はマージ、なければ映像のみ
     command = [
         'ffmpeg', '-y',
         '-i', original_path,
@@ -45,6 +47,7 @@ def merge_audio(original_path, processed_path):
     result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if not os.path.exists(output_path):
         print("FFmpeg stderr:", result.stderr.decode())
+        # 音声なしの場合は映像のみで再出力
         command = [
             'ffmpeg', '-y',
             '-i', processed_path,
@@ -52,21 +55,12 @@ def merge_audio(original_path, processed_path):
             output_path
         ]
         result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
         if not os.path.exists(output_path):
-            print("FFmpeg stderr:", result.stderr.decode())
-        # 音声がない場合は映像のみで出力
-            command = [
-                'ffmpeg', '-y',
-                '-i', processed_path,
-                '-c:v', 'libx264',
-                output_path
-            ]
-            result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            
-            if not os.path.exists(output_path):
-                print("FFmpeg stderr (retry):", result.stderr.decode())
-                raise FileNotFoundError(f"Failed to create output file: {output_path}")
-        return output_path
+            print("FFmpeg stderr (retry):", result.stderr.decode())
+            raise FileNotFoundError(f"Failed to create output file: {output_path}")
+
+    return output_path
 
 def safe(val):
     return "--" if np.isnan(val) else f"{int(val)}°"
@@ -231,6 +225,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
 
 
