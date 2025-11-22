@@ -158,6 +158,19 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                             left_hip_sum = left_hip_angle + left_abduction_angle
                             phase = "First Half" if right_hip_sum > left_hip_sum else "Second Half"
                         turn_phase = f"{primary} ({phase})"
+                        # ターンフェーズ判定の直後
+                    if turn_phase == "Neutral":
+                        phase_img_path = "turn_phase_neutral.png"
+                    elif turn_phase == "Left (First Half)":
+                        phase_img_path = "turn_phase_left_1st.png"
+                    elif turn_phase == "Left (Second Half)":
+                        phase_img_path = "turn_phase_left_2nd.png"
+                    elif turn_phase == "Right (First Half)":
+                        phase_img_path = "turn_phase_right_1st.png"
+                    elif turn_phase == "Right (Second Half)":
+                        phase_img_path = "turn_phase_right_2nd.png"
+                    else:
+                        phase_img_path = None
 
                     # 骨格ラインと関節点は image に描画
                     connections = [
@@ -211,10 +224,14 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                                     cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 1)
 
                     # 左下にターンフェーズ表示
-                    cv2.putText(canvas, f"TURN PHASE: {turn_phase}",
-                                (50, height + 50),
-                                cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), 2)
-
+                if phase_img_path and os.path.exists(phase_img_path):
+                    phase_img = cv2.imread(phase_img_path)
+                    target_width, target_height = 300, 100
+                    phase_img = cv2.resize(phase_img, (target_width, target_height))
+                    
+                    x_offset = 50
+                    y_offset = height + 50  # 左下に配置
+                    canvas[y_offset:y_offset+target_height, x_offset:x_offset+target_width] = phase_img
 
             # 書き出し
             out.write(canvas)
@@ -225,6 +242,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
 
 
