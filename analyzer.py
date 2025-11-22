@@ -162,7 +162,6 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     title_img_path = "image/turn_phase_title.png"
                     if os.path.exists(title_img_path):
                         title_img = cv2.imread(title_img_path)
-                        title_img = cv2.resize(title_img, (300, 100))  # サイズ調整（必要に応じて）
                         canvas[height + 50:height + 150, 50:350] = title_img
                     
                     if turn_phase == "Neutral":
@@ -238,12 +237,11 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                 if phase_img_path and os.path.exists(phase_img_path):
                     phase_img = cv2.imread(phase_img_path)
                     if phase_img is not None:
-                        target_width, target_height = 300, 100
-                        phase_img = cv2.resize(phase_img, (target_width, target_height))
+                        
 
                         x_offset = 50
                         y_offset = height + 50  # 左下に配置
-                        canvas[y_offset:y_offset+target_height, x_offset:x_offset+target_width] = phase_img
+                        canvas[y_offset, x_offset] = phase_img
 
             # 書き出し
             out.write(canvas)
@@ -254,6 +252,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
 
 
