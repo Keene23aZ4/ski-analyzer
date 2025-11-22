@@ -236,15 +236,6 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                         return canvas
                         
                     box_width, box_height = 300, 100
-                    # タイトル画像（上）
-                    title_img_path = "images/turn_phase_title.png"
-                    if os.path.exists(title_img_path):
-                        title_img = cv2.imread(title_img_path)
-                        if title_img is not None:
-                            h, w = title_img.shape[:2]
-                            x_offset, y_offset = 50, height + 50
-                            canvas[y_offset:y_offset+h, x_offset:x_offset+w] = title_img
-
                     # ターンフェーズ画像（下）
                     if phase_img_path and os.path.exists(phase_img_path):
                         phase_img = cv2.imread(phase_img_path)
@@ -262,6 +253,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
 
 
