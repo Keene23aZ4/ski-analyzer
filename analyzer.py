@@ -224,31 +224,32 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                                     cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 1)
 
                     # 左下にターンフェーズ表示
-                def resize_with_aspect_ratio(img, max_width, max_height):
-                    h, w = img.shape[:2]
-                    scale = min(max_width / w, max_height / h)
-                    new_w, new_h = int(w * scale), int(h * scale)
-                    resized = cv2.resize(img, (new_w, new_h))
-                    canvas = np.zeros((max_height, max_width, 3), dtype=np.uint8)
-                    x_offset = (max_width - new_w) // 2
-                    y_offset = (max_height - new_h) // 2
-                    canvas[y_offset:y_offset+new_h, x_offset:x_offset+new_w] = resized
-                    return canvas
-                
-                # タイトル画像（上）
-                title_img_path = "images/turn_phase_title.png"
-                if os.path.exists(title_img_path):
-                    title_img = cv2.imread(title_img_path)
-                    if title_img is not None:
-                        title_canvas = resize_with_aspect_ratio(title_img, 300, 100)
-                        canvas[height + 50:height + 150, 50:350] = title_canvas
-
-                # ターンフェーズ画像（下）
-                if phase_img_path and os.path.exists(phase_img_path):
-                    phase_img = cv2.imread(phase_img_path)
-                    if phase_img is not None:
-                        phase_canvas = resize_with_aspect_ratio(phase_img, 300, 100)
-                        canvas[height + 160:height + 260, 50:350] = phase_canvas
+                    def resize_with_aspect_ratio(img, max_width, max_height):
+                        h, w = img.shape[:2]
+                        scale = min(max_width / w, max_height / h)
+                        new_w, new_h = int(w * scale), int(h * scale)
+                        resized = cv2.resize(img, (new_w, new_h))
+                        canvas = np.zeros((max_height, max_width, 3), dtype=np.uint8)
+                        x_offset = (max_width - new_w) // 2
+                        y_offset = (max_height - new_h) // 2
+                        canvas[y_offset:y_offset+new_h, x_offset:x_offset+new_w] = resized
+                        return canvas
+                        
+                    box_width, box_height = 300, 100
+                    # タイトル画像（上）
+                    title_img_path = "images/turn_phase_title.png"
+                    if os.path.exists(title_img_path):
+                        title_img = cv2.imread(title_img_path)
+                        if title_img is not None:
+                            title_canvas = resize_with_aspect_ratio(title_img, 300, 100)
+                            canvas[height + 50:height + 150, 50:350] = title_canvas
+    
+                    # ターンフェーズ画像（下）
+                    if phase_img_path and os.path.exists(phase_img_path):
+                        phase_img = cv2.imread(phase_img_path)
+                        if phase_img is not None:
+                            phase_canvas = resize_with_aspect_ratio(phase_img, 300, 100)
+                            canvas[height + 160:height + 260, 50:350] = phase_canvas
            # 書き出し
             out.write(canvas)
             ret, frame = cap.read()
@@ -258,6 +259,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
 
 
