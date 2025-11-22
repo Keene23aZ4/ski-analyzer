@@ -234,7 +234,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     scale = min(max_width / w, max_height / h)
                     new_w, new_h = int(w * scale), int(h * scale)
                     resized = cv2.resize(img, (new_w, new_h))
-                    canvas = np.zeros((max_height, max_width, 3), dtype=np.uint8
+                    canvas = np.zeros((max_height, max_width, 3), dtype=np.uint8)
                     x_offset = (max_width - new_w) // 2
                     y_offset = (max_height - new_h) // 2
                     canvas[y_offset:y_offset+new_h, x_offset:x_offset+new_w] = resized
@@ -263,6 +263,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
 
 
