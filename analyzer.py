@@ -36,11 +36,19 @@ def merge_audio(original_path, processed_path):
         '-i', original_path,
         '-i', processed_path,
         '-c:v', 'libx264',
-        '-c:a', 'aac',
-        '-map', '0:a',
-        '-map', '1:v',
-        output_path
     ]
+    probe = subprocess.run(
+        ['ffprobe', '-i', original_path, '-show_streams', '-select_streams', 'a', '-loglevel', 'error'],
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    has_audio = bool(probe.stdout.decode().strip())
+
+    if has_audio:
+        command += ['-c:a', 'aac', '-map', '0:a', '-map', '1:v']
+    else:
+        command += ['-map', '1:v']
+
+    command.append(output_path)
     result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if not os.path.exists(output_path):
         print("FFmpeg stderr:", result.stderr.decode())
@@ -209,4 +217,5 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
