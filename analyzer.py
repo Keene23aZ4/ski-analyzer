@@ -241,15 +241,18 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     if os.path.exists(title_img_path):
                         title_img = cv2.imread(title_img_path)
                         if title_img is not None:
-                            title_canvas = resize_with_aspect_ratio(title_img, 300, 100)
-                            canvas[height + 50:height + 150, 50:350] = title_canvas
-    
+                            h, w = title_img.shape[:2]
+                            x_offset, y_offset = 50, height + 50
+                            canvas[y_offset:y_offset+h, x_offset:x_offset+w] = title_img
+
                     # ターンフェーズ画像（下）
                     if phase_img_path and os.path.exists(phase_img_path):
                         phase_img = cv2.imread(phase_img_path)
                         if phase_img is not None:
-                            phase_canvas = resize_with_aspect_ratio(phase_img, 300, 100)
-                            canvas[height + 160:height + 260, 50:350] = phase_canvas
+                            h, w = phase_img.shape[:2]
+                            x_offset, y_offset = 50, height + 60 + h  # タイトルの下に配置
+                            canvas[y_offset:y_offset+h, x_offset:x_offset+w] = phase_img
+
            # 書き出し
             out.write(canvas)
             ret, frame = cap.read()
@@ -259,6 +262,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
 
 
