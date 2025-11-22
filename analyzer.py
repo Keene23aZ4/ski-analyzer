@@ -92,7 +92,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     temp_output_path = os.path.splitext(input_path)[0] + "_processed_temp.mp4"
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    out = cv2.VideoWriter(temp_output_path, fourcc, fps, (width*2, height))
+    out = cv2.VideoWriter(temp_output_path, fourcc, fps, (width*2, height*2))
 
     with mp_pose.Pose() as pose:
         while ret:
@@ -103,7 +103,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
             image_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             results = pose.process(image_rgb)
             image = frame.copy() if show_background else np.zeros_like(frame)
-            canvas = np.zeros((height, width * 2, 3), dtype=np.uint8)
+            canvas = np.zeros((height*2, width*2, 3), dtype=np.uint8)
 
             grid_data = []
             if results.pose_landmarks:
@@ -181,6 +181,8 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
                     for name, (x, y) in joints.items():
                         cv2.circle(image, (x, y), 5, (0, 255, 0), -1)
+
+                    canvas[0:height, 0:width] = image
                         
                     pip_scale = 0.25
                     pip_width = int(width * pip_scale)
@@ -230,6 +232,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
 
 
