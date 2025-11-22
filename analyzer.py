@@ -18,6 +18,8 @@ def calculate_torso_angle(shoulder_mid, hip_mid):
 
 def calculate_inclination_angle(center, foot_mid):
     dx, dy = foot_mid[0] - center[0], foot_mid[1] - center[1]
+    if dy == 0 and dx == 0:
+        return 0.0
     if dy == 0:
         return np.nan
     return np.degrees(np.arctan(abs(dx) / abs(dy)))
@@ -35,7 +37,7 @@ def merge_audio(original_path, processed_path):
         '-i', processed_path,
         '-c:v', 'libx264',
         '-c:a', 'aac',
-        '-map', '0:a?',
+        '-map', '0:a',
         '-map', '1:v',
         output_path
     ]
@@ -44,7 +46,8 @@ def merge_audio(original_path, processed_path):
         print("FFmpeg stderr:", result.stderr.decode())
         raise FileNotFoundError(f"Failed to create output file: {output_path}")
     return output_path
-
+def safe(val):
+    return "--" if np.isnan(val) else f"{int(val)}°"
 def process_video(input_path, progress_callback=None, show_background=True, selected_angles=None):
     mp_pose = mp.solutions.pose
     KEYPOINTS = {
@@ -59,6 +62,9 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     cap = cv2.VideoCapture(input_path)
     ret, frame = cap.read()
+    if not ret:
+        raise RuntimeError("動画を読み込めませんでした")
+
     height, width = frame.shape[:2]
     fps = cap.get(cv2.CAP_PROP_FPS)
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -203,3 +209,4 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
