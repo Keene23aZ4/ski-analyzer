@@ -135,6 +135,8 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
                     torso_angle = calculate_torso_angle(shoulder_mid, hip_mid)
                     inclination_angle = calculate_inclination_angle(center, foot_mid)
+                    inclination_display = "--" if np.isnan(inclination_angle) else f"{inclination_angle:.1f}°"
+
 
                     left_knee_angle = calculate_angle(joints["left_hip"], joints["left_knee"], joints["left_ankle"])
                     right_knee_angle = calculate_angle(joints["right_hip"], joints["right_knee"], joints["right_ankle"])
@@ -262,6 +264,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
 
 
