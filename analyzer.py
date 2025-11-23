@@ -23,6 +23,17 @@ def calculate_inclination_angle(center, foot_mid):
     if dy == 0:
         return np.nan
     return np.degrees(np.arctan(abs(dx) / abs(dy)))
+def calculate_ski_tilt(ankle, toe):
+    dx, dy = toe[0] - ankle[0], toe[1] - ankle[1]
+    if dx == 0 and dy == 0:
+        return np.nan
+    return np.degrees(np.arctan2(-dy, dx))  # ← y軸補正済み
+
+def smooth(history, window=5):
+    if len(history) < window:
+        return np.mean(history)
+    return np.mean(history[-window:])
+
 
 def merge_audio(original_path, processed_path):
     if not os.path.exists(original_path):
@@ -253,6 +264,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
 
 
