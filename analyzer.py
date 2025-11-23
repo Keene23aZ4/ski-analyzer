@@ -58,7 +58,7 @@ def merge_audio(original_path, processed_path):
             '-i', processed_path,
             '-c:v', 'copy',   # 映像は再エンコードせずコピー
             '-c:a', 'aac',
-            '-map', '0:a',
+            '-map', '0:a?',
             '-map', '1:v',
             output_path
         ]
@@ -277,6 +277,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
 
 
