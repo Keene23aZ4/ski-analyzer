@@ -119,6 +119,9 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
     temp_output_path = os.path.splitext(input_path)[0] + "_processed_temp.mp4"
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     out = cv2.VideoWriter(temp_output_path, fourcc, fps, (720, 1280))  
+    ft = cv2.freetype.createFreeType2()
+    ft.loadFontData(fontFileName="fonts/NotoSans-Regular.ttf", id=0)
+
     # 事前に全フェーズ画像の横幅を調べて最大値を決定
     phase_paths = [
         "image/turn_phase_neutral.png",
@@ -288,8 +291,10 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                         cv2.rectangle(canvas, top_left, bottom_right, (0, 0, 0), 1)
                         cv2.putText(canvas, label, (top_left[0] + 5, top_left[1] + 25),
                                     cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 1)
-                        cv2.putText(canvas, value, (top_left[0] + cell_width + 5, top_left[1] + 25),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 1)
+                        ft.putText(canvas, value, (top_left[0] + cell_width + 5, top_left[1] + 25),
+                                   fontHeight=24, color=(0, 0, 0),
+                                   thickness=-1, line_type=cv2.LINE_AA)
+
 
 
                         
@@ -318,6 +323,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
 
 
