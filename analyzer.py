@@ -28,8 +28,8 @@ def calculate_ski_tilt(ankle, toe):
     dx, dy = toe[0] - ankle[0], toe[1] - ankle[1]
     if dx == 0 and dy == 0:
         return np.nan
-    return np.degrees(np.arctan2(dy, dx))  # 水平に対する角度
-
+    return np.degrees(np.arctan2(-dy, dx))  # ← dyを反転
+    
 def merge_audio(original_path, processed_path):
     if not os.path.exists(original_path):
         raise FileNotFoundError(f"Original video file not found: {original_path}")
@@ -178,12 +178,11 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     inclination_s = smooth(inclination_history)
                     com_s = smooth(com_history)
 
-                        
-                    if joints["left_ankle"][0] < joints["right_ankle"][0]:
-                        direction = "Left"
+                                            
+                    if abs(ski_tilt_s) < 5 and abs(inclination_s) < 5:
+                        direction = "Neutral"
                     else:
-                        direction = "Right"
-
+                        direction = "Right" if ski_tilt_s > 0 else "Left"
                     # 前後半判定
                     if len(ski_tilt_history) >= 2:
                         diff = ski_tilt_history[-1] - ski_tilt_history[-2]
@@ -287,6 +286,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
 
 
