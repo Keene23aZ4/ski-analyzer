@@ -149,24 +149,7 @@ with st.sidebar:
 
     background_option = st.radio(t["background"], t["background_options"])
 
-    all_angles = [
-        "Knee Ext/Flex",
-        "Knee Abd/Add",
-        "Hip Ext/Flex",
-        "Hip Abd/Add",
-        "Torso Tilt",
-        "Inclination Angle"
-    ]
-
-    select_all = st.checkbox(t["select_all"], value=True)
-    if select_all:
-        angle_options = all_angles
-    else:
-        angle_options = st.multiselect(
-            t["angle_prompt"],
-            all_angles,
-            default=["Knee Ext/Flex", "Hip Ext/Flex", "Torso Tilt"]
-        )
+    
 
 # ファイルアップロード
 uploaded_file = st.file_uploader(t["upload"], type=["mp4", "mov"])
@@ -219,6 +202,7 @@ if uploaded_file:
             file_name="analyzed_ski_video.mp4",
             mime="video/mp4"
         )
+
 
 
 
