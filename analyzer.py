@@ -108,7 +108,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     temp_output_path = os.path.splitext(input_path)[0] + "_processed_temp.mp4"
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    out = cv2.VideoWriter(temp_output_path, fourcc, fps, (720, 1280))
+    out = cv2.VideoWriter(temp_output_path, fourcc, fps, (width, height*2))  
 
     with mp_pose.Pose() as pose:
         while ret:
@@ -221,8 +221,13 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                         cv2.circle(image, (x, y), 5, (0, 255, 0), -1)
                     
                     # 元動画を縦型にリサイズ
-                    video_resized = cv2.resize(image, (720, 640))  # 上半分に収まるように
+                    video_resized = resize_keep_aspect(image, target_width=720)
                     canvas[0:640, 0:720] = video_resized
+
+                    h, w = video_resized.shape[:2]
+                    x_offset = (canvas.shape[1] - w) // 2
+                    canvas[0:h, x_offset:x_offset+w] = video_resized
+
                         
                                       
                     grid_data = [
@@ -250,12 +255,17 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                         cv2.putText(canvas, value, (top_left[0] + cell_width + 5, top_left[1] + 25),
                                     cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 1)
 
-                    # 左下にターンフェーズ表示
-                    def resize_with_aspect_ratio(img, max_width, max_height):
+                    def resize_keep_aspect(img, target_width=None, target_height=None):
                         h, w = img.shape[:2]
-                        scale = min(max_width / w, max_height / h)
+                        if target_width and not target_height:
+                            scale = target_width / w
+                        elif target_height and not target_width:
+                            scale = target_height / h
+                        else:
+                            raise ValueError("どちらか一方だけ指定してください")
                         new_w, new_h = int(w * scale), int(h * scale)
                         return cv2.resize(img, (new_w, new_h))
+
                         
                     box_width, box_height = 300, 100
 
@@ -276,6 +286,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
 
 
