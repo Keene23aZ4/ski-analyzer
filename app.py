@@ -4,9 +4,6 @@ import base64
 from pathlib import Path
 from analyzer import process_video
 
-st.set_page_config(page_title="Streamlit App", page_icon=":shark:")
-
-
 # 言語選択
 language = st.sidebar.selectbox("Language / 言語 /语言 /語言/ 언어", ["English", "日本語", "简体中文", "繁体中文", "한국어"])
 
@@ -205,6 +202,7 @@ if uploaded_file:
             file_name="analyzed_ski_video.mp4",
             mime="video/mp4"
         )
+
 
 
 
