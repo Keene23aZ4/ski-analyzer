@@ -135,9 +135,9 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
             if img is not None:
                 h, w = img.shape[:2]
                 widths.append(w)
-    
+        
     max_width = max(widths) if widths else 1   # 最大横幅
-    target_width = canvas.shape[1] // 2        # 画面の半分
+    target_width = width // 2                  # 動画幅の半分
     scale = target_width / max_width           # 縮尺率
     with mp_pose.Pose() as pose:
         while ret:
@@ -318,6 +318,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
 
 
