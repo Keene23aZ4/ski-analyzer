@@ -164,7 +164,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     else:
                         phase = "--"
                     # 方向判定
-                    if abs(smoothed) < 5.0:
+                    if abs(smoothed) < 10.0:
                         turn_phase = "Neutral"
                     else:
                         direction = "Right" if smoothed > 0 else "Left"
@@ -264,6 +264,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
 
 
