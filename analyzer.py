@@ -277,11 +277,13 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     box_width, box_height = 300, 100
 
                     if phase_img_path and os.path.exists(phase_img_path):
-                        phase_resized = resize_keep_aspect(phase_img, target_width=canvas.shape[1])
-                        h, w = phase_resized.shape[:2]
-                        y_offset = (canvas.shape[0] - h) // 2   # 縦方向中央寄せ
-                        canvas[y_offset:y_offset+h, 0:w] = phase_resized
-                                                       
+                        phase_img = cv2.imread(phase_img_path)
+                        if phase_img is not None:
+                            phase_resized = resize_keep_aspect(phase_img, target_width=canvas.shape[1])
+                            h, w = phase_resized.shape[:2]
+                            y_offset = (canvas.shape[0] - h) // 2   # 縦方向中央寄せ
+                            canvas[y_offset:y_offset+h, 0:w] = phase_resized
+                                                           
            # 書き出し
             out.write(canvas)
             ret, frame = cap.read()
@@ -291,6 +293,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
 
 
