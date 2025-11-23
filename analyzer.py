@@ -179,13 +179,10 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     com_s = smooth(com_history)
 
                         
-                    if abs(ski_tilt_s) < 5 and abs(inclination_s) < 5:
-                        direction = "Neutral"
+                    if joints["left_ankle"][0] < joints["right_ankle"][0]:
+                        direction = "Left"
                     else:
-                        if (ski_tilt_s > 0 and com_s > 0) or (ski_tilt_s < 0 and com_s < 0):
-                            direction = "Right" if ski_tilt_s > 0 else "Left"
-                        else:
-                            direction = "Neutral"
+                        direction = "Right"
 
                     # 前後半判定
                     if len(ski_tilt_history) >= 2:
@@ -290,6 +287,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
 
 
