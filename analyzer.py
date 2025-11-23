@@ -279,10 +279,9 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     if phase_img_path and os.path.exists(phase_img_path):
                         phase_img = cv2.imread(phase_img_path)
                         if phase_img is not None:
-                            phase_resized = resize_keep_aspect(phase_img, target_width=300)
-                            h, w = phase_resized.shape[:2]
+                            h, w = phase_image.shape[:2]
                             y_offset = (canvas.shape[0] - h) // 2
-                            canvas[y_offset:y_offset+h, 0:w] = phase_resized
+                            canvas[y_offset:y_offset+h, 0:w] = phase_image
                                                        
            # 書き出し
             out.write(canvas)
@@ -293,6 +292,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
 
 
