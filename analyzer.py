@@ -108,7 +108,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     temp_output_path = os.path.splitext(input_path)[0] + "_processed_temp.mp4"
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    out = cv2.VideoWriter(temp_output_path, fourcc, fps, (width, height*2))
+    out = cv2.VideoWriter(temp_output_path, fourcc, fps, (720, 1280))
 
     with mp_pose.Pose() as pose:
         while ret:
@@ -119,7 +119,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
             image_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             results = pose.process(image_rgb)
             image = frame.copy() if show_background else np.zeros_like(frame)
-            canvas = np.zeros((height*2, width, 3), dtype=np.uint8)
+            canvas = np.zeros((1280, 720 3), dtype=np.uint8)
 
             grid_data = []
             if results.pose_landmarks:
@@ -219,8 +219,10 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
                     for name, (x, y) in joints.items():
                         cv2.circle(image, (x, y), 5, (0, 255, 0), -1)
-
-                    canvas[0:height, 0:width] = image
+                    
+                    # 元動画を縦型にリサイズ
+                    video_resized = cv2.resize(image, (720, 640))  # 上半分に収まるように
+                    canvas[0:640, 0:720] = video_resized
                         
                                       
                     grid_data = [
@@ -237,10 +239,10 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     ]
                 if grid_data:
                     cell_width, cell_height = 180, 40
-                    start_x, start_y = 30, height + 30  # 右端に寄せる
+                    start_x, start_y = 30, 640 + 30  # 右端に寄せる
                     for i, (label, value) in enumerate(grid_data):
-                        top_left = (start_x, start_y + i * cell_height)
-                        bottom_right = (start_x + cell_width * 2, start_y + (i + 1) * cell_height)
+                        top_left = (start_x, start_y + i * 40)
+                        bottom_right = (start_x + 300, start_y + (i + 1) * 40)
                         cv2.rectangle(canvas, top_left, bottom_right, (255, 255, 255), -1)
                         cv2.rectangle(canvas, top_left, bottom_right, (0, 0, 0), 1)
                         cv2.putText(canvas, label, (top_left[0] + 5, top_left[1] + 25),
@@ -253,22 +255,18 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                         h, w = img.shape[:2]
                         scale = min(max_width / w, max_height / h)
                         new_w, new_h = int(w * scale), int(h * scale)
-                        resized = cv2.resize(img, (new_w, new_h))
-                        canvas = np.zeros((max_height, max_width, 3), dtype=np.uint8)
-                        x_offset = (max_width - new_w) // 2
-                        y_offset = (max_height - new_h) // 2
-                        canvas[y_offset:y_offset+new_h, x_offset:x_offset+new_w] = resized
-                        return canvas
+                        return cv2.resize(img, (new_w, new_h))
                         
                     box_width, box_height = 300, 100
-                    # ターンフェーズ画像（下）
+
                     if phase_img_path and os.path.exists(phase_img_path):
                         phase_img = cv2.imread(phase_img_path)
                         if phase_img is not None:
-                            h, w = phase_img.shape[:2]
-                            x_offset, y_offset = 50, height + 200  # タイトルの下に配置
-                            canvas[y_offset:y_offset+h, x_offset:x_offset+w] = phase_img
-
+                            phase_resized = resize_with_aspect_ratio(phase_img, 300, 150)  # 下半分用にリサイズ
+                            h, w = phase_resized.shape[:2]
+                            x_offset = (canvas.shape[1] - w) // 2   # 横中央に配置
+                            y_offset = canvas.shape[0] - h - 50     # 下端から少し上に配置
+                            canvas[y_offset:y_offset+h, x_offset:x_offset+w] = phase_resized
            # 書き出し
             out.write(canvas)
             ret, frame = cap.read()
@@ -278,6 +276,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
 
 
