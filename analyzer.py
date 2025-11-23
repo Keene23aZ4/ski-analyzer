@@ -282,7 +282,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                             phase_resized = resize_keep_aspect(phase_img, (canvas.shape[1], canvas.shape[0]))  # 下半分用にリサイズ
                             h, w = phase_resized.shape[:2]
                             x_offset = (canvas.shape[1] - w) // 2
-                            y_offset = height + 50   # 下半分の上端から少し下げる
+                            y_offset = 0   # 下半分の上端から少し下げる
                             canvas[y_offset:y_offset+h, x_offset:x_offset+w] = phase_resized
                                                        
            # 書き出し
@@ -294,6 +294,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
 
 
