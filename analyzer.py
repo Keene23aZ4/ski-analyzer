@@ -118,7 +118,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
             image_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             results = pose.process(image_rgb)
             image = frame.copy() if show_background else np.zeros_like(frame)
-            canvas = np.zeros((height*2, width*2, 3), dtype=np.uint8)
+            canvas = np.zeros((height*2, width*, 3), dtype=np.uint8)
 
             grid_data = []
             if results.pose_landmarks:
@@ -236,7 +236,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     ]
                 if grid_data:
                     cell_width, cell_height = 180, 40
-                    start_x, start_y = width + 30, 30  # 右端に寄せる
+                    start_x, start_y = 30, height + 30  # 右端に寄せる
                     for i, (label, value) in enumerate(grid_data):
                         top_left = (start_x, start_y + i * cell_height)
                         bottom_right = (start_x + cell_width * 2, start_y + (i + 1) * cell_height)
@@ -265,7 +265,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                         phase_img = cv2.imread(phase_img_path)
                         if phase_img is not None:
                             h, w = phase_img.shape[:2]
-                            x_offset, y_offset = 50, height + 60 + h  # タイトルの下に配置
+                            x_offset, y_offset = 50, height + 200  # タイトルの下に配置
                             canvas[y_offset:y_offset+h, x_offset:x_offset+w] = phase_img
 
            # 書き出し
@@ -277,6 +277,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
 
 
