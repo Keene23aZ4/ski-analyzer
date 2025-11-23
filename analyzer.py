@@ -232,7 +232,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     
                     # 元動画を縦型にリサイズ
                     video_resized = resize_keep_aspect(image, target_width=720)
-                    canvas[0:640, 0:720] = video_resized
+                    canvas[0:h, 0:w] = video_resized
 
                     h, w = video_resized.shape[:2]
                     x_offset = (canvas.shape[1] - w) // 2
@@ -286,6 +286,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
 
 
