@@ -147,17 +147,26 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     right_abduction_angle = calculate_angle(hip_mid, joints["right_hip"], joints["right_knee"])
                     left_knee_abduction = calculate_angle(hip_mid, joints["left_knee"], joints["left_ankle"])
                     right_knee_abduction = calculate_angle(hip_mid, joints["right_knee"], joints["right_ankle"])
-
-                    def safe(val): return "--" if np.isnan(val) else f"{int(val)}°"
-                    inclination_display = "--" if np.isnan(inclination_angle) else f"{inclination_angle:.1f}°"
-
-                    if np.isnan(inclination_angle):
+                    
+                    # 履歴に追加
+                    left_knee_history.append(left_knee_angle)
+                    right_knee_history.append(right_knee_angle)
+                    inclination_history.append(inclination_angle)
+                    
+                    # 平滑化
+                    left_knee_s = smooth(left_knee_history)
+                    right_knee_s = smooth(right_knee_history)
+                    inclination_s = smooth(inclination_history)
+                    
+                    inclination_display = "--" if np.isnan(inclination_s) else f"{inclination_s:.1f}°"
+                    
+                    if np.isnan(inclination_s):
                         turn_phase = "--"
-                    elif inclination_angle <= 10.0:
+                    elif inclination_s <= 10.0:
                         turn_phase = "Neutral"
                     else:
-                        left_knee_sum = left_knee_abduction + left_knee_angle
-                        right_knee_sum = right_knee_abduction + right_knee_angle
+                        left_knee_sum = left_knee_abduction + left_knee_s
+                        right_knee_sum = right_knee_abduction + right_knee_s
                         if left_knee_sum > right_knee_sum:
                             primary = "Left"
                             left_hip_sum = left_hip_angle + left_abduction_angle
@@ -264,6 +273,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
 
 
