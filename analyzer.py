@@ -90,7 +90,7 @@ def merge_audio(original_path, processed_path):
     return output_path
     
 def safe(val):
-    return "--" if np.isnan(val) else f"{int(val)}°"
+    return "--" if np.isnan(val) else f"{int(val)}"
 def process_video(input_path, progress_callback=None, show_background=True, selected_angles=None):
     left_knee_history = []
     right_knee_history = []
@@ -119,8 +119,6 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
     temp_output_path = os.path.splitext(input_path)[0] + "_processed_temp.mp4"
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     out = cv2.VideoWriter(temp_output_path, fourcc, fps, (720, 1280))  
-    ft = cv2.freetype.createFreeType2()
-    ft.loadFontData(fontFileName="/absolute/path/to/NotoSans-Regular.ttf", id=0)
 
     # 事前に全フェーズ画像の横幅を調べて最大値を決定
     phase_paths = [
@@ -195,7 +193,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     right_knee_s = smooth(right_knee_history)
                     inclination_s = smooth(inclination_history)
                     
-                    inclination_display = "--" if np.isnan(inclination_s) else f"{inclination_s:.1f}°"
+                    inclination_display = "--" if np.isnan(inclination_s) else f"{inclination_s:.1f}"
                     
                     if np.isnan(inclination_s):
                         turn_phase = "--"
@@ -274,7 +272,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                         ["R-Hip Ext/Flex", safe(right_hip_angle)],
                         ["L-Hip Abd/Add", safe(left_abduction_angle)],
                         ["R-Hip Abd/Add", safe(right_abduction_angle)],
-                        ["Torso Tilt", f"{torso_angle:.1f}°"],
+                        ["Torso Tilt", f"{torso_angle:.1f}"],
                         ["Inclination Angle", inclination_display]
                     ]
                 if grid_data:
@@ -291,9 +289,8 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                         cv2.rectangle(canvas, top_left, bottom_right, (0, 0, 0), 1)
                         cv2.putText(canvas, label, (top_left[0] + 5, top_left[1] + 25),
                                     cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 1)
-                        ft.putText(canvas, value, (top_left[0] + cell_width + 5, top_left[1] + 25),
-                                   fontHeight=24, color=(0, 0, 0),
-                                   thickness=-1, line_type=cv2.LINE_AA)
+                        cv2.putText(canvas, value, (top_left[0] + cell_width + 5, top_left[1] + 25),
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 1)
 
 
 
@@ -323,6 +320,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
 
 
