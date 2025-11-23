@@ -275,7 +275,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     if phase_img_path and os.path.exists(phase_img_path):
                         phase_img = cv2.imread(phase_img_path)
                         if phase_img is not None:
-                            phase_resized = resize_keep_aspect(phase_img, 300, 150)  # 下半分用にリサイズ
+                            phase_resized = resize_keep_aspect(phase_img, target_width=300)  # 下半分用にリサイズ
                             h, w = phase_resized.shape[:2]
                             x_offset = (canvas.shape[1] - w) // 2   # 横中央に配置
                             y_offset = canvas.shape[0] - h - 50     # 下端から少し上に配置
@@ -289,6 +289,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
 
 
