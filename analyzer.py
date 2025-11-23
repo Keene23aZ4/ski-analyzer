@@ -149,26 +149,45 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     left_tilt = calculate_ski_tilt(joints["left_ankle"], joints["left_foot_index"])
                     right_tilt = calculate_ski_tilt(joints["right_ankle"], joints["right_foot_index"])
                     avg_tilt = np.nanmean([left_tilt, right_tilt])
-                    # 傾き履歴を保持
-                    tilt_history.append(avg_tilt)
+                    ski_tilt = np.nanmean([
+                        calculate_ski_tilt(joints["left_ankle"], joints["left_foot_index"]),
+                        calculate_ski_tilt(joints["right_ankle"], joints["right_foot_index"])
+                    ])
+                    
+                    torso_angle = calculate_torso_angle(shoulder_mid, hip_mid)
+                    inclination_angle = calculate_inclination_angle(center, foot_mid)
+                    
+                    com_x = np.mean([joints["left_shoulder"][0], joints["right_shoulder"][0],
+                                     joints["left_hip"][0], joints["right_hip"][0],
+                                     joints["left_ankle"][0], joints["right_ankle"][0]])                    
+                    ski_tilt_history.append(ski_tilt)
+                    torso_history.append(torso_angle)
+                    inclination_history.append(inclination_angle)
+                    com_history.append(com_x)
+
                     # 移動平均で平滑化
-                    window = 5            
-                    if len(tilt_history) >= window:
-                        smoothed = np.mean(tilt_history[-window:])
+                    def smooth(history, window=5):
+                        if len(history) < window:
+                            return np.mean(history)
+                        return np.mean(history[-window:])
+                    ski_tilt_s = smooth(ski_tilt_history)
+                    torso_s = smooth(torso_history)
+                    inclination_s = smooth(inclination_history)
+                    com_s = smooth(com_history)
+
+                        
+                    if abs(ski_tilt_s) < 5 and abs(inclination_s) < 5:
+                        direction = "Neutral"
                     else:
-                        smoothed = avg_tilt
+                        direction = "Right" if ski_tilt_s > 0 else "Left"
                     # 前後半判定
-                    if len(tilt_history) >= 2:
-                        diff = tilt_history[-1] - tilt_history[-2]
+                    if len(ski_tilt_history) >= 2:
+                        diff = ski_tilt_history[-1] - ski_tilt_history[-2]
                         phase = "First Half" if diff > 0 else "Second Half"
                     else:
                         phase = "--"
-                    # 方向判定
-                    if abs(smoothed) < 10.0:
-                        turn_phase = "Neutral"
-                    else:
-                        direction = "Right" if smoothed > 0 else "Left"
-                        turn_phase = f"{direction} ({phase})"
+                    turn_phase = f"{direction} ({phase})"
+
                                             
                     if turn_phase == "Neutral":
                         phase_img_path = "image/turn_phase_neutral.png"
