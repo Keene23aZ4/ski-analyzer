@@ -147,22 +147,26 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     left_tilt = calculate_ski_tilt(joints["left_ankle"], joints["left_foot_index"])
                     right_tilt = calculate_ski_tilt(joints["right_ankle"], joints["right_foot_index"])
                     avg_tilt = np.nanmean([left_tilt, right_tilt])
+                    # 傾き履歴を保持
                     tilt_history.append(avg_tilt)
-                    if np.isnan(avg_tilt):
-                        turn_phase = "--"
-                    elif abs(avg_tilt) < 5.0:  # 傾きが小さいときはニュートラル
+                    # 移動平均で平滑化
+                    window = 5            
+                    if len(tilt_history) >= window:
+                        smoothed = np.mean(tilt_history[-window:])
+                    else:
+                        smoothed = avg_tilt
+                    # 前後半判定
+                    if len(tilt_history) >= 2:
+                        diff = tilt_history[-1] - tilt_history[-2]
+                        phase = "First Half" if diff > 0 else "Second Half"
+                    else:
+                        phase = "--"
+                    # 方向判定
+                    if abs(smoothed) < 5.0:
                         turn_phase = "Neutral"
                     else:
-                        # 方向判定
-                        direction = "Right" if avg_tilt > 0 else "Left"
-                        # 前後半判定（傾きの増減）
-                        if len(tilt_history) >= 2:
-                            diff = tilt_history[-1] - tilt_history[-2]
-                            phase = "First Half" if diff > 0 else "Second Half"
-                        else:
-                            phase = "--"
+                        direction = "Right" if smoothed > 0 else "Left"
                         turn_phase = f"{direction} ({phase})"
-
                                             
                     if turn_phase == "Neutral":
                         phase_img_path = "image/turn_phase_neutral.png"
@@ -258,6 +262,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
 
 
