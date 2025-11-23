@@ -120,7 +120,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     out = cv2.VideoWriter(temp_output_path, fourcc, fps, (720, 1280))  
     ft = cv2.freetype.createFreeType2()
-    ft.loadFontData(fontFileName="fonts/NotoSans-Regular.ttf", id=0)
+    ft.loadFontData(fontFileName="/absolute/path/to/NotoSans-Regular.ttf", id=0)
 
     # 事前に全フェーズ画像の横幅を調べて最大値を決定
     phase_paths = [
@@ -323,6 +323,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
 
 
