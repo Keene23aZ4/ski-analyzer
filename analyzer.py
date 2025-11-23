@@ -288,9 +288,9 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                         cv2.rectangle(canvas, top_left, bottom_right, (255, 255, 255), -1)
                         cv2.rectangle(canvas, top_left, bottom_right, (0, 0, 0), 1)
                         cv2.putText(canvas, label, (top_left[0] + 5, top_left[1] + 25),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 1)
+                                    cv2.FONT_HERSHEY_TRIPLEX, 0.6, (0, 0, 0), 1)
                         cv2.putText(canvas, value, (top_left[0] + cell_width + 5, top_left[1] + 25),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 1)
+                                    cv2.FONT_HERSHEY_TRIPLEX, 0.6, (0, 0, 0), 1)
 
 
 
@@ -320,3 +320,4 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
