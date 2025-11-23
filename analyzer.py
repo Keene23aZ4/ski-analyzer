@@ -256,8 +256,12 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                         ["Inclination Angle", inclination_display]
                     ]
                 if grid_data:
-                    cell_width, cell_height = 180, 40
-                    start_x, start_y = 30, 640 + 30  # 右端に寄せる
+                    cell_height = 40
+                    num_rows = len(grid_data)
+                    grid_height = num_rows * cell_height
+                    
+                    start_x = 30
+                    start_y = canvas.shape[0] - grid_height - 30  # キャンバス下端から30px上に開始
                     for i, (label, value) in enumerate(grid_data):
                         top_left = (start_x, start_y + i * 40)
                         bottom_right = (start_x + 300, start_y + (i + 1) * 40)
@@ -277,9 +281,10 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                         if phase_img is not None:
                             phase_resized = resize_keep_aspect(phase_img, target_width=300)  # 下半分用にリサイズ
                             h, w = phase_resized.shape[:2]
-                            x_offset = (canvas.shape[1] - w) // 2   # 横中央に配置
-                            y_offset = canvas.shape[0] - h - 50     # 下端から少し上に配置
+                            x_offset = (canvas.shape[1] - w) // 2
+                            y_offset = height + 50   # 下半分の上端から少し下げる
                             canvas[y_offset:y_offset+h, x_offset:x_offset+w] = phase_resized
+                                                       
            # 書き出し
             out.write(canvas)
             ret, frame = cap.read()
@@ -289,6 +294,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
 
 
