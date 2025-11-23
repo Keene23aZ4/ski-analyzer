@@ -1,4 +1,3 @@
-
 import streamlit as st
 
 # タブ名に表示される
