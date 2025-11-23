@@ -72,6 +72,7 @@ def merge_audio(original_path, processed_path):
         ]
 
     result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    print("FFmpeg stderr:", result.stderr.decode())
     if not os.path.exists(output_path):
         print("FFmpeg stderr:", result.stderr.decode())
         raise FileNotFoundError(f"Failed to create output file: {output_path}")
@@ -107,7 +108,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     temp_output_path = os.path.splitext(input_path)[0] + "_processed_temp.mp4"
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    out = cv2.VideoWriter(temp_output_path, fourcc, fps, (width*2, height*2))
+    out = cv2.VideoWriter(temp_output_path, fourcc, fps, (width, height*2))
 
     with mp_pose.Pose() as pose:
         while ret:
@@ -277,6 +278,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
 
 
