@@ -280,11 +280,15 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                         phase_img = cv2.imread(phase_img_path)
                         if phase_img is not None:
                             phase_resized = resize_keep_aspect(phase_img, target_height=canvas.shape[0])
-                            
                             h, w = phase_resized.shape[:2]
-                            x_offset = (canvas.shape[1] - w) // 2   # 横方向は中央寄せ
-                            y_offset = 0                            # 上から配置するなら 0
-                            canvas[y_offset:y_offset+h, x_offset:x_offset+w] = phase_resized
+                            
+                            # 横幅がキャンバスより大きい場合は中央を切り出す
+                            if w > canvas.shape[1]:
+                                x_start = (w - canvas.shape[1]) // 2
+                                phase_resized = phase_resized[:, x_start:x_start+canvas.shape[1]]
+                            
+                            # 貼り付け
+                            canvas[0:h, 0:canvas.shape[1]] = phase_resized
                                                        
            # 書き出し
             out.write(canvas)
@@ -295,6 +299,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
 
 
