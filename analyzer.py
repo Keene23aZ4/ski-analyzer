@@ -119,7 +119,26 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
     temp_output_path = os.path.splitext(input_path)[0] + "_processed_temp.mp4"
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     out = cv2.VideoWriter(temp_output_path, fourcc, fps, (720, 1280))  
-
+    # 事前に全フェーズ画像の横幅を調べて最大値を決定
+    phase_paths = [
+        "image/turn_phase_neutral.png",
+        "image/turn_phase_left_1st.png",
+        "image/turn_phase_left_2nd.png",
+        "image/turn_phase_right_1st.png",
+        "image/turn_phase_right_2nd.png"
+    ]
+    
+    widths = []
+    for path in phase_paths:
+        if os.path.exists(path):
+            img = cv2.imread(path)
+            if img is not None:
+                h, w = img.shape[:2]
+                widths.append(w)
+    
+    max_width = max(widths) if widths else 1   # 最大横幅
+    target_width = canvas.shape[1] // 2        # 画面の半分
+    scale = target_width / max_width           # 縮尺率
     with mp_pose.Pose() as pose:
         while ret:
             current_frame = int(cap.get(cv2.CAP_PROP_POS_FRAMES))
@@ -279,10 +298,16 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     if phase_img_path and os.path.exists(phase_img_path):
                         phase_img = cv2.imread(phase_img_path)
                         if phase_img is not None:
-                            phase_resized = resize_keep_aspect(phase_img, target_width=canvas.shape[1])
+                            # 最大横幅に合わせた縮尺率でリサイズ
+                            h, w = phase_img.shape[:2]
+                            new_w, new_h = int(w * scale), int(h * scale)
+                            phase_resized = cv2.resize(phase_img, (new_w, new_h))
+                        
+                            # 貼り付け位置（中央寄せ）
                             h, w = phase_resized.shape[:2]
-                            y_offset = (canvas.shape[0] - h) // 2   # 縦方向中央寄せ
-                            canvas[y_offset:y_offset+h, 0:w] = phase_resized
+                            x_offset = (canvas.shape[1] - w) // 2
+                            y_offset = canvas.shape[0] - h - 50
+                            canvas[y_offset:y_offset+h, x_offset:x_offset+w] = phase_resized
                                                            
            # 書き出し
             out.write(canvas)
@@ -293,6 +318,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
 
 
