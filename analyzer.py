@@ -24,6 +24,12 @@ def calculate_inclination_angle(center, foot_mid):
         return np.nan
     return np.degrees(np.arctan(abs(dx) / abs(dy)))
 
+def calculate_ski_tilt(ankle, toe):
+    dx, dy = toe[0] - ankle[0], toe[1] - ankle[1]
+    if dx == 0 and dy == 0:
+        return np.nan
+    return np.degrees(np.arctan2(dy, dx))  # 水平に対する角度
+
 def merge_audio(original_path, processed_path):
     if not os.path.exists(original_path):
         raise FileNotFoundError(f"Original video file not found: {original_path}")
@@ -70,6 +76,7 @@ def merge_audio(original_path, processed_path):
 def safe(val):
     return "--" if np.isnan(val) else f"{int(val)}°"
 def process_video(input_path, progress_callback=None, show_background=True, selected_angles=None):
+    tilt_history = []
     mp_pose = mp.solutions.pose
     KEYPOINTS = {
         "nose": 0,
@@ -78,7 +85,8 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
         "left_wrist": 15, "right_wrist": 16,
         "left_hip": 23, "right_hip": 24,
         "left_knee": 25, "right_knee": 26,
-        "left_ankle": 27, "right_ankle": 28
+        "left_ankle": 27, "right_ankle": 28,
+        "left_foot_index": 31, "right_foot_index": 32
     }
 
     cap = cv2.VideoCapture(input_path)
@@ -136,28 +144,25 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     right_abduction_angle = calculate_angle(hip_mid, joints["right_hip"], joints["right_knee"])
                     left_knee_abduction = calculate_angle(hip_mid, joints["left_knee"], joints["left_ankle"])
                     right_knee_abduction = calculate_angle(hip_mid, joints["right_knee"], joints["right_ankle"])
-
-                    def safe(val): return "--" if np.isnan(val) else f"{int(val)}°"
-                    inclination_display = "--" if np.isnan(inclination_angle) else f"{inclination_angle:.1f}°"
-
-                    if np.isnan(inclination_angle):
+                    left_tilt = calculate_ski_tilt(joints["left_ankle"], joints["left_foot_index"])
+                    right_tilt = calculate_ski_tilt(joints["right_ankle"], joints["right_foot_index"])
+                    avg_tilt = np.nanmean([left_tilt, right_tilt])
+                    tilt_history.append(avg_tilt)
+                    if np.isnan(avg_tilt):
                         turn_phase = "--"
-                    elif inclination_angle <= 10.0:
+                    elif abs(avg_tilt) < 5.0:  # 傾きが小さいときはニュートラル
                         turn_phase = "Neutral"
                     else:
-                        left_knee_sum = left_knee_abduction + left_knee_angle
-                        right_knee_sum = right_knee_abduction + right_knee_angle
-                        if left_knee_sum > right_knee_sum:
-                            primary = "Left"
-                            left_hip_sum = left_hip_angle + left_abduction_angle
-                            right_hip_sum = right_hip_angle + right_abduction_angle
-                            phase = "First Half" if left_hip_sum > right_hip_sum else "Second Half"
+                        # 方向判定
+                        direction = "Right" if avg_tilt > 0 else "Left"
+                        # 前後半判定（傾きの増減）
+                        if len(tilt_history) >= 2:
+                            diff = tilt_history[-1] - tilt_history[-2]
+                            phase = "First Half" if diff > 0 else "Second Half"
                         else:
-                            primary = "Right"
-                            right_hip_sum = right_hip_angle + right_abduction_angle
-                            left_hip_sum = left_hip_angle + left_abduction_angle
-                            phase = "First Half" if right_hip_sum > left_hip_sum else "Second Half"
-                        turn_phase = f"{primary} ({phase})"
+                            phase = "--"
+                        turn_phase = f"{direction} ({phase})"
+
                                             
                     if turn_phase == "Neutral":
                         phase_img_path = "image/turn_phase_neutral.png"
@@ -253,6 +258,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
 
 
