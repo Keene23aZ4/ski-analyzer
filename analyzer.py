@@ -33,7 +33,17 @@ def smooth(history, window=5):
     if len(history) < window:
         return np.mean(history)
     return np.mean(history[-window:])
-
+    
+def resize_keep_aspect(img, target_width=None, target_height=None):
+    h, w = img.shape[:2]
+    if target_width and not target_height:
+        scale = target_width / w
+    elif target_height and not target_width:
+        scale = target_height / h
+    else:
+        raise ValueError("どちらか一方だけ指定してください")
+    new_w, new_h = int(w * scale), int(h * scale)
+    return cv2.resize(img, (new_w, new_h))
 
 def merge_audio(original_path, processed_path):
     if not os.path.exists(original_path):
@@ -255,16 +265,6 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                         cv2.putText(canvas, value, (top_left[0] + cell_width + 5, top_left[1] + 25),
                                     cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 1)
 
-                    def resize_keep_aspect(img, target_width=None, target_height=None):
-                        h, w = img.shape[:2]
-                        if target_width and not target_height:
-                            scale = target_width / w
-                        elif target_height and not target_width:
-                            scale = target_height / h
-                        else:
-                            raise ValueError("どちらか一方だけ指定してください")
-                        new_w, new_h = int(w * scale), int(h * scale)
-                        return cv2.resize(img, (new_w, new_h))
 
                         
                     box_width, box_height = 300, 100
@@ -286,6 +286,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
 
 
