@@ -256,7 +256,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                         ["Inclination Angle", inclination_display]
                     ]
                 if grid_data:
-                    cell_height = 40
+                    cell_width, cell_height = 180, 40
                     num_rows = len(grid_data)
                     grid_height = num_rows * cell_height
                     
@@ -294,6 +294,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
 
 
