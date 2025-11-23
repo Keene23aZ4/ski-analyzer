@@ -281,7 +281,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                         if phase_img is not None:
                             phase_resized = resize_keep_aspect(phase_img, target_width=canvas.shape[1])
                             h, w = phase_resized.shape[:2]
-                            y_offset = (canvas.shape[0] - h) // 2  # 縦方向中央寄せ
+                            y_offset = (canvas.shape[0] - h) // 2
                             canvas[y_offset:y_offset+h, 0:w] = phase_resized
                                                        
            # 書き出し
@@ -293,6 +293,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
 
 
