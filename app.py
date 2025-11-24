@@ -139,6 +139,8 @@ def set_background():
         )
 set_background()
 
+st.set_page_config(page_title="top page", page_icon="")
+
 # タイトル
 st.title(t["title"])
 
@@ -202,6 +204,7 @@ if uploaded_file:
             file_name="analyzed_ski_video.mp4",
             mime="video/mp4"
         )
+
 
 
 
