@@ -28,17 +28,7 @@ def calculate_ski_tilt(ankle, toe):
     if dx == 0 and dy == 0:
         return np.nan
     return np.degrees(np.arctan2(-dy, dx))  # ← y軸補正済み
-def calculate_motion_direction(prev_point, curr_point):
-    dx, dy = curr_point[0] - prev_point[0], curr_point[1] - prev_point[1]
-    if dx == 0 and dy == 0:
-        return np.nan
-    return np.degrees(np.arctan2(-dy, dx))  # y軸補正
 
-def detect_skid(ski_angle, motion_angle, threshold=10):
-    if np.isnan(ski_angle) or np.isnan(motion_angle):
-        return False
-    diff = abs(ski_angle - motion_angle)
-    return diff > threshold    
 
 def smooth(history, window=5):
     if len(history) < window:
@@ -106,7 +96,6 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
     left_knee_history = []
     right_knee_history = []
     inclination_history = []
-    prev_foot_mid = None
 
     mp_pose = mp.solutions.pose
     KEYPOINTS = {
@@ -345,6 +334,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
 
 
