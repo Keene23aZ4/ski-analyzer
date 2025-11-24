@@ -5,7 +5,7 @@ from pathlib import Path
 from analyzer import process_video
 
 # 言語選択
-language = st.sidebar.selectbox("Language/言語/语言/語言/언어", ["English", "日本語", "简体中文", "繁体中文", "한국어"])
+language = st.sidebar.selectbox("Language/言語/语言", ["English", "日本語", "简体中文"])
 
 # 翻訳辞書
 translations = {
@@ -65,44 +65,6 @@ translations = {
         "Hip Abd/Add": "髋关节 外展/内收",
         "Torso Tilt": "前倾角度",
         "Inclination Angle": "内倾角度"
-    },
-    "繁体中文": {
-        "title": "滑雪動作分析應用程式",
-        "sidebar_title": "致所有滑雪者",
-        "caption": "可視化骨骼結構、關節角度、前傾角度與內傾角度的變化",
-        "background": "選擇是否顯示影片背景",
-        "background_options": ["顯示", "隱藏"],
-        "select_all": "選擇所有關節角度",
-        "angle_prompt": "選擇要顯示的關節角度",
-        "upload": "上傳影片",
-        "analyzing": "分析中... {percent}/100%",
-        "done": "分析完成",
-        "download": "下載",
-        "Knee Ext/Flex": "膝關節 伸展／屈曲",
-        "Knee Abd/Add": "膝關節 外展／內收",
-        "Hip Ext/Flex": "髖關節 伸展／屈曲",
-        "Hip Abd/Add": "髖關節 外展／內收",
-        "Torso Tilt": "前傾角度",
-        "Inclination Angle": "內傾角度"
-    },
-    "한국어": {
-        "title": "스키 동작 분석 애플리케이션",
-        "sidebar_title": "모든 스키어를 위해",
-        "caption": "골격 구조, 관절 각도, 전경 각도, 내경 각도의 변화를 시각화",
-        "background": "영상 배경 표시 여부 선택",
-        "background_options": ["표시", "숨김"],
-        "select_all": "모든 관절 각도 선택",
-        "angle_prompt": "표시할 관절 각도 선택",
-        "upload": "영상 업로드",
-        "analyzing": "분석 중... {percent}/100%",
-        "done": "분석 완료",
-        "download": "다운로드",
-        "Knee Ext/Flex": "무릎 관절 신전/굴곡",
-        "Knee Abd/Add": "무릎 관절 외전/내전",
-        "Hip Ext/Flex": "엉덩이 관절 신전/굴곡",
-        "Hip Abd/Add": "엉덩이 관절 외전/내전",
-        "Torso Tilt": "전경 각도",
-        "Inclination Angle": "내경 각도"
     }
 }
 t = translations[language]
@@ -204,6 +166,7 @@ if uploaded_file:
             file_name="analyzed_ski_video.mp4",
             mime="video/mp4"
         )
+
 
 
 
