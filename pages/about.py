@@ -5,7 +5,7 @@ from pathlib import Path
 
 # 背景画像設定
 def set_background():
-    img_path = Path("static" / "1704273575813.jpg")
+    img_path = Path("static/1704273575813.jpg")
     if img_path.exists():
         encoded = base64.b64encode(img_path.read_bytes()).decode()
         mime = "image/jpeg"
