@@ -35,4 +35,4 @@ def set_background():
         )
 set_background()
 
-st.write("Page A")
+st.write("coming soon...")
