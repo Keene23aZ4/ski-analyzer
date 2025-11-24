@@ -137,18 +137,12 @@ if uploaded_file:
             f"<p style='text-align:center; color:#007BFF; font-size:18px;'>{t['analyzing'].format(percent=percent)}</p>",
             unsafe_allow_html=True
         )
-    angle_options = [
-        "L-Knee Ext/Flex",
-        "R-Knee Ext/Flex",
-        "Torso Tilt",
-        "Inclination Angle"
-    ]
+
 
     output_path = process_video(
         input_path,
         progress_callback=update_progress,
         show_background=(background_option == t["background_options"][0]),
-        selected_angles=angle_options
     )
 
     progress_container.markdown(
@@ -170,6 +164,7 @@ if uploaded_file:
             file_name="analyzed_ski_video.mp4",
             mime="video/mp4"
         )
+
 
 
 
