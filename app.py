@@ -33,10 +33,10 @@ translations = {
         "sidebar_title": "",
         "caption": "骨格構造、関節角度、前傾角度、内傾角度の変化を可視化",
         "background": "動画の背景",
-        "background_options": ["表示", "非表示"],
+        "background_options": ["表示", "非表示 (骨格のみ抽出)"],
         "select_all": "すべての関節角度を選択する",
         "angle_prompt": "表示する関節角度",
-        "upload": "動画をアップロード",
+        "upload": "動画をアップロード (5.00MB以下推奨)",
         "analyzing": "解析中... {percent}/100%",
         "done": "解析完了",
         "download": "ダウンロード",
@@ -166,6 +166,7 @@ if uploaded_file:
             file_name="analyzed_ski_video.mp4",
             mime="video/mp4"
         )
+
 
 
 
