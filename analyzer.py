@@ -170,7 +170,14 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     foot_mid = ((joints["left_ankle"][0] + joints["right_ankle"][0]) // 2,
                                 (joints["left_ankle"][1] + joints["right_ankle"][1]) // 2)
                     center = ((shoulder_mid[0] + hip_mid[0]) // 2, (shoulder_mid[1] + hip_mid[1]) // 2)
-
+                   
+                    if prev_foot_mid is not None:
+                        motion_angle = calculate_motion_direction(prev_foot_mid, foot_mid)
+                    else:
+                        motion_angle = np.nan
+                    prev_foot_mid = foot_mid
+                    
+                    ski_tilt_angle = calculate_ski_tilt(joints["left_ankle"], joints["right_ankle"])
                     torso_angle = calculate_torso_angle(shoulder_mid, hip_mid)
                     inclination_angle = calculate_inclination_angle(center, foot_mid)
 
@@ -226,6 +233,10 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                         phase_img_path = "image/turn_phase_right_2nd.png"
                     else:
                         phase_img_path = None
+                    skid_flag = False
+                    if "Second Half" in turn_phase:
+                        skid_flag = detect_skid(ski_tilt_angle, motion_angle)
+                        
 
                     # 骨格ラインと関節点は image に描画
                     connections = [
@@ -275,6 +286,8 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                         ["Torso Tilt", f"{torso_angle:.1f}"],
                         ["Inclination Angle", inclination_display]
                     ]
+                    grid_data.append(["Skid (Second Half)", "Yes" if skid_flag else "No"])
+
                 if grid_data:
                     cell_width, cell_height = 180, 40
                     num_rows = len(grid_data)
@@ -320,4 +333,5 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
