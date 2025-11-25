@@ -219,9 +219,8 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
     final_output = merge_audio(input_path, temp_output_path)
     os.remove(temp_output_path)
 
-df = pd.DataFrame(records)
-print(df.head())  # 確認用
-df.tocsv("analysisresults.csv", index=False)
-
+    df = pd.DataFrame(records)
+    print(df.head())  # 確認用
+    df.tocsv("analysisresults.csv", index=False)
     return final_output
 
