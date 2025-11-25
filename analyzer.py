@@ -235,20 +235,12 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                         ("left_hip", "right_hip"), ("left_shoulder", "right_shoulder"),
                         ("left_shoulder", "left_elbow"), ("right_shoulder", "right_elbow"),
                         ("right_shoulder", "right_hip"), ("left_shoulder", "left_hip"),
-                        ("right_shoulder", "left_hip"), ("left_shoulder", "right_hip"),
                         ("right_elbow", "right_wrist"), ("left_elbow", "left_wrist")
                     ]
                     for a, b in connections:
                         if a in joints and b in joints:
                             pt1, pt2 = joints[a], joints[b]
-                            color = (255, 0, 255) if (a, b) in [
-                                ("left_hip", "right_hip"),
-                                ("left_shoulder", "right_shoulder"),
-                                ("left_shoulder", "left_hip"),
-                                ("right_shoulder", "right_hip"),
-                                ("right_shoulder", "left_hip"),
-                                ("left_shoulder", "right_hip")
-                            ] else (0, 255, 255)
+                            color = (255, 0, 255)
                             cv2.line(image, pt1, pt2, color, 2)
 
                     for name, (x, y) in joints.items():
