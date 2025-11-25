@@ -285,12 +285,12 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     for i, (label, value) in enumerate(grid_data):
                         top_left = (start_x, start_y + i * 40)
                         bottom_right = (start_x + 300, start_y + (i + 1) * 40)
-                        cv2.rectangle(canvas, top_left, bottom_right, (255, 255, 255), -1)
-                        cv2.rectangle(canvas, top_left, bottom_right, (0, 0, 0), 1)
+                        cv2.rectangle(canvas, top_left, bottom_right, (0, 0, 0), -1)
+                        cv2.rectangle(canvas, top_left, bottom_right, (255, 255, 255), 1)
                         cv2.putText(canvas, label, (top_left[0] + 5, top_left[1] + 25),
-                                    cv2.FONT_HERSHEY_TRIPLEX, 0.6, (0, 0, 0), 1)
+                                    cv2.FONT_HERSHEY_TRIPLEX, 0.6, (255, 255, 255), 1)
                         cv2.putText(canvas, value, (top_left[0] + cell_width + 5, top_left[1] + 25),
-                                    cv2.FONT_HERSHEY_TRIPLEX, 0.6, (0, 0, 0), 1)
+                                    cv2.FONT_HERSHEY_TRIPLEX, 0.6, (255, 255, 255), 1)
 
 
 
