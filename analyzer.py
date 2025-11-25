@@ -3,6 +3,7 @@ import mediapipe as mp
 import numpy as np
 import os
 import subprocess
+import pandas as pd
 
 def calculate_angle(a, b, c):
     a, b, c = np.array(a), np.array(b), np.array(c)
@@ -320,4 +321,5 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     return final_output
+
 
