@@ -66,7 +66,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
     temp_output_path = os.path.splitext(input_path)[0] + "_processed_temp.mp4"
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     out = cv2.VideoWriter(temp_output_path, fourcc, fps, (width, height))
-
+　records = ［］
 
     with mp_pose.Pose() as pose:
         while ret:
@@ -151,7 +151,22 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                                     phase = "First Half" if right_hip_sum > left_hip_sum else "Second Half"
 
                                 turn_phase = f"{primary} ({phase})"
-                 
+                                angle_record = {
+                                    "Frame": current_frame,
+                                    "L-Knee Ext/Flex": left_knee_angle,
+                                    "R-Knee Ext/Flex": right_knee_angle,
+                                    "L-Knee Abd/Add": left_knee_abduction,
+                                    "R-Knee Abd/Add": right_knee_abduction,
+                                    "L-Hip Ext/Flex": left_hip_angle,
+                                    "R-Hip Ext/Flex": right_hip_angle,
+                                    "L-Hip Abd/Add": left_abduction_angle,
+                                    "R-Hip Abd/Add": right_abduction_angle,
+                                    "Torso Tilt": torso_angle,
+                                    "Inclination Angle": inclination_angle,
+                                    "Turn Phase": turn_phase
+                                }
+                                records.append(angle_record)
+
                             angle_texts.append(f"Turn Phase: {turn_phase}")
 
                           
@@ -203,6 +218,10 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     final_output = merge_audio(input_path, temp_output_path)
     os.remove(temp_output_path)
+
+df = pd.DataFrame(records)
+print(df.head())  # 確認用
+df.tocsv("analysisresults.csv", index=False)
 
     return final_output
 
