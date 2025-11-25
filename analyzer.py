@@ -233,8 +233,9 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                         ("left_ankle", "left_knee"), ("left_knee", "left_hip"),
                         ("right_ankle", "right_knee"), ("right_knee", "right_hip"),
                         ("left_hip", "right_hip"), ("left_shoulder", "right_shoulder"),
-                        ("left_shoulder", "left_wrist"), ("right_shoulder", "right_wrist"),
+                        ("left_shoulder", "left_elbow"), ("right_shoulder", "right_elbow"),
                         ("right_shoulder", "right_hip"), ("left_shoulder", "left_hip"),
+                        ("right_shoulder", "left_hip"), ("left_shoulder", "right_hip"),
                         ("right_elbow", "right_wrist"), ("left_elbow", "left_wrist")
                     ]
                     for a, b in connections:
@@ -244,7 +245,9 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                                 ("left_hip", "right_hip"),
                                 ("left_shoulder", "right_shoulder"),
                                 ("left_shoulder", "left_hip"),
-                                ("right_shoulder", "right_hip")
+                                ("right_shoulder", "right_hip"),
+                                ("right_shoulder", "left_hip"),
+                                ("left_shoulder", "right_hip")
                             ] else (0, 255, 255)
                             cv2.line(image, pt1, pt2, color, 2)
 
