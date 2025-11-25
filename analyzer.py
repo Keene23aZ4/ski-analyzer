@@ -3,6 +3,7 @@ import mediapipe as mp
 import numpy as np
 import os
 import subprocess
+import pandas as pd
 
 def calculate_angle(a, b, c):
     a = np.array(a)
