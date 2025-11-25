@@ -255,12 +255,11 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     video_resized = resize_keep_aspect(image, target_width=720)
                     h, w = video_resized.shape[:2]
                     
-                    # 左上に貼り付けたい場合
-                    canvas[0:h, 0:w] = video_resized
+
                     
                     # 中央に配置したい場合
                     x_offset = (canvas.shape[1] - w) // 2
-                    y_offset = 0  # 上半分に置くなら 0
+                    y_offset = 0
                     canvas[y_offset:y_offset+h, x_offset:x_offset+w] = video_resized
                         
                                       
