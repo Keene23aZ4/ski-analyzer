@@ -35,4 +35,5 @@ def set_background():
         )
 set_background()
 
-st.title("coming soon...")
+st.title("About")
+set.write("coming soon......")
