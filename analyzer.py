@@ -244,7 +244,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                             cv2.line(image, pt1, pt2, color, 2)
 
                     for name, (x, y) in joints.items():
-                        cv2.circle(image, (x, y), 5, (0, 255, 0), -1)
+                        cv2.circle(image, (x, y), 5, (255, 0, 255), -1)
                     
                     # 元動画を縦型にリサイズ
                     video_resized = resize_keep_aspect(image, target_width=720)
