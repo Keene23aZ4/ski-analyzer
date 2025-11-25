@@ -222,6 +222,6 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
     df = pd.DataFrame(records)
     print(df.head())  # 確認用
-    df.tocsv("analysisresults.csv", index=False)
+    df.to_csv("analysisresults.csv", index=False)
     return final_output
 
