@@ -308,7 +308,8 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                             y_offset = canvas.shape[0] // 2 + 30
                             canvas[y_offset:y_offset+h, x_offset:x_offset+w] = phase_resized
                         
-                        turn_phase = "image/turn_phase.png"
+                        turn_phase_path = "image/turn_phase.png"
+                        turn_phase = cv2.imread(turn_phase_path)
                         h, w = turn_phase.shape[:2]
                         new_w, new_h = int(w * scale*1.25), int(h * scale*1.25)
                         turn_phase_resized = cv2.resize(turn_phase, (new_w, new_h))
