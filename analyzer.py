@@ -304,7 +304,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                             
                             turn_phase_path = "image/turn_phase.png"
                             turn_phase = cv2.imread(turn_phase_path)                            
-                            turn_phase_resized = cv.2resized(turn_phase, (new_w, new_h))
+                            turn_phase_resized = cv2.resized(turn_phase, (new_w, new_h))
                             # 貼り付け位置（中央寄せ）
                             h, w = phase_resized.shape[:2]
                             x_offset = 30
