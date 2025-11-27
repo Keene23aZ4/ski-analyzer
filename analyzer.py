@@ -24,11 +24,20 @@ def calculate_inclination_angle(center, foot_mid):
     if dy == 0:
         return np.nan
     return np.degrees(np.arctan(abs(dx) / abs(dy)))
-def calculate_ski_tilt(ankle, toe):
+    
+def calculate_ski_tilt_signed(ankle, toe):
     dx, dy = toe[0] - ankle[0], toe[1] - ankle[1]
     if dx == 0 and dy == 0:
         return np.nan
-    return np.degrees(np.arctan2(-dy, dx))  # ← y軸補正済み
+    
+    ski_vec = np.array([dx, dy])
+    vertical = np.array([0, -1])  # 垂直基準（画面上方向）
+
+    det = vertical[0]*ski_vec[1] - vertical[1]*ski_vec[0]  # 外積
+    dot = vertical[0]*ski_vec[0] + vertical[1]*ski_vec[1]  # 内積
+
+    angle = np.degrees(np.arctan2(det, dot))  # [-180°, 180°]
+    return angle
 
 def smooth(history, window=5):
     if len(history) < window:
@@ -183,6 +192,8 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     right_abduction_angle = calculate_angle(hip_mid, joints["right_hip"], joints["right_knee"])
                     left_knee_abduction = calculate_angle(hip_mid, joints["left_knee"], joints["left_ankle"])
                     right_knee_abduction = calculate_angle(hip_mid, joints["right_knee"], joints["right_ankle"])
+                    ski_tilt_angle = calculate_ski_tilt_signed(joints["left_ankle"], joints["left_foot_index"])
+
                     
                     # 履歴に追加
                     left_knee_history.append(left_knee_angle)
@@ -198,12 +209,12 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     
                     if np.isnan(inclination_s):
                         turn_phase = "--"
-                    elif inclination_s <= 11.0:
+                    elif abs(ski_tilt_angle) <= 11.0:
                         turn_phase = "Neutral"
                     else:
                         left_knee_sum = left_knee_abduction + left_knee_s
                         right_knee_sum = right_knee_abduction + right_knee_s
-                        if left_knee_sum > right_knee_sum:
+                        if ski_tilt_angle > 0:
                             primary = "Left"
                             left_hip_sum = left_hip_angle + left_abduction_angle
                             right_hip_sum = right_hip_angle + right_abduction_angle
