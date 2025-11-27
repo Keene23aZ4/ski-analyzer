@@ -292,6 +292,8 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                         
                     box_width, box_height = 300, 100
 
+                    canvas [y_offset:y_offset+h, x_offset:x_offset+w] = phase
+
                     if phase_img_path and os.path.exists(phase_img_path):
                         phase_img = cv2.imread(phase_img_path)
                         if phase_img is not None:
@@ -299,12 +301,19 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                             h, w = phase_img.shape[:2]
                             new_w, new_h = int(w * scale), int(h * scale)
                             phase_resized = cv2.resize(phase_img, (new_w, new_h))
-                        
+                            
+                            turn_phase_path = "image/turn_phase.png"
+                            turn_phase = cv2.imread(turn_phase_path)                            
+                            turn_phase_resized = cv.2resized(turn_phase, (new_w, new_h))
                             # 貼り付け位置（中央寄せ）
                             h, w = phase_resized.shape[:2]
                             x_offset = 30
-                            y_offset = canvas.shape[0] // 2 + 300
+                            y_offset = canvas.shape[0] // 2 + 30
                             canvas[y_offset:y_offset+h, x_offset:x_offset+w] = phase_resized
+                            canvas[y_offset:y_offset+h+100, x_offset:x_offset+w] = turn_phase_resized
+                            
+                            
+
                                                            
            # 書き出し
             out.write(canvas)
