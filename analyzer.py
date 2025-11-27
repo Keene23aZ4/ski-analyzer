@@ -292,7 +292,6 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                         
                     box_width, box_height = 300, 100
 
-                    canvas [y_offset:y_offset+h, x_offset:x_offset+w] = phase
 
                     if phase_img_path and os.path.exists(phase_img_path):
                         phase_img = cv2.imread(phase_img_path)
