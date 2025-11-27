@@ -215,7 +215,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     else:
                         left_knee_sum = left_knee_abduction + left_knee_s
                         right_knee_sum = right_knee_abduction + right_knee_s
-                        if ski_tilt_angle > 0:
+                        if left_knee_sum > right_knee_sum:
                             primary = "Left"
                             left_hip_sum = left_hip_angle + left_abduction_angle
                             right_hip_sum = right_hip_angle + right_abduction_angle
