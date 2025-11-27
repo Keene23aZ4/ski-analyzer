@@ -210,7 +210,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     
                     if np.isnan(inclination_s):
                         turn_phase = "--"
-                    elif abs(ski_tilt_angle) <= 11.0:
+                    elif inclination_s <= 11.0:
                         turn_phase = "Neutral"
                     else:
                         left_knee_sum = left_knee_abduction + left_knee_s
