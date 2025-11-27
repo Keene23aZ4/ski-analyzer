@@ -114,7 +114,8 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
         "left_wrist": 15, "right_wrist": 16,
         "left_hip": 23, "right_hip": 24,
         "left_knee": 25, "right_knee": 26,
-        "left_ankle": 27, "right_ankle": 28
+        "left_ankle": 27, "right_ankle": 28,
+        "left_foot_index": 31, "right_foot_index": 32
     }
 
     cap = cv2.VideoCapture(input_path)
