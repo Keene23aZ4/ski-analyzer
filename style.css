@@ -1,0 +1,25 @@
+@font-face {
+    font-family: 'PressStart2P';
+    src: url('PressStart2P-Regular.ttf') format('truetype'); /* ファイル名とパスを正確に指定 */
+}
+
+/* アプリケーション全体のフォントを設定 */
+.stApp {
+    font-family: 'PressStart2P', monospace;
+}
+
+/* 見出しなども含む全ての要素に適用するには、より広範なセレクタが必要な場合があります */
+h1, h2, h3, div, input, button, select {
+    font-family: 'PressStart2P', monospace !important;
+}
+
+/* UI要素の角をなくし、よりブロック状に見せる */
+.stButton>button {
+    border-radius: 0px;
+    border: 2px solid white;
+}
+
+.stTextInput>div>input {
+    border-radius: 0px;
+    border: 2px solid white;
+}
