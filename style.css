@@ -1,17 +1,9 @@
 @font-face {
     font-family: 'PressStart2P';
-    src: url('/static/PressStart2P-Regular.woff2') format('woff2'),
-         url('/static/PressStart2P-Regular.ttf') format('truetype');
+    src: url('/static/PressStart2P-Regular.ttf') format('truetype');
     font-display: swap;
 }
 
-/* 全体に適用 */
 body {
     font-family: 'PressStart2P', monospace;
-}
-
-/* UI要素の角をなくす */
-button, input, select {
-    border-radius: 0;
-    border: 2px solid white;
 }
