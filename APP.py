@@ -3,35 +3,9 @@ import tempfile
 import base64
 from pathlib import Path
 from analyzer import process_video
-import streamlit as st
 
 
-st.markdown("""
-<style>
 
-h1 {
-    font-family: 'PressStart2P', monospace; 
-    color: #00ff00; /* ネオングリーン */
-    font-size: 32px; /* 8の倍数が推奨 (例: 16px, 24px, 32px) */
-    text-shadow: 4px 4px 0 #000; /* 立体感のための影 */
-    line-height: 1.2; /* 行の高さを調整して見やすくする */
-}
-
-/* st.write() などデフォルトのテキスト用 */
-.stApp {
-    font-family: 'Press Start 2P', monospace;
-    color: #EEEEEE;
-    font-size: 16px; /* こちらも8の倍数に */
-}
-
-/* ボタンのテキストなども調整 */
-.stButton button div p {
-    font-family: 'Press Start 2P', monospace;
-    font-size: 16px;
-}
-
-</style>
-""", unsafe_allow_html=True)
 
 
 # 翻訳辞書
@@ -194,6 +168,7 @@ if uploaded_file:
             file_name="analyzed_ski_video.mp4",
             mime="video/mp4"
         )
+
 
 
 
