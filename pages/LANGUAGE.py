@@ -5,25 +5,6 @@ from pathlib import Path
 
 css_path = Path(__file__).parent.parent / "style.css"
 st.markdown(f"<style>{css_path.read_text()}</style>", unsafe_allow_html=True)
-font_path = Path(__file__).parent / "static" / "BestTen-CRT.otf"
-if font_path.exists():
-    encoded = base64.b64encode(font_path.read_bytes()).decode()
-    st.markdown(
-        f"""
-        <style>
-        @font-face {{
-            font-family: 'BestTen';
-            src: url(data:font/opentype;base64,{encoded}) format('opentype');
-            font-display: swap;
-        }}
-        h1, p, div {{
-            font-family: 'BestTen', monospace !important;
-        }}
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
-
 
 # 背景画像設定
 def set_background():
