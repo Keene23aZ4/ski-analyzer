@@ -1,6 +1,6 @@
 @font-face {
     font-family: 'BestTen';
-    src: url('/static/BestTen-CRT.otf') format('otf');
+    src: url('/static/BestTen-CRT.otf') format('opentype');
     font-display: swap;
 }
 
