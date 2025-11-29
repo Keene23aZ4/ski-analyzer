@@ -5,10 +5,7 @@ from pathlib import Path
 from analyzer import process_video
 
 
-st.markdown(
-    '<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">',
-    unsafe_allow_html=True
-)
+st.markdown('<link rel="stylesheet" href="/static/style.css">', unsafe_allow_html=True)
 
 # CSSを文字列として埋め込む
 st.markdown(
@@ -130,11 +127,11 @@ st.markdown(
     """
     <style>
     .stFileUploader label {
-        font-family: 'Press Start 2P', monospace !important;
+        font-family: 'BestTen', monospace !important;
         font-size: 14px !important;
     }
     .stFileUploader div {
-        font-family: 'Courier New', monospace !important;
+        font-family: 'BestTen', monospace !important;
     }
     </style>
     """,
@@ -193,6 +190,7 @@ if uploaded_file:
             file_name="analyzed_ski_video.mp4",
             mime="video/mp4"
         )
+
 
 
 
