@@ -5,20 +5,24 @@ from pathlib import Path
 from analyzer import process_video
 
 
-st.markdown('<link rel="stylesheet" href="/static/style.css">', unsafe_allow_html=True)
-
-# CSSを文字列として埋め込む
-st.markdown(
-    """
-    <style>
-    h1, p, div, section[data-testid="stSidebar"] {
-        font-family: 'Press Start 2P', monospace !important;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
+font_path = Path(__file__).parent / "static" / "BestTen-CRT.otf"
+if font_path.exists():
+    encoded = base64.b64encode(font_path.read_bytes()).decode()
+    st.markdown(
+        f"""
+        <style>
+        @font-face {{
+            font-family: 'BestTen';
+            src: url(data:font/otf;base64,{encoded}) format('otf');
+            font-display: swap;
+        }}
+        h1, p, div {{
+            font-family: 'BestTen', monospace !important;
+        }}
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
 
 # 翻訳辞書
 translations = {
@@ -190,6 +194,7 @@ if uploaded_file:
             file_name="analyzed_ski_video.mp4",
             mime="video/mp4"
         )
+
 
 
 
