@@ -28,7 +28,6 @@ translations = {
     "English": {
         "title": "Motion Analyzer",
         "sidebar_title": "FOR ALL SKIERs",
-        "caption": "Visualization of Skeletal Structure, Joint Angle, Inclination Angle and Torso Tilt Angle",
         "background": "Background",
         "background_options": ["Show original video", "Hide background"],
         "select_all": "Select all joint angles",
@@ -47,7 +46,6 @@ translations = {
     "日本語": {
         "title": "滑走分析アプリ",
         "sidebar_title": "",
-        "caption": "骨格構造、関節角度、前傾角度、内傾角度の変化を可視化",
         "background": "動画の背景",
         "background_options": ["表示", "非表示 (骨格のみ抽出)"],
         "select_all": "すべての関節角度を選択する",
@@ -66,7 +64,6 @@ translations = {
     "简体中文": {
         "title": "滑雪动作分析应用",
         "sidebar_title": "致所有滑雪者",
-        "caption": "可视化骨骼结构、关节角度、前倾角度和内倾角度的变化",
         "background": "选择是否显示视频背景",
         "background_options": ["显示", "隐藏"],
         "select_all": "选择所有关节角度",
@@ -126,7 +123,7 @@ st.title(t["title"])
 # サイドバー
 with st.sidebar:
     st.title(t["sidebar_title"])
-    st.caption(t["caption"])
+
 
     background_option = st.radio(t["background"], t["background_options"])
 
@@ -183,6 +180,7 @@ if uploaded_file:
             file_name="analyzed_ski_video.mp4",
             mime="video/mp4"
         )
+
 
 
 
