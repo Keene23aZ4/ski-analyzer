@@ -3,6 +3,31 @@ import tempfile
 import base64
 from pathlib import Path
 from analyzer import process_video
+import streamlit as st
+
+
+st.markdown("""
+<style>
+
+.stApp {
+    font-family: 'Courier New', monospace;
+    background-color: #2e2e2e;
+    color: #00ff00;
+}
+
+.stButton button, .stTextInput input {
+    border-radius: 0px;
+    border: 2px solid #00ff00;
+    background-color: #1a1a1a;
+    color: #00ff00;
+    box-shadow: 4px 4px 0px #00ff00;
+}
+
+
+
+</style>
+""", unsafe_allow_html=True)
+
 
 # 翻訳辞書
 translations = {
@@ -164,6 +189,7 @@ if uploaded_file:
             file_name="analyzed_ski_video.mp4",
             mime="video/mp4"
         )
+
 
 
 
