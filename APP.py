@@ -132,10 +132,9 @@ st.markdown(
     .stFileUploader label {
         font-family: 'Press Start 2P', monospace !important;
         font-size: 14px !important;
-        color: #007BFF !important;
     }
     .stFileUploader div {
-        font-family: 'Press Start 2P', monospace !important;
+        font-family: 'Courier New', monospace !important;
     }
     </style>
     """,
@@ -194,6 +193,7 @@ if uploaded_file:
             file_name="analyzed_ski_video.mp4",
             mime="video/mp4"
         )
+
 
 
 
