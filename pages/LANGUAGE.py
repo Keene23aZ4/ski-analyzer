@@ -3,7 +3,8 @@ import tempfile
 import base64
 from pathlib import Path
 
-
+css_path = Path(__file__).parent.parent / "style.css"
+st.markdown(f"<style>{css_path.read_text()}</style>", unsafe_allow_html=True)
 font_path = Path(__file__).parent / "static" / "BestTen-CRT.otf"
 if font_path.exists():
     encoded = base64.b64encode(font_path.read_bytes()).decode()
