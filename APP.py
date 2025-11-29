@@ -13,7 +13,7 @@ if font_path.exists():
         <style>
         @font-face {{
             font-family: 'BestTen';
-            src: url(data:font/otf;base64,{encoded}) format('otf');
+            src: url(data:font/opentype;base64,{encoded}) format('opentype');
             font-display: swap;
         }}
         h1, p, div {{
@@ -194,6 +194,7 @@ if uploaded_file:
             file_name="analyzed_ski_video.mp4",
             mime="video/mp4"
         )
+
 
 
 
