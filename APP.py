@@ -4,7 +4,7 @@ import base64
 from pathlib import Path
 from analyzer import process_video
 
-st.markdown('<link rel="stylesheet" href="/static/style.css">', unsafe_allow_html=True)
+st.markdown('<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">', unsafe_allow_html=True)
 
 # 翻訳辞書
 translations = {
@@ -135,6 +135,7 @@ if uploaded_file:
             file_name="analyzed_ski_video.mp4",
             mime="video/mp4"
         )
+
 
 
 
