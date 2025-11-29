@@ -3,6 +3,7 @@ import tempfile
 import base64
 from pathlib import Path
 
+
 font_path = Path(__file__).parent / "static" / "BestTen-CRT.otf"
 if font_path.exists():
     encoded = base64.b64encode(font_path.read_bytes()).decode()
@@ -14,7 +15,7 @@ if font_path.exists():
             src: url(data:font/opentype;base64,{encoded}) format('opentype');
             font-display: swap;
         }}
-        body, .stApp, * {{
+        h1, p, div {{
             font-family: 'BestTen', monospace !important;
         }}
         </style>
