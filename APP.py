@@ -18,7 +18,7 @@ st.markdown(
         font-family: 'Press Start 2P', monospace !important;
     }
     div {
-        font-family: 'Arial', sans-serif !important;
+        font-family: 'Pixelify Sans', sans-serif !important;
     }
     </style>
     """,
@@ -183,6 +183,7 @@ if uploaded_file:
             file_name="analyzed_ski_video.mp4",
             mime="video/mp4"
         )
+
 
 
 
