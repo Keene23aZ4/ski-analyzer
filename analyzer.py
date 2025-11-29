@@ -294,10 +294,13 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                         bottom_right = (start_x + 300, start_y + (i + 1) * 40)
                         cv2.rectangle(canvas, top_left, bottom_right, (0, 0, 0), -1)
                         cv2.rectangle(canvas, top_left, bottom_right, (255, 255, 255), 1)
-                        cv2.putText(canvas, label, (top_left[0] + 5, top_left[1] + 25),
-                                    cv2.FONT_HERSHEY_TRIPLEX, 0.6, (255, 255, 255), 1)
-                        cv2.putText(canvas, value, (top_left[0] + cell_width + 50, top_left[1] + 25),
-                                    cv2.FONT_HERSHEY_TRIPLEX, 0.6, (255, 255, 255), 1)
+                        ft2.putText(canvas, label, (35, y+25), fontHeight=20, color=(255,255,255), thickness=-1, line_type=cv2.LINE_AA)
+                        ft2.putText(canvas, value, (200, y+25), fontHeight=20, color=(255,255,255), thickness=-1, line_type=cv2.LINE_AA)
+                    
+                    cv2.imshow("BestTen Table", canvas)
+                    cv2.waitKey(0)
+                    cv2.destroyAllWindows()
+
 
 
 
