@@ -15,13 +15,14 @@ if font_path.exists():
             src: url(data:font/opentype;base64,{encoded}) format('opentype');
             font-display: swap;
         }}
-        h1, p, div {{
+        body, .stApp, * {{
             font-family: 'BestTen', monospace !important;
         }}
         </style>
         """,
         unsafe_allow_html=True
     )
+
 
 # 背景画像設定
 def set_background():
