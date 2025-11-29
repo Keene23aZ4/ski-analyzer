@@ -15,7 +15,7 @@ st.markdown(
     """
     <style>
     h1, p, div, section[data-testid="stSidebar"] {
-        font-family: 'Press Start 2P', monospace !important;
+        font-family: 'Courier New', monospace !important;
     }
     </style>
     """,
@@ -203,6 +203,7 @@ if uploaded_file:
             file_name="analyzed_ski_video.mp4",
             mime="video/mp4"
         )
+
 
 
 
