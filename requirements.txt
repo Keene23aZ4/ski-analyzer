@@ -1,6 +1,7 @@
 streamlit
-opencv-python
+opencv-contrib-python
 mediapipe
 pandas
 numpy
+
 matplotlib
