@@ -38,7 +38,7 @@ set_background()
 
 import streamlit as st
 
-languages = ["English", "日本語", "简体中文"]
+languages = ["English", "日本語"]
 
 st.title("Language/言語/语言")
-st.session_state["language"] = st.selectbox("Choose your language/言語を選択/选择您的语言", languages)
+st.session_state["language"] = st.selectbox("Choose your language/言語を選択", languages)
