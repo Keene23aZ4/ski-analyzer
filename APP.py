@@ -148,7 +148,7 @@ st.markdown(
     /* 実際の input[type=file] 要素 */
     input[type="file"] {
         font-family: 'Courier New', monospace !important;
-        font-size: 14px;
+        font-size: 8px;
     }
     </style>
     """,
@@ -206,6 +206,7 @@ if uploaded_file:
             file_name="analyzed_ski_video.mp4",
             mime="video/mp4"
         )
+
 
 
 
