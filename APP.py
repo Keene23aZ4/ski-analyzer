@@ -11,7 +11,7 @@ st.markdown("""
 
 .stApp {
     font-family: 'Courier New', monospace;
-    background-color: #2e2e2e;
+
     color: #00ff00;
 }
 
@@ -189,6 +189,7 @@ if uploaded_file:
             file_name="analyzed_ski_video.mp4",
             mime="video/mp4"
         )
+
 
 
 
