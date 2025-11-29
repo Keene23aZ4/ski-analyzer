@@ -1,0 +1,10 @@
+@font-face {
+    font-family: 'PressStart2P';
+    src: url('/static/PressStart2P-Regular.woff2') format('truetype');
+    font-display: swap;
+}
+
+/* アプリ全体に適用 */
+body, .stApp, * {
+    font-family: 'PressStart2P', monospace;
+}
