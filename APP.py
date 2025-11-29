@@ -126,32 +126,16 @@ with st.sidebar:
 
 
     background_option = st.radio(t["background"], t["background_options"])
-
-    
-
-# CSSで input[type=file] を隠す
 st.markdown(
     """
     <style>
-    /* input[type=file] を非表示にする */
-    input[type="file"] {
-        display: none;
+    .stFileUploader label {
+        font-family: 'Press Start 2P', monospace !important;
+        font-size: 14px !important;
+        color: #007BFF !important;
     }
-
-    /* カスタムボタンのスタイル */
-    .custom-upload {
-        display: inline-block;
-        padding: 10px 20px;
-        background-color: #007BFF;
-        color: white;
-        font-family: 'Press Start 2P', monospace;
-        font-size: 14px;
-        border-radius: 5px;
-        cursor: pointer;
-        text-align: center;
-    }
-    .custom-upload:hover {
-        background-color: #0056b3;
+    .stFileUploader div {
+        font-family: 'Press Start 2P', monospace !important;
     }
     </style>
     """,
@@ -160,10 +144,6 @@ st.markdown(
 
 # file_uploader を通常通り配置
 uploaded_file = st.file_uploader(t["upload"], type=["mp4", "mov"])
-
-# カスタムボタンをラベルとして表示
-st.markdown('<label class="custom-upload">🎮 Browse File<input type="file"></label>', unsafe_allow_html=True)
-
 
 if uploaded_file:
     with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as tmp:
@@ -214,6 +194,7 @@ if uploaded_file:
             file_name="analyzed_ski_video.mp4",
             mime="video/mp4"
         )
+
 
 
 
