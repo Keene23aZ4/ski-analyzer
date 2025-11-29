@@ -11,8 +11,6 @@ st.markdown("""
 
 .stApp {
     font-family: 'Courier New', monospace;
-
-    color: #00ff00;
 }
 
 .stButton button, .stTextInput input {
@@ -189,6 +187,7 @@ if uploaded_file:
             file_name="analyzed_ski_video.mp4",
             mime="video/mp4"
         )
+
 
 
 
