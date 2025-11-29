@@ -133,19 +133,16 @@ with st.sidebar:
 st.markdown(
     """
     <style>
-    /* アップロードラベル部分 */
     .stFileUploader label {
         font-family: 'Courier New', monospace !important;
-        font-size: 0px;
+        font-size: 16px;
     }
 
-    /* アップロードボタン部分 */
     .stFileUploader div {
         font-family: 'Courier New', monospace !important;
         font-size: 16px;
     }
 
-    /* 実際の input[type=file] 要素 */
     input[type="file"] {
         font-family: 'Courier New', monospace !important;
         font-size: 8px;
@@ -206,6 +203,7 @@ if uploaded_file:
             file_name="analyzed_ski_video.mp4",
             mime="video/mp4"
         )
+
 
 
 
