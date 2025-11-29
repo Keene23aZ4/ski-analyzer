@@ -56,8 +56,6 @@ def set_background():
         )
 set_background()
 
-import streamlit as st
-
 languages = ["English", "日本語"]
 
 st.title("Language/言語")
