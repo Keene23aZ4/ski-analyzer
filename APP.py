@@ -157,10 +157,8 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# file_uploader を通常通り配置
-uploaded_file = st.file_uploader(t["upload"], type=["mp4", "mov"])
 # カスタムボタンをラベルとして表示
-st.markdown('<label class="custom-upload">🎮 Browse File<input type="file"></label>', unsafe_allow_html=True)
+st.markdown('<label class="custom-upload">Browse File<input type="file"></label>', unsafe_allow_html=True)
 
 
 if uploaded_file:
@@ -212,6 +210,7 @@ if uploaded_file:
             file_name="analyzed_ski_video.mp4",
             mime="video/mp4"
         )
+
 
 
 
