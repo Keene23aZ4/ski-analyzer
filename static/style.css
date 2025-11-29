@@ -14,13 +14,3 @@ body, .stApp, * {
     background-position: center;
     background-repeat: no-repeat;
 }
-st.markdown(
-    """
-    <style>
-    .stFileUploader {
-        display: none;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
