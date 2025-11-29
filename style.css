@@ -1,0 +1,15 @@
+@font-face {
+    font-family: 'BestTen';
+    src: url('/static/BestTen-CRT.otf') format('opentype');
+    font-display: swap;
+}
+
+body, .stApp, * {
+    font-family: 'BestTen', monospace;
+}
+.stApp {
+    background-image: url('/static/1704273575813.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
