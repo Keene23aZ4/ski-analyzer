@@ -289,6 +289,10 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     
                     start_x = 30
                     start_y = canvas.shape[0] - grid_height - 30  # キャンバス下端から30px上に開始
+                    
+                    ft2 = cv2.freetype.createFreeType2()
+                    ft2.loadFontData(fontFileName="static/BestTen-CRT.otf", id=0)
+
                     for i, (label, value) in enumerate(grid_data):
                         top_left = (start_x, start_y + i * 40)
                         bottom_right = (start_x + 300, start_y + (i + 1) * 40)
