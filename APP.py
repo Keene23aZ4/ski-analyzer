@@ -29,7 +29,7 @@ translations = {
         "title": "Motion Analyzer",
         "sidebar_title": "FOR ALL SKIERs",
         "background": "Background",
-        "background_options": ["Show original video", "Hide background"],
+        "background_options": ["Show", "Hide"],
         "select_all": "Select all joint angles",
         "angle_prompt": "Joint angles to display",
         "upload": "Upload your video",
@@ -180,6 +180,7 @@ if uploaded_file:
             file_name="analyzed_ski_video.mp4",
             mime="video/mp4"
         )
+
 
 
 
