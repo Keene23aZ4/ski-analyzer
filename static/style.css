@@ -1,16 +1,10 @@
-@font-face {
-    font-family: 'PressStart2P';
-    src: url('/static/PressStart2P-Regular.woff2') format('woff2'),
-         url('/static/PressStart2P-Regular.woff') format('woff');
-    font-display: swap;
-}
-
-body, .stApp, * {
-    font-family: 'PressStart2P', monospace;
-}
-.stApp {
-    background-image: url('/static/1704273575813.jpg');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-}
+st.markdown(
+    """
+    <style>
+    body, .stApp, * {
+        font-family: 'Press Start 2P', monospace !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
