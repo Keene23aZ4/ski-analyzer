@@ -129,17 +129,16 @@ with st.sidebar:
 
     
 
-import streamlit as st
-
+# CSSで input[type=file] を隠す
 st.markdown(
     """
     <style>
-    /* 元のアップローダーを非表示 */
-    .stFileUploader {
+    /* input[type=file] を非表示にする */
+    input[type="file"] {
         display: none;
     }
 
-    /* カスタムボタン */
+    /* カスタムボタンのスタイル */
     .custom-upload {
         display: inline-block;
         padding: 10px 20px;
@@ -149,6 +148,7 @@ st.markdown(
         font-size: 14px;
         border-radius: 5px;
         cursor: pointer;
+        text-align: center;
     }
     .custom-upload:hover {
         background-color: #0056b3;
@@ -158,8 +158,11 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+# file_uploader を通常通り配置
+uploaded_file = st.file_uploader(t["upload"], type=["mp4", "mov"])
+
 # カスタムボタンをラベルとして表示
-st.markdown('<label class="custom-upload">Browse File<input type="file"></label>', unsafe_allow_html=True)
+st.markdown('<label class="custom-upload">🎮 Browse File<input type="file"></label>', unsafe_allow_html=True)
 
 
 if uploaded_file:
@@ -211,6 +214,7 @@ if uploaded_file:
             file_name="analyzed_ski_video.mp4",
             mime="video/mp4"
         )
+
 
 
 
