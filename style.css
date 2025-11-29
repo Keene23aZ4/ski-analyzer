@@ -4,6 +4,7 @@
     font-display: swap;
 }
 
-body {
+/* アプリ全体に適用 */
+body, .stApp, * {
     font-family: 'PressStart2P', monospace;
 }
