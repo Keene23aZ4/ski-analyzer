@@ -131,13 +131,15 @@ with st.sidebar:
 
 import streamlit as st
 
-# CSSで input[type=file] を隠す
 st.markdown(
     """
     <style>
-    input[type="file"] {
+    /* 元のアップローダーを非表示 */
+    .stFileUploader {
         display: none;
     }
+
+    /* カスタムボタン */
     .custom-upload {
         display: inline-block;
         padding: 10px 20px;
@@ -147,7 +149,6 @@ st.markdown(
         font-size: 14px;
         border-radius: 5px;
         cursor: pointer;
-        text-align: center;
     }
     .custom-upload:hover {
         background-color: #0056b3;
@@ -210,6 +211,7 @@ if uploaded_file:
             file_name="analyzed_ski_video.mp4",
             mime="video/mp4"
         )
+
 
 
 
