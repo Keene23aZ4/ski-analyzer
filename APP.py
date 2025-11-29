@@ -133,15 +133,21 @@ with st.sidebar:
 st.markdown(
     """
     <style>
-    /* アップロードボタン部分 */
-    input[type="file"] {
+    /* アップロードラベル部分 */
+    .stFileUploader label {
         font-family: 'Courier New', monospace !important;
         font-size: 14px;
         color: #007BFF;
     }
 
-    /* アップロードラベル部分 */
-    .stFileUploader label {
+    /* アップロードボタン部分 */
+    .stFileUploader div {
+        font-family: 'Courier New', monospace !important;
+        font-size: 14px;
+    }
+
+    /* 実際の input[type=file] 要素 */
+    input[type="file"] {
         font-family: 'Courier New', monospace !important;
         font-size: 14px;
     }
@@ -149,7 +155,9 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
 uploaded_file = st.file_uploader(t["upload"], type=["mp4", "mov"])
+
 if uploaded_file:
     with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as tmp:
         tmp.write(uploaded_file.read())
@@ -199,6 +207,7 @@ if uploaded_file:
             file_name="analyzed_ski_video.mp4",
             mime="video/mp4"
         )
+
 
 
 
