@@ -10,7 +10,7 @@ st.markdown("""
 <style>
 
 h1 {
-    font-family: 'Press Start 2P', monospace; /* 引用符が必須 */
+    font-family: 'PressStart2P', monospace; static/PressStart2P-Regular.woff2
     color: #00ff00; /* ネオングリーン */
     font-size: 32px; /* 8の倍数が推奨 (例: 16px, 24px, 32px) */
     text-shadow: 4px 4px 0 #000; /* 立体感のための影 */
@@ -194,6 +194,7 @@ if uploaded_file:
             file_name="analyzed_ski_video.mp4",
             mime="video/mp4"
         )
+
 
 
 
