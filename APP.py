@@ -139,7 +139,7 @@ st.markdown(
     }
 
     .stFileUploader div {
-        font-family: 'Courier New', monospace !important;
+        font-family: 'Press Start 2P', monospace !important;
         font-size: 16px;
     }
 
@@ -203,6 +203,7 @@ if uploaded_file:
             file_name="analyzed_ski_video.mp4",
             mime="video/mp4"
         )
+
 
 
 
