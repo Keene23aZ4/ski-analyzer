@@ -1,6 +1,6 @@
-streamlit>=1.10
-opencv-python-headless
+streamlit
+opencv-python
 mediapipe
+pandas
 numpy
-
-
+matplotlib
