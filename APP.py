@@ -15,13 +15,7 @@ st.markdown("""
          url('/static/PressStart2P-Regular.ttf') format('truetype');
     font-display: swap;
 }
-.stButton button, .stTextInput input {
-    border-radius: 0px;
-    border: 2px solid #00ff00;
-    background-color: #1a1a1a;
-    color: #00ff00;
-    box-shadow: 4px 4px 0px #00ff00;
-}
+
 
 
 
@@ -189,6 +183,7 @@ if uploaded_file:
             file_name="analyzed_ski_video.mp4",
             mime="video/mp4"
         )
+
 
 
 
