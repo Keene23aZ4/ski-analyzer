@@ -5,6 +5,22 @@ from pathlib import Path
 from analyzer import process_video
 
 st.markdown('<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">', unsafe_allow_html=True)
+@font-face {
+    font-family: 'PressStart2P';
+    src: url('/static/PressStart2P-Regular.woff2') format('woff2'),
+         url('/static/PressStart2P-Regular.woff') format('woff');
+    font-display: swap;
+}
+
+body, .stApp, * {
+    font-family: 'PressStart2P', monospace;
+}
+.stApp {
+    background-image: url('/static/1704273575813.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
 
 # 翻訳辞書
 translations = {
@@ -166,6 +182,7 @@ if uploaded_file:
             file_name="analyzed_ski_video.mp4",
             mime="video/mp4"
         )
+
 
 
 
