@@ -136,8 +136,7 @@ st.markdown(
     /* アップロードラベル部分 */
     .stFileUploader label {
         font-family: 'Courier New', monospace !important;
-        font-size: 8px;
-        color: #007BFF;
+        font-size: 16px;
     }
 
     /* アップロードボタン部分 */
@@ -207,6 +206,7 @@ if uploaded_file:
             file_name="analyzed_ski_video.mp4",
             mime="video/mp4"
         )
+
 
 
 
