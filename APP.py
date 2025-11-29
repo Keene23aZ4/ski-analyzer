@@ -140,7 +140,7 @@ st.markdown(
 
     .stFileUploader div {
         font-family: 'Courier New', monospace !important;
-        font-size: 16px;
+        font-size: 8px;
     }
 
     input[type="file"] {
@@ -203,6 +203,7 @@ if uploaded_file:
             file_name="analyzed_ski_video.mp4",
             mime="video/mp4"
         )
+
 
 
 
