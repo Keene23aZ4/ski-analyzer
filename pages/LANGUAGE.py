@@ -59,5 +59,5 @@ import streamlit as st
 
 languages = ["English", "日本語"]
 
-st.title("Language/言語/语言")
+st.title("Language/言語")
 st.session_state["language"] = st.selectbox("Choose your language/言語を選択", languages)
