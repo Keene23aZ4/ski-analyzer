@@ -5,18 +5,7 @@ from pathlib import Path
 from analyzer import process_video
 
 st.markdown('<link rel="stylesheet" href="/static/style.css">', unsafe_allow_html=True)
-st.markdown("""
-    <style>
-    @font-face {
-        font-family: 'PressStart2P';
-        src: url('/static/PressStart2P-Regular.woff') format('truetype');
-        font-display: swap;
-    }
-    body, .stApp, * {
-        font-family: 'PressStart2P', monospace;
-    }
-    </style>
-""", unsafe_allow_html=True)
+
 
 
 
@@ -182,6 +171,7 @@ if uploaded_file:
             file_name="analyzed_ski_video.mp4",
             mime="video/mp4"
         )
+
 
 
 
