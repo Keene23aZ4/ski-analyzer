@@ -10,9 +10,11 @@ st.markdown("""
 <style>
 
 .stApp {
-    font-family: 'PressStart2P', monospace;
+    font-family: 'PressStart2P';
+    src: url('/static/PressStart2P-Regular.woff2') format('woff2'),
+         url('/static/PressStart2P-Regular.ttf') format('truetype');
+    font-display: swap;
 }
-
 .stButton button, .stTextInput input {
     border-radius: 0px;
     border: 2px solid #00ff00;
@@ -187,6 +189,7 @@ if uploaded_file:
             file_name="analyzed_ski_video.mp4",
             mime="video/mp4"
         )
+
 
 
 
