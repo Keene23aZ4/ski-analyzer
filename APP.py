@@ -8,7 +8,7 @@ st.markdown("""
     <style>
     @font-face {
         font-family: 'PressStart2P';
-        src: url('/static/PressStart2P-Regular.ttf') format('truetype');
+        src: url('/static/PressStart2P-Regular.woff') format('truetype');
         font-display: swap;
     }
     body, .stApp, * {
@@ -181,6 +181,7 @@ if uploaded_file:
             file_name="analyzed_ski_video.mp4",
             mime="video/mp4"
         )
+
 
 
 
