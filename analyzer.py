@@ -1,3 +1,4 @@
+from PIL import ImageFont, ImageDraw, Image
 import cv2
 import mediapipe as mp
 import numpy as np
@@ -101,6 +102,9 @@ def merge_audio(original_path, processed_path):
     
 def safe(val):
     return "--" if np.isnan(val) else f"{int(val)}"
+    
+def draw_grid_text(canvas, grid_data, font_path="static/BestTen-CRT.otf"):
+
 def process_video(input_path, progress_callback=None, show_background=True, selected_angles=None):
     left_knee_history = []
     right_knee_history = []
@@ -282,17 +286,17 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                         ["Torso Tilt", f"{torso_angle:.1f}"],
                         ["Inclination Angle", inclination_display]
                     ]
-                if grid_data:
-                    cell_width, cell_height = 180, 40
-                    num_rows = len(grid_data)
-                    grid_height = num_rows * cell_height
-                    
+                    img_pil = Image.fromarray(canvas)
+                    draw = ImageDraw.Draw(img_pil)
+                
+                    font = ImageFont.truetype(font_path, 20)
+                
+                    cell_height = 40
                     start_x = 30
-                    start_y = canvas.shape[0] - grid_height - 30  # キャンバス下端から30px上に開始
-                    
-                    ft2 = cv2.freetype.createFreeType2()
-                    ft2.loadFontData(fontFileName="static/BestTen-CRT.otf", id=0)
+                    start_y = canvas.shape[0] - len(grid_data)*cell_height - 30
 
+                    
+                  
                     for i, (label, value) in enumerate(grid_data):
                         top_left = (start_x, start_y + i * 40)
                         bottom_right = (start_x + 300, start_y + (i + 1) * 40)
