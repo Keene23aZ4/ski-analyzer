@@ -299,13 +299,12 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                         top_left = (start_x, start_y + i * 40)
                         bottom_right = (start_x + 300, start_y + (i + 1) * 40)
                         cv2.rectangle(canvas, top_left, bottom_right, (0, 0, 0), -1)
-                        cv2.rectangle(canvas, top_left, bottom_right, (255, 255, 255), 1)
-                        ft2.putText(canvas, label, (35, y+25), fontHeight=20, color=(255,255,255), thickness=-1, line_type=cv2.LINE_AA)
-                        ft2.putText(canvas, value, (200, y+25), fontHeight=20, color=(255,255,255), thickness=-1, line_type=cv2.LINE_AA)
-                    
-                    cv2.imshow("BestTen Table", canvas)
-                    cv2.waitKey(0)
-                    cv2.destroyAllWindows()
+                        cv2.rectangle(canvas, top_left, bottom_right, (255, 255, 255), 1)              
+                        draw.text((35, y_pos+10), label, font=font, fill=(255,255,255))
+                        draw.text((200, y_pos+10), value, font=font, fill=(255,255,255))
+                    return np.array(img_pil)
+
+
 
 
 
