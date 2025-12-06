@@ -1,3 +1,4 @@
+from PIL import ImageFont, ImageDraw, Image
 import cv2
 import mediapipe as mp
 import numpy as np
