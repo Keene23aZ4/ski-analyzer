@@ -1,4 +1,3 @@
-from PIL import ImageFont, ImageDraw, Image
 import cv2
 import mediapipe as mp
 import numpy as np
@@ -103,8 +102,6 @@ def merge_audio(original_path, processed_path):
 def safe(val):
     return "--" if np.isnan(val) else f"{int(val)}"
     
-def draw_grid_text(canvas, grid_data, font_path="static/BestTen-CRT.otf"):
-
 def process_video(input_path, progress_callback=None, show_background=True, selected_angles=None):
     left_knee_history = []
     right_knee_history = []
