@@ -286,7 +286,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     ]
                     img_pil = Image.fromarray(canvas)
                     draw = ImageDraw.Draw(img_pil)
-                
+                    font_path="static/BestTen-CRT.otf"
                     font = ImageFont.truetype(font_path, 20)
                 
                     cell_height = 40
