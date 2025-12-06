@@ -337,6 +337,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
                                                            
            # 書き出し
+            canvas = np.array(img_pil)
             out.write(canvas)
             ret, frame = cap.read()
 
