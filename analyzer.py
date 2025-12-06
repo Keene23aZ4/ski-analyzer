@@ -304,14 +304,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                         cv2.rectangle(canvas, top_left, bottom_right, (255, 255, 255), 1)              
                         draw.text((35, y_pos+10), label, font=font, fill=(255,255,255))
                         draw.text((200, y_pos+10), value, font=font, fill=(255,255,255))
-                    return np.array(img_pil)
-
-
-
-
-
-
-                        
+                                            
                     box_width, box_height = 300, 100
 
                     
