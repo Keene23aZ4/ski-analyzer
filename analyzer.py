@@ -305,7 +305,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                         if phase_img is not None:
                             # 最大横幅に合わせた縮尺率でリサイズ
                             h, w = phase_img.shape[:2]
-                            new_w, new_h = int(w * scale*1.25), int(h * scale*1.25)
+                            new_w, new_h = int(w * scale), int(h * scale)
                             phase_resized = cv2.resize(phase_img, (new_w, new_h))
                             
               
