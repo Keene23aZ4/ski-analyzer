@@ -33,7 +33,7 @@ translations = {
         "background_options": ["Show", "Hide"],
         "select_all": "Select all joint angles",
         "angle_prompt": "Joint angles to display",
-        "upload": "Upload your video",
+        "upload": "Upload your video (Preferable aspect ratio is 16:9) ",
         "analyzing": "ANALYZING... {percent}/100%",
         "done": "Successfully done",
         "download": "Download here",
@@ -176,6 +176,7 @@ if uploaded_file:
             file_name="analyzed_ski_video.mp4",
             mime="video/mp4"
         )
+
 
 
 
