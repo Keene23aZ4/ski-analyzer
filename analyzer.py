@@ -335,6 +335,14 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                         y_offset = canvas.shape[0] // 2
                         canvas [y_offset:y_offset+h, x_offset:x_offset+w] = turn_phase_resized
             else:
+                # 骨格未検出時は元フレームをそのまま表示
+                video_resized = resize_keep_aspect(image, target_width=720)
+                h, w = video_resized.shape[:2]
+                x_offset = (canvas.shape[1] - w) // 2
+                y_offset = 0
+                canvas[y_offset:y_offset+h, x_offset:x_offset+w] = video_resized
+            
+                # グリッドは "--" を表示
                 grid_data = [
                     ["L-Knee Ext/Flex", "--"],
                     ["R-Knee Ext/Flex", "--"],
@@ -346,7 +354,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     ["R-Hip Abd/Add", "--"],
                     ["Torso Tilt", "--"],
                     ["Inclination Angle", "--"]
-                ]   
+                ] 
                             
 
                                                            
