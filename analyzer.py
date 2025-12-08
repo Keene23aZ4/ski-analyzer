@@ -312,7 +312,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                             # 貼り付け位置（中央寄せ）
                             h, w = phase_resized.shape[:2]
                             x_offset = 30
-                            y_offset = canvas.shape[0] // 2 + 30
+                            y_offset = canvas.shape[0] // 2 + 50
                             canvas[y_offset:y_offset+h, x_offset:x_offset+w] = phase_resized
                         
                         turn_phase_path = "image/turn_phase.png"
