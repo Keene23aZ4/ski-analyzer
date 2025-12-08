@@ -299,11 +299,11 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                         y_pos = start_y + i * cell_height
 
                         top_left = (start_x, start_y + i * 40)
-                        bottom_right = (start_x + 300, start_y + (i + 1) * 40)
-                        cv2.rectangle(canvas, top_left, bottom_right, (0, 0, 0), -1)
-                        cv2.rectangle(canvas, top_left, bottom_right, (255, 255, 255), 1)              
+                        bottom_right = (start_x + 300, start_y + (i + 1) * 40)     
                         draw.text((35, y_pos+10), label, font=font, fill=(255,255,255))
                         draw.text((200, y_pos+10), value, font=font, fill=(255,255,255))
+                        cv2.rectangle(canvas, top_left, bottom_right, (0, 0, 0), -1)
+                        cv2.rectangle(canvas, top_left, bottom_right, (255, 255, 255), 1)
                     canvas = np.array(img_pil)
                     
                     box_width, box_height = 300, 100
