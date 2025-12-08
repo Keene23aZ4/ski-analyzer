@@ -161,7 +161,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
 
             image_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             results = pose.process(image_rgb)
-            image = frame.copy() if show_background else np.zeros_like(frame)
+            image = frame.copy() 
             canvas = np.zeros((1280, 720, 3), dtype=np.uint8)
 
             grid_data = []
@@ -333,6 +333,19 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                         x_offset = 30
                         y_offset = canvas.shape[0] // 2
                         canvas [y_offset:y_offset+h, x_offset:x_offset+w] = turn_phase_resized
+            else:
+                grid_data = [
+                    ["L-Knee Ext/Flex", "--"],
+                    ["R-Knee Ext/Flex", "--"],
+                    ["L-Knee Abd/Add", "--"],
+                    ["R-Knee Abd/Add", "--"],
+                    ["L-Hip Ext/Flex", "--"],
+                    ["R-Hip Ext/Flex", "--"],
+                    ["L-Hip Abd/Add", "--"],
+                    ["R-Hip Abd/Add", "--"],
+                    ["Torso Tilt", "--"],
+                    ["Inclination Angle", "--"]
+                ]
 
                             
 
