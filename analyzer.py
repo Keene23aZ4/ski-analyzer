@@ -275,6 +275,8 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                         ["Torso Tilt", f"{torso_angle:.1f}"],
                         ["Inclination Angle", inclination_display]
                     ]
+                    cv2.rectangle(canvas, top_left, bottom_right, (0, 0, 0), -1)
+                    cv2.rectangle(canvas, top_left, bottom_right, (255, 255, 255), 1)
                     img_pil = Image.fromarray(canvas)
                     draw = ImageDraw.Draw(img_pil)
                     font_path="static/BestTen-CRT.otf"
