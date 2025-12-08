@@ -305,7 +305,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                         if phase_img is not None:
                             # 最大横幅に合わせた縮尺率でリサイズ
                             h, w = phase_img.shape[:2]
-                            new_w, new_h = int(w * scale), int(h * scale)
+                            new_w, new_h = int(w * scale*1.25), int(h * scale*1.25)
                             phase_resized = cv2.resize(phase_img, (new_w, new_h))
                             
               
@@ -318,7 +318,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                         turn_phase_path = "image/turn_phase.png"
                         turn_phase = cv2.imread(turn_phase_path)
                         h, w = turn_phase.shape[:2]
-                        new_w, new_h = int(w * scale), int(h * scale)
+                        new_w, new_h = int(w * scale*1.25), int(h * scale*1.25)
                         turn_phase_resized = cv2.resize(turn_phase, (new_w, new_h))
                         h, w = turn_phase_resized.shape[:2]
                         x_offset = 30
