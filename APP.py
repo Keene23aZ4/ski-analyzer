@@ -51,7 +51,7 @@ translations = {
         "background_options": ["表示", "非表示 (骨格のみ抽出)"],
         "select_all": "すべての関節角度を選択する",
         "angle_prompt": "表示する関節角度",
-        "upload": "動画をアップロード (推奨 : アスペクト比は16×9 (横長の動画)、ファイルサイズは5.00MB以下)",
+        "upload": "推奨 : アスペクト比は16×9 (横長の動画)、ファイルサイズは5.00MB以下",
         "analyzing": "解析中... {percent}/100%",
         "done": "解析完了",
         "download": "ダウンロード",
@@ -176,6 +176,7 @@ if uploaded_file:
             file_name="analyzed_ski_video.mp4",
             mime="video/mp4"
         )
+
 
 
 
