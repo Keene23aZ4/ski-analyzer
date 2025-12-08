@@ -136,10 +136,8 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
     # 事前に全フェーズ画像の横幅を調べて最大値を決定
     phase_paths = [
         "image/turn_phase_neutral.png",
-        "image/turn_phase_left_1st.png",
-        "image/turn_phase_left_2nd.png",
-        "image/turn_phase_right_1st.png",
-        "image/turn_phase_right_2nd.png"
+        "image/turn_phase_left.png",
+        "image/turn_phase_right.png",
     ]
     
     widths = []
@@ -220,26 +218,18 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                         right_knee_sum = right_knee_abduction + right_knee_s
                         if left_knee_sum > right_knee_sum:
                             primary = "Left"
-                            left_hip_sum = left_hip_angle + left_abduction_angle
-                            right_hip_sum = right_hip_angle + right_abduction_angle
-                            phase = "First Half" if left_hip_sum > right_hip_sum else "Second Half"
+                            
                         else:
                             primary = "Right"
-                            right_hip_sum = right_hip_angle + right_abduction_angle
-                            left_hip_sum = left_hip_angle + left_abduction_angle
-                            phase = "First Half" if right_hip_sum > left_hip_sum else "Second Half"
-                        turn_phase = f"{primary} ({phase})"
+                            
+                        turn_phase = f"{primary}"
                                             
                     if turn_phase == "Neutral":
                         phase_img_path = "image/turn_phase_neutral.png"
-                    elif turn_phase == "Left (First Half)":
-                        phase_img_path = "image/turn_phase_left_1st.png"
-                    elif turn_phase == "Left (Second Half)":
-                        phase_img_path = "image/turn_phase_left_2nd.png"
-                    elif turn_phase == "Right (First Half)":
-                        phase_img_path = "image/turn_phase_right_1st.png"
-                    elif turn_phase == "Right (Second Half)":
-                        phase_img_path = "image/turn_phase_right_2nd.png"
+                    elif turn_phase == "Left":
+                        phase_img_path = "image/turn_phase_left.png"
+                    elif turn_phase == "Right":
+                        phase_img_path = "image/turn_phase_right.png"
                     else:
                         phase_img_path = None
 
@@ -355,6 +345,29 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     ["Torso Tilt", "--"],
                     ["Inclination Angle", "--"]
                 ] 
+                img_pil = Image.fromarray(canvas)
+                    draw = ImageDraw.Draw(img_pil)
+                    font_path="static/BestTen-CRT.otf"
+                    font = ImageFont.truetype(font_path, 20)
+                
+                    cell_height = 40
+                    start_x = 30
+                    start_y = canvas.shape[0] - len(grid_data)*cell_height - 30
+
+                    
+                  
+                    for i, (label, value) in enumerate(grid_data):
+                        y_pos = start_y + i * cell_height
+
+                        top_left = (start_x, start_y + i * 40)
+                        bottom_right = (start_x + 300, start_y + (i + 1) * 40)     
+                        draw.text((35, y_pos+10), label, font=font, fill=(255,255,255))
+                        draw.text((200, y_pos+10), value, font=font, fill=(255,255,255))
+                        cv2.rectangle(canvas, top_left, bottom_right, (0, 0, 0), -1)
+                        cv2.rectangle(canvas, top_left, bottom_right, (255, 255, 255), 1)
+                    canvas = np.array(img_pil)
+                    
+                    box_width, box_height = 300, 100
                             
 
                                                            
