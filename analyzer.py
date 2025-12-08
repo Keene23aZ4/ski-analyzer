@@ -347,19 +347,16 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                 ] 
                 y_pos = start_y + i * cell_height
                 top_left = (start_x, start_y + i * 40)
+                cell_height = 40
+                start_x = 30
+                start_y = canvas.shape[0] - len(grid_data)*cell_height - 30
                 cv2.rectangle(canvas, top_left, bottom_right, (0, 0, 0), -1)
                 cv2.rectangle(canvas, top_left, bottom_right, (255, 255, 255), 1)
                 img_pil = Image.fromarray(canvas)
                 draw = ImageDraw.Draw(img_pil)
                 font_path="static/BestTen-CRT.otf"
                 font = ImageFont.truetype(font_path, 20)
-            
-                cell_height = 40
-                start_x = 30
-                start_y = canvas.shape[0] - len(grid_data)*cell_height - 30
-
-                
-              
+                            
                 for i, (label, value) in enumerate(grid_data):
                     y_pos = start_y + i * cell_height
 
