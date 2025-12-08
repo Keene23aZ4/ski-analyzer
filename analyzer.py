@@ -345,11 +345,12 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     ["Torso Tilt", "--"],
                     ["Inclination Angle", "--"]
                 ] 
-                y_pos = start_y + i * cell_height
-                top_left = (start_x, start_y + i * 40)
                 cell_height = 40
                 start_x = 30
                 start_y = canvas.shape[0] - len(grid_data)*cell_height - 30
+                y_pos = start_y + i * cell_height
+                top_left = (start_x, start_y + i * 40)
+                bottom_right = (start_x + 300, start_y + (i + 1) * 40) 
                 cv2.rectangle(canvas, top_left, bottom_right, (0, 0, 0), -1)
                 cv2.rectangle(canvas, top_left, bottom_right, (255, 255, 255), 1)
                 img_pil = Image.fromarray(canvas)
