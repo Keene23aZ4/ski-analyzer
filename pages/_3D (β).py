@@ -162,63 +162,63 @@ if uploaded is not None:
     <div id="container" style="width:100%; height:600px;"></div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r152/three.min.js"></script>
     <script>
-    const payload = {payload};
-    const LINKS = [[11,12],[11,13],[13,15],[12,14],[14,16],[23,24],[11,23],[12,24],[23,25],[25,27],[24,26],[26,28],[0,7],[7,8],[8,9],[9,10]];
-    const container = document.getElementById('container');
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x111111);
-    const camera = new THREE.PerspectiveCamera(45, container.clientWidth/container.clientHeight, 0.01, 1000);
-    camera.position.set(0,1.2,3.0);
-    const renderer = new THREE.WebGLRenderer({antialias:true});
-    renderer.setSize(container.clientWidth, container.clientHeight);
-    container.appendChild(renderer.domElement);
-    const hemi = new THREE.HemisphereLight(0xffffff,0x444444,0.9); hemi.position.set(0,1,0); scene.add(hemi);
-    const dir = new THREE.DirectionalLight(0xffffff,0.6); dir.position.set(5,5,5); scene.add(dir);
-    const jointMat = new THREE.MeshStandardMaterial({color:0x00e0ff});
-    const boneMat = new THREE.LineBasicMaterial({color:0xffffff});
-    const JOINT_COUNT = 33;
-    const joints = [];
-    const jointGeom = new THREE.SphereGeometry(0.03,12,12);
-    for (let i=0;i<JOINT_COUNT;i++) {{
-      const m = new THREE.Mesh(jointGeom,jointMat);
-      scene.add(m);
-      joints.push(m);
-    }}
-    const bones = [];
-    for (const [a,b] of LINKS) {{
-      const geom = new THREE.BufferGeometry();
-      const positions = new Float32Array(6);
-      geom.setAttribute('position', new THREE.BufferAttribute(positions,3));
-      const line = new THREE.Line(geom,boneMat);
-      scene.add(line);
-      bones.push({line,a,b,positions});
-    }}
-    const frames = payload.frames;
-    const fps = payload.fps;
-    const dt = 1.0/fps;
-    function formatFrameLandmarks(frame) {{
-      const lm = frame.landmarks;
-      const hipL = lm[23], hipR = lm[24];
-      const cx=(hipL.x+hipR.x)/2, cy=(hipL.y+hipR.y)/2, cz=(hipL.z+hipR.z)/2;
-      const S=1.2;
-      return lm.map(p=>({x:(p.x-cx)*S,y:(p.y-cy)*S,z:(p.z-cz)*S}));
-    }}
-    const cooked = frames.map(formatFrameLandmarks);
-    let t=0, idx=0;
-    function tick() {{
-      requestAnimationFrame(tick);
-      t+=dt; idx=Math.floor(t*fps)%cooked.length;
-      const pts=cooked[idx];
-      for (let i=0;i<Math.min(JOINT_COUNT,pts.length);i++) joints[i].position.set(pts[i].x,pts[i].y,pts[i].z);
-      for (const b of bones) {{
-        const A=pts[b.a], B=pts[b.b];
-        b.positions[0]=A.x; b.positions[1]=A.y; b.positions[2]=A.z;
-        b.positions[3]=B.x; b.positions[4]=B.y; b.positions[5]=B.z;
-        b.line.geometry.attributes.position.needsUpdate=true;
-      }}
-      renderer.render(scene,camera);
-    }}
-    tick();
+        const payload = {payload};
+        const LINKS = [[11,12],[11,13],[13,15],[12,14],[14,16],[23,24],[11,23],[12,24],[23,25],[25,27],[24,26],[26,28],[0,7],[7,8],[8,9],[9,10]];
+        const container = document.getElementById('container');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x111111);
+        const camera = new THREE.PerspectiveCamera(45, container.clientWidth/container.clientHeight, 0.01, 1000);
+        camera.position.set(0,1.2,3.0);
+        const renderer = new THREE.WebGLRenderer({antialias:true});
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        container.appendChild(renderer.domElement);
+        const hemi = new THREE.HemisphereLight(0xffffff,0x444444,0.9); hemi.position.set(0,1,0); scene.add(hemi);
+        const dir = new THREE.DirectionalLight(0xffffff,0.6); dir.position.set(5,5,5); scene.add(dir);
+        const jointMat = new THREE.MeshStandardMaterial({color:0x00e0ff});
+        const boneMat = new THREE.LineBasicMaterial({color:0xffffff});
+        const JOINT_COUNT = 33;
+        const joints = [];
+        const jointGeom = new THREE.SphereGeometry(0.03,12,12);
+        for (let i=0;i<JOINT_COUNT;i++) {{
+          const m = new THREE.Mesh(jointGeom,jointMat);
+          scene.add(m);
+          joints.push(m);
+        }}
+        const bones = [];
+        for (const [a,b] of LINKS) {{
+          const geom = new THREE.BufferGeometry();
+          const positions = new Float32Array(6);
+          geom.setAttribute('position', new THREE.BufferAttribute(positions,3));
+          const line = new THREE.Line(geom,boneMat);
+          scene.add(line);
+          bones.push({line,a,b,positions});
+        }}
+        const frames = payload.frames;
+        const fps = payload.fps;
+        const dt = 1.0/fps;
+        function formatFrameLandmarks(frame) {{
+          const lm = frame.landmarks;
+          const hipL = lm[23], hipR = lm[24];
+          const cx=(hipL.x+hipR.x)/2, cy=(hipL.y+hipR.y)/2, cz=(hipL.z+hipR.z)/2;
+          const S=1.2;
+          return lm.map(p=>({x:(p.x-cx)*S,y:(p.y-cy)*S,z:(p.z-cz)*S}));
+        }}
+        const cooked = frames.map(formatFrameLandmarks);
+        let t=0, idx=0;
+        function tick() {{
+          requestAnimationFrame(tick);
+          t+=dt; idx=Math.floor(t*fps)%cooked.length;
+          const pts=cooked[idx];
+          for (let i=0;i<Math.min(JOINT_COUNT,pts.length);i++) joints[i].position.set(pts[i].x,pts[i].y,pts[i].z);
+          for (const b of bones) {{
+            const A=pts[b.a], B=pts[b.b];
+            b.positions[0]=A.x; b.positions[1]=A.y; b.positions[2]=A.z;
+            b.positions[3]=B.x; b.positions[4]=B.y; b.positions[5]=B.z;
+            b.line.geometry.attributes.position.needsUpdate=true;
+          }}
+          renderer.render(scene,camera);
+        }}
+        tick();
     </script>
     """
     st.components.v1.html(html, height=620, scrolling=False)
