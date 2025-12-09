@@ -62,42 +62,22 @@ set_background()
 
 st.set_page_config(page_title="3D Pose → Avatar Motion", page_icon="🕺", layout="wide")
 
+
+
 mp_pose = mp.solutions.pose
 
-# -------------------------
-# UI
-# -------------------------
-st.title("単一動画から3D骨格推定 → 3Dアバターに適用（Streamlit Cloud）")
-st.write("1. 動画をアップロード → 2. 3D骨格を推定 → 3. ブラウザで3Dスティックフィギュアを再生")
-
-uploaded = st.file_uploader("動画をアップロード（MP4推奨）", type=["mp4", "mov", "avi", "mkv"])
-col_run = st.columns(2)
-
-with col_run[0]:
-    downsample = st.slider("フレーム間引き（大きいほど軽く）", min_value=1, max_value=10, value=3, step=1)
-with col_run[1]:
-    show_debug = st.checkbox("処理中の2Dプレビューを表示（遅くなる）", value=False)
-
-# -------------------------
-# Helper: process video with MediaPipe Pose
-# -------------------------
 def extract_3d_pose_sequence(video_path: str, stride: int = 3):
     cap = cv2.VideoCapture(video_path)
-    if not cap.isOpened():
-        raise RuntimeError("動画を開けませんでした。")
-
     fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
     pose = mp_pose.Pose(model_complexity=1, smooth_landmarks=True)
 
     frames = []
-    frame_idx = 0
-    debug_images = []
     landmark_names = [lm.name for lm in mp_pose.PoseLandmark]
+    frame_idx = 0
 
     while True:
         ret, frame = cap.read()
-        if not ret:
-            break
+        if not ret: break
         if frame_idx % stride != 0:
             frame_idx += 1
             continue
@@ -108,185 +88,119 @@ def extract_3d_pose_sequence(video_path: str, stride: int = 3):
         if result.pose_world_landmarks:
             landmarks = result.pose_world_landmarks.landmark
             lm_xyz = [{"x": lm.x, "y": lm.y, "z": lm.z} for lm in landmarks]
-        elif result.pose_landmarks:
-            landmarks = result.pose_landmarks.landmark
-            lm_xyz = [{"x": lm.x, "y": lm.y, "z": 0.0} for lm in landmarks]
         else:
             lm_xyz = [{"x": 0.0, "y": 0.0, "z": 0.0} for _ in range(len(landmark_names))]
 
         frames.append({"landmarks": lm_xyz})
-
-        if show_debug and result.pose_landmarks:
-            dbg = frame.copy()
-            mp.solutions.drawing_utils.draw_landmarks(dbg, result.pose_landmarks, mp_pose.POSE_CONNECTIONS)
-            debug_images.append(cv2.cvtColor(dbg, cv2.COLOR_BGR2RGB))
-
         frame_idx += 1
 
     cap.release()
     pose.close()
+    return {"landmark_names": landmark_names, "frames": frames, "fps": fps}
 
-    return {"landmark_names": landmark_names, "frames": frames, "fps": fps, "debug_images": debug_images}
-
-# -------------------------
-# Run processing
-# -------------------------
-if uploaded is not None:
+uploaded = st.file_uploader("動画をアップロード", type=["mp4","mov","avi","mkv"])
+if uploaded:
     with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as tmpf:
         tmpf.write(uploaded.read())
         tmp_path = tmpf.name
 
-    with st.spinner("3D骨格を推定中..."):
-        seq = extract_3d_pose_sequence(tmp_path, stride=downsample)
-
-    st.success(f"フレーム数: {len(seq['frames'])} / FPS: {seq['fps']:.2f}")
-
-    if show_debug and seq["debug_images"]:
-        st.image(seq["debug_images"], caption="2Dランドマークプレビュー", use_column_width=True)
-
-    # -------------------------
-    # Three.js viewer
-    # -------------------------
-    st.subheader("3Dアバター（スティックフィギュア）再生")
-
-    data = {
+    seq = extract_3d_pose_sequence(tmp_path, stride=3)
+    payload = json.dumps({
         "frames": seq["frames"],
         "names": seq["landmark_names"],
         "fps": max(10.0, min(seq["fps"], 60.0)),
-    }
-    payload = json.dumps(data)
-# Three.js 部分は通常文字列に分ける
-    three_js_code = """
+    })
+
+    three_js_code = f"""
     <div id="container" style="width:100%; height:600px;"></div>
-	<script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
-	<script>
-	/* OrbitControls フル実装（import/export を削除し、THREE.〜 に書き換え済み） */
-	class OrbitControls extends THREE.EventDispatcher {
-	  constructor(object, domElement) {
-	    super();
-	    this.object = object;
-	    this.domElement = domElement;
-	    this.domElement.style.touchAction = 'none';
-	    this.target = new THREE.Vector3();
-	
-	    this.minDistance = 0;
-	    this.maxDistance = Infinity;
-	    this.minZoom = 0;
-	    this.maxZoom = Infinity;
-	    this.minPolarAngle = 0;
-	    this.maxPolarAngle = Math.PI;
-	    this.minAzimuthAngle = -Infinity;
-	    this.maxAzimuthAngle = Infinity;
-	    this.enableDamping = true;
-	    this.dampingFactor = 0.05;
-	    this.enableZoom = true;
-	    this.zoomSpeed = 1.0;
-	    this.enableRotate = true;
-	    this.rotateSpeed = 1.0;
-	    this.enablePan = true;
-	    this.panSpeed = 1.0;
-	    this.screenSpacePanning = true;
-	    this.keyPanSpeed = 7.0;
-	
-	    // 内部状態
-	    const scope = this;
-	    const spherical = new THREE.Spherical();
-	    const sphericalDelta = new THREE.Spherical();
-	    let scale = 1;
-	    const panOffset = new THREE.Vector3();
-	
-	    // マウスイベント
-	    function onMouseDown(event) {
-	      event.preventDefault();
-	      scope.domElement.addEventListener('mousemove', onMouseMove);
-	      scope.domElement.addEventListener('mouseup', onMouseUp);
-	      scope.startX = event.clientX;
-	      scope.startY = event.clientY;
-	    }
-	    function onMouseMove(event) {
-	      const dx = event.clientX - scope.startX;
-	      const dy = event.clientY - scope.startY;
-	      scope.startX = event.clientX;
-	      scope.startY = event.clientY;
-	      sphericalDelta.theta -= dx * 0.005;
-	      sphericalDelta.phi -= dy * 0.005;
-	      scope.update();
-	    }
-	    function onMouseUp() {
-	      scope.domElement.removeEventListener('mousemove', onMouseMove);
-	      scope.domElement.removeEventListener('mouseup', onMouseUp);
-	    }
-	
-	    this.domElement.addEventListener('mousedown', onMouseDown);
-	
-	    this.update = function() {
-	      const offset = new THREE.Vector3();
-	      offset.copy(scope.object.position).sub(scope.target);
-	      spherical.setFromVector3(offset);
-	
-	      spherical.theta += sphericalDelta.theta;
-	      spherical.phi += sphericalDelta.phi;
-	      spherical.makeSafe();
-	
-	      offset.setFromSpherical(spherical);
-	      scope.object.position.copy(scope.target).add(offset);
-	      scope.object.lookAt(scope.target);
-	
-	      sphericalDelta.set(0,0,0);
-	    };
-	  }
-	}
-	
-	// グローバル登録
-	THREE.OrbitControls = OrbitControls;
-	
-	/* Three.js 初期化 */
-	const container = document.getElementById('container');
-	const w = container.clientWidth || window.innerWidth;
-	const h = container.clientHeight || 600;
-	
-	const scene = new THREE.Scene();
-	scene.background = new THREE.Color(0x111111);
-	
-	const camera = new THREE.PerspectiveCamera(60, w / h, 0.01, 1000);
-	camera.position.set(0, 0, 5);
-	
-	const renderer = new THREE.WebGLRenderer({antialias:true});
-	renderer.setSize(w, h);
-	container.appendChild(renderer.domElement);
-	
-	const controls = new THREE.OrbitControls(camera, renderer.domElement);
-	controls.target.set(0, 0, 0);
-	
-	const box = new THREE.Mesh(
-	  new THREE.BoxGeometry(1, 1, 1),
-	  new THREE.MeshStandardMaterial({color:0xff0000})
-	);
-	scene.add(box);
-	
-	const light = new THREE.DirectionalLight(0xffffff, 1);
-	light.position.set(5, 5, 5);
-	scene.add(light);
-	
-	function tick() {
-	  requestAnimationFrame(tick);
-	  box.rotation.y += 0.01;
-	  controls.update();
-	  renderer.render(scene, camera);
-	}
-	tick();
-	</script>
-	"""
-    
-    # f-string は payload 埋め込み部分だけにする
-    html = f"""
-    <div id="container" style="width:100%; height:600px;"></div>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
     <script>
-      const payload = {payload};
+    const payload = {payload};
+
+    // OrbitControls 簡易版（フルコードを埋め込む場合は置き換え）
+    class OrbitControls extends THREE.EventDispatcher {{
+      constructor(object, domElement) {{
+        super();
+        this.object = object;
+        this.domElement = domElement;
+        this.target = new THREE.Vector3();
+        this.domElement.addEventListener('mousedown', (event) => {{
+          event.preventDefault();
+          this.startX = event.clientX;
+          this.startY = event.clientY;
+          const onMove = (e) => {{
+            const dx = e.clientX - this.startX;
+            const dy = e.clientY - this.startY;
+            this.startX = e.clientX;
+            this.startY = e.clientY;
+            this.object.position.applyAxisAngle(new THREE.Vector3(0,1,0), dx*0.005);
+            this.object.position.applyAxisAngle(new THREE.Vector3(1,0,0), dy*0.005);
+            this.object.lookAt(this.target);
+          }};
+          const onUp = () => {{
+            this.domElement.removeEventListener('mousemove', onMove);
+            this.domElement.removeEventListener('mouseup', onUp);
+          }};
+          this.domElement.addEventListener('mousemove', onMove);
+          this.domElement.addEventListener('mouseup', onUp);
+        }});
+      }}
+      update() {{ this.object.lookAt(this.target); }}
+    }}
+    THREE.OrbitControls = OrbitControls;
+
+    const container = document.getElementById('container');
+    const w = container.clientWidth || window.innerWidth;
+    const h = container.clientHeight || 600;
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x111111);
+
+    const camera = new THREE.PerspectiveCamera(60, w/h, 0.01, 1000);
+    camera.position.set(0,0,3);
+    const renderer = new THREE.WebGLRenderer({{antialias:true}});
+    renderer.setSize(w,h);
+    container.appendChild(renderer.domElement);
+
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+    // ランドマーク点
+    const spheres = [];
+    payload.names.forEach((name,i) => {{
+      const geom = new THREE.SphereGeometry(0.02,8,8);
+      const mat = new THREE.MeshBasicMaterial({{color:0x00ff00}});
+      const s = new THREE.Mesh(geom,mat);
+      scene.add(s);
+      spheres.push(s);
+    }});
+
+    // 接続線（簡易版）
+    const connections = [[11,13],[13,15],[12,14],[14,16],[11,12],[23,24],[23,25],[25,27],[24,26],[26,28]];
+    const lineMaterial = new THREE.LineBasicMaterial({{color:0xffffff}});
+    const lineGeometry = new THREE.BufferGeometry();
+    const linePositions = new Float32Array(connections.length*2*3);
+    lineGeometry.setAttribute('position', new THREE.BufferAttribute(linePositions,3));
+    const skeletonLines = new THREE.LineSegments(lineGeometry,lineMaterial);
+    scene.add(skeletonLines);
+
+    let frameIndex = 0;
+    function tick(){{
+      requestAnimationFrame(tick);
+      const frame = payload.frames[frameIndex];
+      frame.landmarks.forEach((lm,i)=>{{
+        spheres[i].position.set(lm.x,lm.y,lm.z);
+      }});
+      connections.forEach((conn,ci)=>{{
+        const a = frame.landmarks[conn[0]];
+        const b = frame.landmarks[conn[1]];
+        linePositions[ci*6+0]=a.x; linePositions[ci*6+1]=a.y; linePositions[ci*6+2]=a.z;
+        linePositions[ci*6+3]=b.x; linePositions[ci*6+4]=b.y; linePositions[ci*6+5]=b.z;
+      }});
+      skeletonLines.geometry.attributes.position.needsUpdate = true;
+      controls.update();
+      renderer.render(scene,camera);
+      frameIndex=(frameIndex+1)%payload.frames.length;
+    }}
+    tick();
     </script>
-    {three_js_code}
     """
-
-    st.components.v1.html(html, height=900, scrolling=False)
-
-
+    st.components.v1.html(three_js_code, height=700, scrolling=False)
