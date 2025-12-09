@@ -138,6 +138,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
         "image/turn_phase_neutral.png",
         "image/turn_phase_left.png",
         "image/turn_phase_right.png",
+        "image/turn_phase_none.png"
     ]
     
     widths = []
@@ -231,7 +232,8 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     elif turn_phase == "Right":
                         phase_img_path = "image/turn_phase_right.png"
                     else:
-                        phase_img_path = None
+                        phase_img_path = "image/turn_phase_none.png"
+                        
 
                     # 骨格ラインと関節点は image に描画
                     connections = [
