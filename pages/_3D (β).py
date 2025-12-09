@@ -173,6 +173,10 @@ if uploaded is not None:
       const renderer = new THREE.WebGLRenderer({antialias:true});
       renderer.setSize(w, h);
       container.appendChild(renderer.domElement);
+      const controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.target.set(0, 0, 0);   // 注視点を Box の中心に
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.08;
     
       const box = new THREE.Mesh(
         new THREE.BoxGeometry(1, 1, 1),
@@ -187,6 +191,7 @@ if uploaded is not None:
       function tick() {
         requestAnimationFrame(tick);
         box.rotation.y += 0.01;  // 回転させて動きを確認
+        controls.update();
         renderer.render(scene, camera);
       }
       tick();
