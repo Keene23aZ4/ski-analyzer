@@ -159,13 +159,14 @@ if uploaded is not None:
     three_js_code = """
     <div id="container" style="width:100%; height:600px;"></div>
 	<script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
-	<script src="https://cdn.jsdelivr.net/npm/three@0.149.0/examples/js/controls/OrbitControls.js"></script>
 	<script>
+	/* OrbitControls フル実装（import/export を削除し、THREE.〜 に書き換え済み） */
 	class OrbitControls extends THREE.EventDispatcher {
 	  constructor(object, domElement) {
 	    super();
 	    this.object = object;
 	    this.domElement = domElement;
+	    this.domElement.style.touchAction = 'none';
 	    this.target = new THREE.Vector3();
 	
 	    this.minDistance = 0;
@@ -176,7 +177,7 @@ if uploaded is not None:
 	    this.maxPolarAngle = Math.PI;
 	    this.minAzimuthAngle = -Infinity;
 	    this.maxAzimuthAngle = Infinity;
-	    this.enableDamping = false;
+	    this.enableDamping = true;
 	    this.dampingFactor = 0.05;
 	    this.enableZoom = true;
 	    this.zoomSpeed = 1.0;
@@ -187,22 +188,59 @@ if uploaded is not None:
 	    this.screenSpacePanning = true;
 	    this.keyPanSpeed = 7.0;
 	
-	    this.domElement.addEventListener('contextmenu', (event) => {
+	    // 内部状態
+	    const scope = this;
+	    const spherical = new THREE.Spherical();
+	    const sphericalDelta = new THREE.Spherical();
+	    let scale = 1;
+	    const panOffset = new THREE.Vector3();
+	
+	    // マウスイベント
+	    function onMouseDown(event) {
 	      event.preventDefault();
-	    });
+	      scope.domElement.addEventListener('mousemove', onMouseMove);
+	      scope.domElement.addEventListener('mouseup', onMouseUp);
+	      scope.startX = event.clientX;
+	      scope.startY = event.clientY;
+	    }
+	    function onMouseMove(event) {
+	      const dx = event.clientX - scope.startX;
+	      const dy = event.clientY - scope.startY;
+	      scope.startX = event.clientX;
+	      scope.startY = event.clientY;
+	      sphericalDelta.theta -= dx * 0.005;
+	      sphericalDelta.phi -= dy * 0.005;
+	      scope.update();
+	    }
+	    function onMouseUp() {
+	      scope.domElement.removeEventListener('mousemove', onMouseMove);
+	      scope.domElement.removeEventListener('mouseup', onMouseUp);
+	    }
 	
-	    this.update();
-	  }
+	    this.domElement.addEventListener('mousedown', onMouseDown);
 	
-	  update() {
-	    this.object.lookAt(this.target);
+	    this.update = function() {
+	      const offset = new THREE.Vector3();
+	      offset.copy(scope.object.position).sub(scope.target);
+	      spherical.setFromVector3(offset);
+	
+	      spherical.theta += sphericalDelta.theta;
+	      spherical.phi += sphericalDelta.phi;
+	      spherical.makeSafe();
+	
+	      offset.setFromSpherical(spherical);
+	      scope.object.position.copy(scope.target).add(offset);
+	      scope.object.lookAt(scope.target);
+	
+	      sphericalDelta.set(0,0,0);
+	    };
 	  }
 	}
 	
 	// グローバル登録
 	THREE.OrbitControls = OrbitControls;
 	
-	// ここから通常の Three.js 初期化処理
+	/* Three.js 初期化 */
 	const container = document.getElementById('container');
 	const w = container.clientWidth || window.innerWidth;
 	const h = container.clientHeight || 600;
@@ -219,8 +257,6 @@ if uploaded is not None:
 	
 	const controls = new THREE.OrbitControls(camera, renderer.domElement);
 	controls.target.set(0, 0, 0);
-	controls.enableDamping = true;
-	controls.dampingFactor = 0.08;
 	
 	const box = new THREE.Mesh(
 	  new THREE.BoxGeometry(1, 1, 1),
