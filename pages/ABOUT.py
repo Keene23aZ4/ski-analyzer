@@ -53,6 +53,18 @@ def set_background():
             unsafe_allow_html=True
         )
 set_background()
+st.title("About")
+translations = {
+    "English": {
+        "write": "coming soon......"
+    },
+    "日本語":{
+        "write": "準備中"
+    }
+}
+lang = st.session_state.get("language", "English")
+t = translations[lang]
+st.write(t["write"])
 
 st.title("About")
 st.write("coming soon......")
