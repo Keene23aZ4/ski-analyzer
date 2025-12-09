@@ -297,16 +297,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     
                     box_width, box_height = 300, 100
 
-                    turn_phase_path = "image/turn_phase.png"
-                    turn_phase_base = cv2.imread(turn_phase_path)
-                    if turn_phase_base is not None:
-                        h, w = turn_phase_base.shape[:2]
-                        new_w, new_h = int(w * scale*1.25), int(h * scale*1.25)
-                        turn_phase_resized = cv2.resize(turn_phase_base, (new_w, new_h))
                     
-                        x_offset = 30
-                        y_offset = canvas.shape[0] // 2   # 位置は任意で調整
-                        canvas[y_offset:y_offset+new_h, x_offset:x_offset+new_w] = turn_phase_resized
 
                     if phase_img_path and os.path.exists(phase_img_path):
                         phase_img = cv2.imread(phase_img_path)
@@ -369,6 +360,19 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     draw.text((35, y_pos+10), label, font=font, fill=(255,255,255))
                     draw.text((200, y_pos+10), value, font=font, fill=(255,255,255))
                 canvas = np.array(img_pil)
+                turn_phase_path = "image/turn_phase.png"
+                if os.path.exists(turn_phase_path):
+                    turn_phase = cv2.imread(turn_phase_path)
+                    if turn_phase is not None:
+                        h, w = turn_phase.shape[:2]
+                        new_w, new_h = int(w * scale*1.25), int(h * scale*1.25)
+                        turn_phase_resized = cv2.resize(turn_phase, (new_w, new_h))
+                
+                        # 貼り付け位置（例：左下）
+                        x_offset = 30
+                        y_offset = canvas.shape[0] - new_h - 30
+                        canvas[y_offset:y_offset+new_h, x_offset:x_offset+new_w] = turn_phase_resized
+
                 
                 box_width, box_height = 300, 100
                         
