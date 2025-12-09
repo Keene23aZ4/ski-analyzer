@@ -199,7 +199,7 @@ if uploaded is not None:
           geom.setAttribute('position', new THREE.BufferAttribute(positions,3));
           const line = new THREE.Line(geom,boneMat);
           scene.add(line);
-          bones.push({line,a,b,positions});
+          bones.push({{line,a,b,positions}});
         }}
         const frames = payload.frames;
         const fps = payload.fps;
