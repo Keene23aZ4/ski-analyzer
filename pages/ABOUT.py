@@ -66,5 +66,3 @@ lang = st.session_state.get("language", "English")
 t = translations[lang]
 st.write(t["write"])
 
-st.title("About")
-st.write("coming soon......")
