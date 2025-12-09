@@ -157,8 +157,8 @@ if uploaded is not None:
     payload = json.dumps(data)
 # Three.js 部分は通常文字列に分ける
     three_js_code = """
+    <div id="container" style="width:100%; height:600px;"></div>
     <script src="https://unpkg.com/three@0.152.2/build/three.min.js"></script>
-    <script src="https://unpkg.com/three@0.152.2/examples/js/controls/OrbitControls.js"></script>
     <script>
       const container = document.getElementById('container');
       const w = container.clientWidth || window.innerWidth;
@@ -168,49 +168,28 @@ if uploaded is not None:
       scene.background = new THREE.Color(0x111111);
     
       const camera = new THREE.PerspectiveCamera(60, w / h, 0.01, 1000);
-      camera.position.set(0, -1.5, 2.5);
-      camera.lookAt(0, 0.5, 0);
+      camera.position.set(0, 0, 5);
     
       const renderer = new THREE.WebGLRenderer({antialias:true});
       renderer.setSize(w, h);
       container.appendChild(renderer.domElement);
     
-      const controls = new THREE.OrbitControls(camera, renderer.domElement);
-      controls.target.set(0, 0.5, 0);
-      controls.enableDamping = true;
-      controls.dampingFactor = 0.08;
-    
-      const hemi = new THREE.HemisphereLight(0xffffff, 0x444444, 0.9);
-      hemi.position.set(0, 1, 0);
-      scene.add(hemi);
-      const dir = new THREE.DirectionalLight(0xffffff, 0.6);
-      dir.position.set(5, 5, 5);
-      scene.add(dir);
       const box = new THREE.Mesh(
-          new THREE.BoxGeometry(1,1,1),
-          new THREE.MeshStandardMaterial({color:0xff0000})
+        new THREE.BoxGeometry(1, 1, 1),
+        new THREE.MeshStandardMaterial({color:0xff0000})
       );
       scene.add(box);
     
-      const jointMat = new THREE.MeshStandardMaterial({color:0x00e0ff});
-      const boneMat  = new THREE.LineBasicMaterial({color:0xffffff});
-    
-      // ... joints, bones, cooked, tick() など既存処理をここに配置 ...
+      const light = new THREE.DirectionalLight(0xffffff, 1);
+      light.position.set(5, 5, 5);
+      scene.add(light);
     
       function tick() {
         requestAnimationFrame(tick);
-        controls.update();
+        box.rotation.y += 0.01;  // 回転させて動きを確認
         renderer.render(scene, camera);
       }
       tick();
-    
-      window.addEventListener('resize', () => {
-        const nw = container.clientWidth || window.innerWidth;
-        const nh = container.clientHeight || 600;
-        camera.aspect = nw / nh;
-        camera.updateProjectionMatrix();
-        renderer.setSize(nw, nh);
-      });
     </script>
     """
     
