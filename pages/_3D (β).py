@@ -3,68 +3,11 @@ import cv2
 import numpy as np
 import json
 import tempfile
-from typing import List, Dict, Any
-
-# MediaPipe imports
 import mediapipe as mp
-import base64
-from pathlib import Path
-
-font_path = Path(__file__).parent.parent / "static" / "BestTen-CRT.otf"
-if font_path.exists():
-    encoded = base64.b64encode(font_path.read_bytes()).decode()
-    st.markdown(
-        f"""
-        <style>
-        @font-face {{
-            font-family: 'BestTen';
-            src: url(data:font/opentype;base64,{encoded}) format('opentype');
-            font-display: swap;
-        }}
-        h1, p, div {{
-            font-family: 'BestTen', monospace !important;
-        }}
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
-
-# 背景画像設定
-def set_background():
-    img_path = Path("static/1704273575813.jpg")
-    if img_path.exists():
-        encoded = base64.b64encode(img_path.read_bytes()).decode()
-        mime = "image/jpeg"
-        st.markdown(
-            f"""
-            <style>
-            .stApp {{
-                background-image: url("data:{mime};base64,{encoded}");
-                background-size: cover;
-                background-position: center;
-                background-repeat: no-repeat;
-            }}
-            </style>
-            """,
-            unsafe_allow_html=True
-        )
-    else:
-        st.markdown(
-            """
-            <style>
-            .stApp {
-                background-color: #ffffff;
-            }
-            </style>
-            """,
-            unsafe_allow_html=True
-        )
-set_background()
-
-
-mp_pose = mp.solutions.pose
 
 st.set_page_config(page_title="3D Pose → Avatar Motion", page_icon="🕺", layout="wide")
+
+mp_pose = mp.solutions.pose
 
 # -------------------------
 # UI
@@ -89,7 +32,6 @@ def extract_3d_pose_sequence(video_path: str, stride: int = 3):
         raise RuntimeError("動画を開けませんでした。")
 
     fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
-    # heavyモデルは権限エラーになるので fullモデルを使用
     pose = mp_pose.Pose(model_complexity=1, smooth_landmarks=True)
 
     frames = []
@@ -168,14 +110,23 @@ if uploaded is not None:
     const container = document.getElementById('container');
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x111111);
+
     const camera = new THREE.PerspectiveCamera(45, container.clientWidth/container.clientHeight, 0.01, 1000);
     camera.position.set(0,1.2,3.0);
+
     // ✅ antialias は JS のオプションなので文字列内に書く
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(container.clientWidth, container.clientHeight);
     container.appendChild(renderer.domElement);
-    const hemi = new THREE.HemisphereLight(0xffffff,0x444444,0.9); hemi.position.set(0,1,0); scene.add(hemi);
-    const dir = new THREE.DirectionalLight(0xffffff,0.6); dir.position.set(5,5,5); scene.add(dir);
+
+    const hemi = new THREE.HemisphereLight(0xffffff,0x444444,0.9);
+    hemi.position.set(0,1,0);
+    scene.add(hemi);
+
+    const dir = new THREE.DirectionalLight(0xffffff,0.6);
+    dir.position.set(5,5,5);
+    scene.add(dir);
+
     const jointMat = new THREE.MeshStandardMaterial({color:0x00e0ff});
     const boneMat = new THREE.LineBasicMaterial({color:0xffffff});
     const JOINT_COUNT = 33;
