@@ -170,7 +170,7 @@ if uploaded is not None:
         camera.position.set(0,1.2,3.0);
     
         // ✅ antialias は JS のオプションなので文字列内に書く
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        const renderer = new THREE.WebGLRenderer({{ antialias: true }});
         renderer.setSize(container.clientWidth, container.clientHeight);
         container.appendChild(renderer.domElement);
     
