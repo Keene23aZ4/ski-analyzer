@@ -186,6 +186,11 @@ if uploaded is not None:
       const dir = new THREE.DirectionalLight(0xffffff, 0.6);
       dir.position.set(5, 5, 5);
       scene.add(dir);
+      const box = new THREE.Mesh(
+          new THREE.BoxGeometry(1,1,1),
+          new THREE.MeshStandardMaterial({color:0xff0000})
+      );
+      scene.add(box);
     
       const jointMat = new THREE.MeshStandardMaterial({color:0x00e0ff});
       const boneMat  = new THREE.LineBasicMaterial({color:0xffffff});
