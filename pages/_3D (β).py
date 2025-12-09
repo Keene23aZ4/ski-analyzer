@@ -182,8 +182,8 @@ if uploaded is not None:
         dir.position.set(5,5,5);
         scene.add(dir);
     
-        const jointMat = new THREE.MeshStandardMaterial({color:0x00e0ff});
-        const boneMat = new THREE.LineBasicMaterial({color:0xffffff});
+        const jointMat = new THREE.MeshStandardMaterial({{color:0x00e0ff}});
+        const boneMat = new THREE.LineBasicMaterial({{color:0xffffff}});
         const JOINT_COUNT = 33;
         const joints = [];
         const jointGeom = new THREE.SphereGeometry(0.03,12,12);
