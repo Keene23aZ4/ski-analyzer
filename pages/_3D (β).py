@@ -161,21 +161,13 @@ if uploaded is not None:
     <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/examples/js/controls/OrbitControls.js"></script>
     <script>
-	    class OrbitControls extends EventDispatcher {
+	    class OrbitControls extends THREE .EventDispatcher {
 		constructor( object, domElement ) {
-	
 			super();
-	
 			this.object = object;
 			this.domElement = domElement;
-			this.domElement.style.touchAction = 'none'; // disable touch scroll
-	
-			// Set to false to disable this control
-			this.enabled = true;
-	
-			// "target" sets the location of focus, where the object orbits around
-			this.target = new THREE Vector3();
-	
+			this.target = new THREE.Vector3();
+		
 			// How far you can dolly in and out ( PerspectiveCamera only )
 			this.minDistance = 0;
 			this.maxDistance = Infinity;
