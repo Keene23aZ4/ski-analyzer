@@ -89,7 +89,7 @@ def extract_3d_pose_sequence(video_path: str, stride: int = 3):
         raise RuntimeError("動画を開けませんでした。")
 
     fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
-    pose = mp_pose.Pose(model_complexity=2, smooth_landmarks=True)
+    pose = mp_pose.Pose(model_complexity=1, smooth_landmarks=True)
 
     frames = []
     frame_idx = 0
