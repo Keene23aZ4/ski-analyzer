@@ -361,16 +361,14 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     draw.text((200, y_pos+10), value, font=font, fill=(255,255,255))
                 canvas = np.array(img_pil)
                 turn_phase_path = "image/turn_phase.png"
-                if os.path.exists(turn_phase_path):
-                    turn_phase = cv2.imread(turn_phase_path)
-                    if turn_phase is not None:
-                        h, w = turn_phase.shape[:2]
-                        new_w, new_h = int(w * scale*1.25), int(h * scale*1.25)
-                        turn_phase_resized = cv2.resize(turn_phase, (new_w, new_h))
-                        x_offset = 30
-                        y_offset = canvas.shape[0] // 2
-                        canvas [y_offset:y_offset+h, x_offset:x_offset+w] = turn_phase_resized
-                
+                turn_phase = cv2.imread(turn_phase_path)
+                h, w = turn_phase.shape[:2]
+                new_w, new_h = int(w * scale*1.25), int(h * scale*1.25)
+                turn_phase_resized = cv2.resize(turn_phase, (new_w, new_h))
+                h, w = turn_phase_resized.shape[:2]
+                x_offset = 30
+                y_offset = canvas.shape[0] // 2
+                canvas [y_offset:y_offset+h, x_offset:x_offset+w] = turn_phase_resized
                 box_width, box_height = 300, 100
                         
 
