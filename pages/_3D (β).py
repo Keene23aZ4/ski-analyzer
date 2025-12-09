@@ -158,7 +158,7 @@ if uploaded is not None:
 
     html = f"""
     <div id="container" style="width:100%; height:600px;"></div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r152/three.min.js"></script>
+    <script src="https://unpkg.com/three@0.152.2/build/three.min.js"></script>
     <script>
         const payload = {payload};
         const LINKS = [[11,12],[11,13],[13,15],[12,14],[14,16],[23,24],[11,23],[12,24],[23,25],[25,27],[24,26],[26,28],[0,7],[7,8],[8,9],[9,10]];
