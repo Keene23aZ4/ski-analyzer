@@ -158,7 +158,7 @@ if uploaded is not None:
 # Three.js 部分は通常文字列に分ける
     three_js_code = """
     <div id="container" style="width:100%; height:600px;"></div>
-    <script src="https://unpkg.com/three@0.152.2/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/examples/js/controls/OrbitControls.js"></script>
     <script>
       const container = document.getElementById('container');
