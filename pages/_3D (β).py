@@ -161,167 +161,168 @@ if uploaded is not None:
     <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/examples/js/controls/OrbitControls.js"></script>
     <script>
-    class OrbitControls extends EventDispatcher {
-
-	constructor( object, domElement ) {
-
-		super();
-
-		this.object = object;
-		this.domElement = domElement;
-		this.domElement.style.touchAction = 'none'; // disable touch scroll
-
-		// Set to false to disable this control
-		this.enabled = true;
-
-		// "target" sets the location of focus, where the object orbits around
-		this.target = new Vector3();
-
-		// How far you can dolly in and out ( PerspectiveCamera only )
-		this.minDistance = 0;
-		this.maxDistance = Infinity;
-
-		// How far you can zoom in and out ( OrthographicCamera only )
-		this.minZoom = 0;
-		this.maxZoom = Infinity;
-
-		// How far you can orbit vertically, upper and lower limits.
-		// Range is 0 to Math.PI radians.
-		this.minPolarAngle = 0; // radians
-		this.maxPolarAngle = Math.PI; // radians
-
-		// How far you can orbit horizontally, upper and lower limits.
-		// If set, the interval [ min, max ] must be a sub-interval of [ - 2 PI, 2 PI ], with ( max - min < 2 PI )
-		this.minAzimuthAngle = - Infinity; // radians
-		this.maxAzimuthAngle = Infinity; // radians
-
-		// Set to true to enable damping (inertia)
-		// If damping is enabled, you must call controls.update() in your animation loop
-		this.enableDamping = false;
-		this.dampingFactor = 0.05;
-
-		// This option actually enables dollying in and out; left as "zoom" for backwards compatibility.
-		// Set to false to disable zooming
-		this.enableZoom = true;
-		this.zoomSpeed = 1.0;
-
-		// Set to false to disable rotating
-		this.enableRotate = true;
-		this.rotateSpeed = 1.0;
-
-		// Set to false to disable panning
-		this.enablePan = true;
-		this.panSpeed = 1.0;
-		this.screenSpacePanning = true; // if false, pan orthogonal to world-space direction camera.up
-		this.keyPanSpeed = 7.0;	// pixels moved per arrow key push
-
-				case STATE.TOUCH_PAN:
-
-					if ( scope.enablePan === false ) return;
-
-					handleTouchMovePan( event );
-
-					scope.update();
-
-					break;
-
-				case STATE.TOUCH_DOLLY_PAN:
-
-					if ( scope.enableZoom === false && scope.enablePan === false ) return;
-
-					handleTouchMoveDollyPan( event );
-
-					scope.update();
-
-					break;
-
-				case STATE.TOUCH_DOLLY_ROTATE:
-
-					if ( scope.enableZoom === false && scope.enableRotate === false ) return;
-
-					handleTouchMoveDollyRotate( event );
-
-					scope.update();
-
-					break;
-
-				default:
-
-					state = STATE.NONE;
-
-			}
-
-		}
-
-		function onContextMenu( event ) {
-
-			if ( scope.enabled === false ) return;
-
-			event.preventDefault();
-
-		}
-
-		function addPointer( event ) {
-
-			pointers.push( event );
-
-		}
-
-		function removePointer( event ) {
-
-			delete pointerPositions[ event.pointerId ];
-
-			for ( let i = 0; i < pointers.length; i ++ ) {
-
-				if ( pointers[ i ].pointerId == event.pointerId ) {
-
-					pointers.splice( i, 1 );
-					return;
-
+	    class OrbitControls extends EventDispatcher {
+		constructor( object, domElement ) {
+	
+			super();
+	
+			this.object = object;
+			this.domElement = domElement;
+			this.domElement.style.touchAction = 'none'; // disable touch scroll
+	
+			// Set to false to disable this control
+			this.enabled = true;
+	
+			// "target" sets the location of focus, where the object orbits around
+			this.target = new THREE Vector3();
+	
+			// How far you can dolly in and out ( PerspectiveCamera only )
+			this.minDistance = 0;
+			this.maxDistance = Infinity;
+	
+			// How far you can zoom in and out ( OrthographicCamera only )
+			this.minZoom = 0;
+			this.maxZoom = Infinity;
+	
+			// How far you can orbit vertically, upper and lower limits.
+			// Range is 0 to Math.PI radians.
+			this.minPolarAngle = 0; // radians
+			this.maxPolarAngle = Math.PI; // radians
+	
+			// How far you can orbit horizontally, upper and lower limits.
+			// If set, the interval [ min, max ] must be a sub-interval of [ - 2 PI, 2 PI ], with ( max - min < 2 PI )
+			this.minAzimuthAngle = - Infinity; // radians
+			this.maxAzimuthAngle = Infinity; // radians
+	
+			// Set to true to enable damping (inertia)
+			// If damping is enabled, you must call controls.update() in your animation loop
+			this.enableDamping = false;
+			this.dampingFactor = 0.05;
+	
+			// This option actually enables dollying in and out; left as "zoom" for backwards compatibility.
+			// Set to false to disable zooming
+			this.enableZoom = true;
+			this.zoomSpeed = 1.0;
+	
+			// Set to false to disable rotating
+			this.enableRotate = true;
+			this.rotateSpeed = 1.0;
+	
+			// Set to false to disable panning
+			this.enablePan = true;
+			this.panSpeed = 1.0;
+			this.screenSpacePanning = true; // if false, pan orthogonal to world-space direction camera.up
+			this.keyPanSpeed = 7.0;	// pixels moved per arrow key push
+	
+					case STATE.TOUCH_PAN:
+	
+						if ( scope.enablePan === false ) return;
+	
+						handleTouchMovePan( event );
+	
+						scope.update();
+	
+						break;
+	
+					case STATE.TOUCH_DOLLY_PAN:
+	
+						if ( scope.enableZoom === false && scope.enablePan === false ) return;
+	
+						handleTouchMoveDollyPan( event );
+	
+						scope.update();
+	
+						break;
+	
+					case STATE.TOUCH_DOLLY_ROTATE:
+	
+						if ( scope.enableZoom === false && scope.enableRotate === false ) return;
+	
+						handleTouchMoveDollyRotate( event );
+	
+						scope.update();
+	
+						break;
+	
+					default:
+	
+						state = STATE.NONE;
+	
 				}
-
+	
 			}
-
-		}
-
-		function trackPointer( event ) {
-
-			let position = pointerPositions[ event.pointerId ];
-
-			if ( position === undefined ) {
-
-				position = new Vector2();
-				pointerPositions[ event.pointerId ] = position;
-
+	
+			function onContextMenu( event ) {
+	
+				if ( scope.enabled === false ) return;
+	
+				event.preventDefault();
+	
 			}
-
-			position.set( event.pageX, event.pageY );
-
+	
+			function addPointer( event ) {
+	
+				pointers.push( event );
+	
+			}
+	
+			function removePointer( event ) {
+	
+				delete pointerPositions[ event.pointerId ];
+	
+				for ( let i = 0; i < pointers.length; i ++ ) {
+	
+					if ( pointers[ i ].pointerId == event.pointerId ) {
+	
+						pointers.splice( i, 1 );
+						return;
+	
+					}
+	
+				}
+	
+			}
+	
+			function trackPointer( event ) {
+	
+				let position = pointerPositions[ event.pointerId ];
+	
+				if ( position === undefined ) {
+	
+					position = new Vector2();
+					pointerPositions[ event.pointerId ] = position;
+	
+				}
+	
+				position.set( event.pageX, event.pageY );
+	
+			}
+	
+			function getSecondPointerPosition( event ) {
+	
+				const pointer = ( event.pointerId === pointers[ 0 ].pointerId ) ? pointers[ 1 ] : pointers[ 0 ];
+	
+				return pointerPositions[ pointer.pointerId ];
+	
+			}
+	
+			//
+	
+			scope.domElement.addEventListener( 'contextmenu', onContextMenu );
+	
+			scope.domElement.addEventListener( 'pointerdown', onPointerDown );
+			scope.domElement.addEventListener( 'pointercancel', onPointerCancel );
+			scope.domElement.addEventListener( 'wheel', onMouseWheel, { passive: false } );
+	
+			// force an update at start
+	
+			this.update();
+	
 		}
-
-		function getSecondPointerPosition( event ) {
-
-			const pointer = ( event.pointerId === pointers[ 0 ].pointerId ) ? pointers[ 1 ] : pointers[ 0 ];
-
-			return pointerPositions[ pointer.pointerId ];
-
-		}
-
-		//
-
-		scope.domElement.addEventListener( 'contextmenu', onContextMenu );
-
-		scope.domElement.addEventListener( 'pointerdown', onPointerDown );
-		scope.domElement.addEventListener( 'pointercancel', onPointerCancel );
-		scope.domElement.addEventListener( 'wheel', onMouseWheel, { passive: false } );
-
-		// force an update at start
-
-		this.update();
-
+	
 	}
+	THREE.OrbitControls = OrbitControls;
 
-}
       const container = document.getElementById('container');
       const w = container.clientWidth || window.innerWidth;
       const h = container.clientHeight || 600;
