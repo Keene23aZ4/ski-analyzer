@@ -231,6 +231,6 @@ if uploaded is not None:
         tick();
     </script>
     """
-    st.components.v1.html(html, height=720, scrolling=False)
+    st.components.v1.html(html, height=900, scrolling=False)
 else:
     st.warning("MP4などの動画をアップロードしてください。")
