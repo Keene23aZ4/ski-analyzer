@@ -167,7 +167,7 @@ if uploaded is not None:
         scene.background = new THREE.Color(0x111111);
     
         const camera = new THREE.PerspectiveCamera(45, container.clientWidth/container.clientHeight, 0.01, 1000);
-        camera.position.set(0,1.2,3.0);
+        camera.position.set(0,2.0,4.0);
     
         // ✅ antialias は JS のオプションなので文字列内に書く
         const renderer = new THREE.WebGLRenderer({{ antialias: true }});
