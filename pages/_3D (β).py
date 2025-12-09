@@ -218,6 +218,6 @@ if uploaded is not None:
     {three_js_code}
     """
 
-st.components.v1.html(html, height=900, scrolling=False)
+    st.components.v1.html(html, height=900, scrolling=False)
 
 
