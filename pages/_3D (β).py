@@ -174,7 +174,7 @@ if uploaded is not None:
   camera.lookAt(0, 0.5, 0);
 
   // f-string 対策でオブジェクトリテラルは {{ ... }} に
-  const renderer = new THREE.WebGLRenderer({{ antialias: true }});
+  const renderer = new THREE.WebGLRenderer({{antialias:true}});
   renderer.setSize(w, h);
   container.appendChild(renderer.domElement);
 
