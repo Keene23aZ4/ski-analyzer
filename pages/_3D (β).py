@@ -158,53 +158,7 @@ if uploaded is not None:
 # Three.js 部分は通常文字列に分ける
     three_js_code = """
     <div id="container" style="width:100%; height:600px;"></div>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
-    <script>
-	    class OrbitControls extends THREE.EventDispatcher {
-			constructor( object, domElement ) {
-				super();
-				this.object = object;
-				this.domElement = domElement;
-				this.target = new THREE.Vector3();
-			
-				// How far you can dolly in and out ( PerspectiveCamera only )
-				this.minDistance = 0;
-				this.maxDistance = Infinity;
-		
-				// How far you can zoom in and out ( OrthographicCamera only )
-				this.minZoom = 0;
-				this.maxZoom = Infinity;
-		
-				// How far you can orbit vertically, upper and lower limits.
-				// Range is 0 to Math.PI radians.
-				this.minPolarAngle = 0; // radians
-				this.maxPolarAngle = Math.PI; // radians
-		
-				// How far you can orbit horizontally, upper and lower limits.
-				// If set, the interval [ min, max ] must be a sub-interval of [ - 2 PI, 2 PI ], with ( max - min < 2 PI )
-				this.minAzimuthAngle = - Infinity; // radians
-				this.maxAzimuthAngle = Infinity; // radians
-		
-				// Set to true to enable damping (inertia)
-				// If damping is enabled, you must call controls.update() in your animation loop
-				this.enableDamping = false;
-				this.dampingFactor = 0.05;
-		
-				// This option actually enables dollying in and out; left as "zoom" for backwards compatibility.
-				// Set to false to disable zooming
-				this.enableZoom = true;
-				this.zoomSpeed = 1.0;
-		
-				// Set to false to disable rotating
-				this.enableRotate = true;
-				this.rotateSpeed = 1.0;
-		
-				// Set to false to disable panning
-				this.enablePan = true;
-				this.panSpeed = 1.0;
-				this.screenSpacePanning = true; // if false, pan orthogonal to world-space direction camera.up
-				this.keyPanSpeed = 7.0;	// pixels moved per arrow key push
-		<script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
 	<script>
 	class OrbitControls extends THREE.EventDispatcher {
 	  constructor(object, domElement) {
@@ -232,25 +186,60 @@ if uploaded is not None:
 	    this.screenSpacePanning = true;
 	    this.keyPanSpeed = 7.0;
 	
-	    // イベント登録例
 	    this.domElement.addEventListener('contextmenu', (event) => {
 	      event.preventDefault();
 	    });
 	
-	    // 初期更新
 	    this.update();
 	  }
 	
 	  update() {
-	    // 簡易版: 本来は spherical 等を使ってカメラ位置を更新
 	    this.object.lookAt(this.target);
 	  }
 	}
 	
 	// グローバル登録
 	THREE.OrbitControls = OrbitControls;
+	
+	// ここから通常の Three.js 初期化処理
+	const container = document.getElementById('container');
+	const w = container.clientWidth || window.innerWidth;
+	const h = container.clientHeight || 600;
+	
+	const scene = new THREE.Scene();
+	scene.background = new THREE.Color(0x111111);
+	
+	const camera = new THREE.PerspectiveCamera(60, w / h, 0.01, 1000);
+	camera.position.set(0, 0, 5);
+	
+	const renderer = new THREE.WebGLRenderer({antialias:true});
+	renderer.setSize(w, h);
+	container.appendChild(renderer.domElement);
+	
+	const controls = new THREE.OrbitControls(camera, renderer.domElement);
+	controls.target.set(0, 0, 0);
+	controls.enableDamping = true;
+	controls.dampingFactor = 0.08;
+	
+	const box = new THREE.Mesh(
+	  new THREE.BoxGeometry(1, 1, 1),
+	  new THREE.MeshStandardMaterial({color:0xff0000})
+	);
+	scene.add(box);
+	
+	const light = new THREE.DirectionalLight(0xffffff, 1);
+	light.position.set(5, 5, 5);
+	scene.add(light);
+	
+	function tick() {
+	  requestAnimationFrame(tick);
+	  box.rotation.y += 0.01;
+	  controls.update();
+	  renderer.render(scene, camera);
+	}
+	tick();
 	</script>
-    """
+	"""
     
     # f-string は payload 埋め込み部分だけにする
     html = f"""
