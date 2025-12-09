@@ -53,7 +53,7 @@ def set_background():
             unsafe_allow_html=True
         )
 set_background()
-st.title("3D (β ver.)")
+st.title("3D (β)")
 translations = {
     "English": {
         "write": "coming soon......"
