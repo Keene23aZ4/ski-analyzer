@@ -187,13 +187,13 @@ if uploaded:
       requestAnimationFrame(tick);
       const frame = payload.frames[frameIndex];
       frame.landmarks.forEach((lm,i)=>{{
-        spheres[i].position.set(lm.x,lm.y,lm.z);
+        spheres[i].position.set(lm.x,-lm.y,lm.z);
       }});
       connections.forEach((conn,ci)=>{{
         const a = frame.landmarks[conn[0]];
         const b = frame.landmarks[conn[1]];
-        linePositions[ci*6+0]=a.x; linePositions[ci*6+1]=a.y; linePositions[ci*6+2]=a.z;
-        linePositions[ci*6+3]=b.x; linePositions[ci*6+4]=b.y; linePositions[ci*6+5]=b.z;
+        linePositions[ci*6+0]=a.x; linePositions[ci*6+1]=-a.y; linePositions[ci*6+2]=a.z;
+        linePositions[ci*6+3]=b.x; linePositions[ci*6+4]=-b.y; linePositions[ci*6+5]=b.z;
       }});
       skeletonLines.geometry.attributes.position.needsUpdate = true;
       controls.update();
