@@ -161,196 +161,96 @@ if uploaded is not None:
     <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/examples/js/controls/OrbitControls.js"></script>
     <script>
-	    class OrbitControls extends THREE .EventDispatcher {
-		constructor( object, domElement ) {
-			super();
-			this.object = object;
-			this.domElement = domElement;
-			this.target = new THREE.Vector3();
+	    class OrbitControls extends THREE.EventDispatcher {
+			constructor( object, domElement ) {
+				super();
+				this.object = object;
+				this.domElement = domElement;
+				this.target = new THREE.Vector3();
+			
+				// How far you can dolly in and out ( PerspectiveCamera only )
+				this.minDistance = 0;
+				this.maxDistance = Infinity;
 		
-			// How far you can dolly in and out ( PerspectiveCamera only )
-			this.minDistance = 0;
-			this.maxDistance = Infinity;
+				// How far you can zoom in and out ( OrthographicCamera only )
+				this.minZoom = 0;
+				this.maxZoom = Infinity;
+		
+				// How far you can orbit vertically, upper and lower limits.
+				// Range is 0 to Math.PI radians.
+				this.minPolarAngle = 0; // radians
+				this.maxPolarAngle = Math.PI; // radians
+		
+				// How far you can orbit horizontally, upper and lower limits.
+				// If set, the interval [ min, max ] must be a sub-interval of [ - 2 PI, 2 PI ], with ( max - min < 2 PI )
+				this.minAzimuthAngle = - Infinity; // radians
+				this.maxAzimuthAngle = Infinity; // radians
+		
+				// Set to true to enable damping (inertia)
+				// If damping is enabled, you must call controls.update() in your animation loop
+				this.enableDamping = false;
+				this.dampingFactor = 0.05;
+		
+				// This option actually enables dollying in and out; left as "zoom" for backwards compatibility.
+				// Set to false to disable zooming
+				this.enableZoom = true;
+				this.zoomSpeed = 1.0;
+		
+				// Set to false to disable rotating
+				this.enableRotate = true;
+				this.rotateSpeed = 1.0;
+		
+				// Set to false to disable panning
+				this.enablePan = true;
+				this.panSpeed = 1.0;
+				this.screenSpacePanning = true; // if false, pan orthogonal to world-space direction camera.up
+				this.keyPanSpeed = 7.0;	// pixels moved per arrow key push
+		<script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
+	<script>
+	class OrbitControls extends THREE.EventDispatcher {
+	  constructor(object, domElement) {
+	    super();
+	    this.object = object;
+	    this.domElement = domElement;
+	    this.target = new THREE.Vector3();
 	
-			// How far you can zoom in and out ( OrthographicCamera only )
-			this.minZoom = 0;
-			this.maxZoom = Infinity;
+	    this.minDistance = 0;
+	    this.maxDistance = Infinity;
+	    this.minZoom = 0;
+	    this.maxZoom = Infinity;
+	    this.minPolarAngle = 0;
+	    this.maxPolarAngle = Math.PI;
+	    this.minAzimuthAngle = -Infinity;
+	    this.maxAzimuthAngle = Infinity;
+	    this.enableDamping = false;
+	    this.dampingFactor = 0.05;
+	    this.enableZoom = true;
+	    this.zoomSpeed = 1.0;
+	    this.enableRotate = true;
+	    this.rotateSpeed = 1.0;
+	    this.enablePan = true;
+	    this.panSpeed = 1.0;
+	    this.screenSpacePanning = true;
+	    this.keyPanSpeed = 7.0;
 	
-			// How far you can orbit vertically, upper and lower limits.
-			// Range is 0 to Math.PI radians.
-			this.minPolarAngle = 0; // radians
-			this.maxPolarAngle = Math.PI; // radians
+	    // イベント登録例
+	    this.domElement.addEventListener('contextmenu', (event) => {
+	      event.preventDefault();
+	    });
 	
-			// How far you can orbit horizontally, upper and lower limits.
-			// If set, the interval [ min, max ] must be a sub-interval of [ - 2 PI, 2 PI ], with ( max - min < 2 PI )
-			this.minAzimuthAngle = - Infinity; // radians
-			this.maxAzimuthAngle = Infinity; // radians
+	    // 初期更新
+	    this.update();
+	  }
 	
-			// Set to true to enable damping (inertia)
-			// If damping is enabled, you must call controls.update() in your animation loop
-			this.enableDamping = false;
-			this.dampingFactor = 0.05;
-	
-			// This option actually enables dollying in and out; left as "zoom" for backwards compatibility.
-			// Set to false to disable zooming
-			this.enableZoom = true;
-			this.zoomSpeed = 1.0;
-	
-			// Set to false to disable rotating
-			this.enableRotate = true;
-			this.rotateSpeed = 1.0;
-	
-			// Set to false to disable panning
-			this.enablePan = true;
-			this.panSpeed = 1.0;
-			this.screenSpacePanning = true; // if false, pan orthogonal to world-space direction camera.up
-			this.keyPanSpeed = 7.0;	// pixels moved per arrow key push
-	
-					case STATE.TOUCH_PAN:
-	
-						if ( scope.enablePan === false ) return;
-	
-						handleTouchMovePan( event );
-	
-						scope.update();
-	
-						break;
-	
-					case STATE.TOUCH_DOLLY_PAN:
-	
-						if ( scope.enableZoom === false && scope.enablePan === false ) return;
-	
-						handleTouchMoveDollyPan( event );
-	
-						scope.update();
-	
-						break;
-	
-					case STATE.TOUCH_DOLLY_ROTATE:
-	
-						if ( scope.enableZoom === false && scope.enableRotate === false ) return;
-	
-						handleTouchMoveDollyRotate( event );
-	
-						scope.update();
-	
-						break;
-	
-					default:
-	
-						state = STATE.NONE;
-	
-				}
-	
-			}
-	
-			function onContextMenu( event ) {
-	
-				if ( scope.enabled === false ) return;
-	
-				event.preventDefault();
-	
-			}
-	
-			function addPointer( event ) {
-	
-				pointers.push( event );
-	
-			}
-	
-			function removePointer( event ) {
-	
-				delete pointerPositions[ event.pointerId ];
-	
-				for ( let i = 0; i < pointers.length; i ++ ) {
-	
-					if ( pointers[ i ].pointerId == event.pointerId ) {
-	
-						pointers.splice( i, 1 );
-						return;
-	
-					}
-	
-				}
-	
-			}
-	
-			function trackPointer( event ) {
-	
-				let position = pointerPositions[ event.pointerId ];
-	
-				if ( position === undefined ) {
-	
-					position = new Vector2();
-					pointerPositions[ event.pointerId ] = position;
-	
-				}
-	
-				position.set( event.pageX, event.pageY );
-	
-			}
-	
-			function getSecondPointerPosition( event ) {
-	
-				const pointer = ( event.pointerId === pointers[ 0 ].pointerId ) ? pointers[ 1 ] : pointers[ 0 ];
-	
-				return pointerPositions[ pointer.pointerId ];
-	
-			}
-	
-			//
-	
-			scope.domElement.addEventListener( 'contextmenu', onContextMenu );
-	
-			scope.domElement.addEventListener( 'pointerdown', onPointerDown );
-			scope.domElement.addEventListener( 'pointercancel', onPointerCancel );
-			scope.domElement.addEventListener( 'wheel', onMouseWheel, { passive: false } );
-	
-			// force an update at start
-	
-			this.update();
-	
-		}
-	
+	  update() {
+	    // 簡易版: 本来は spherical 等を使ってカメラ位置を更新
+	    this.object.lookAt(this.target);
+	  }
 	}
+	
+	// グローバル登録
 	THREE.OrbitControls = OrbitControls;
-
-      const container = document.getElementById('container');
-      const w = container.clientWidth || window.innerWidth;
-      const h = container.clientHeight || 600;
-    
-      const scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x111111);
-    
-      const camera = new THREE.PerspectiveCamera(60, w / h, 0.01, 1000);
-      camera.position.set(0, 0, 5);
-    
-      const renderer = new THREE.WebGLRenderer({antialias:true});
-      renderer.setSize(w, h);
-      container.appendChild(renderer.domElement);
-      const controls = new THREE.OrbitControls(camera, renderer.domElement);
-      controls.target.set(0, 0, 0);   // 注視点を Box の中心に
-      controls.enableDamping = true;
-      controls.dampingFactor = 0.08;
-    
-      const box = new THREE.Mesh(
-        new THREE.BoxGeometry(1, 1, 1),
-        new THREE.MeshStandardMaterial({color:0xff0000})
-      );
-      scene.add(box);
-    
-      const light = new THREE.DirectionalLight(0xffffff, 1);
-      light.position.set(5, 5, 5);
-      scene.add(light);
-    
-      function tick() {
-        requestAnimationFrame(tick);
-        box.rotation.y += 0.01;  // 回転させて動きを確認
-        controls.update();
-        renderer.render(scene, camera);
-      }
-      tick();
-    </script>
+	</script>
     """
     
     # f-string は payload 埋め込み部分だけにする
