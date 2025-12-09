@@ -155,13 +155,11 @@ if uploaded is not None:
         "fps": max(10.0, min(seq["fps"], 60.0)),
     }
     payload = json.dumps(data)
-
-    html = f"""
-    <div id="container" style="width:100%; height:600px;"></div>
+# Three.js 部分は通常文字列に分ける
+three_js_code = """
 <script src="https://unpkg.com/three@0.152.2/build/three.min.js"></script>
 <script src="https://unpkg.com/three@0.152.2/examples/js/controls/OrbitControls.js"></script>
 <script>
-  // 安定のサイズ取得（clientWidth/Height が 0 の場合に備えて fallback）
   const container = document.getElementById('container');
   const w = container.clientWidth || window.innerWidth;
   const h = container.clientHeight || 600;
@@ -170,30 +168,18 @@ if uploaded is not None:
   scene.background = new THREE.Color(0x111111);
 
   const camera = new THREE.PerspectiveCamera(60, w / h, 0.01, 1000);
-  camera.position.set(0, -1.5, 2.5); // 見上げ視点の初期位置
+  camera.position.set(0, -1.5, 2.5);
   camera.lookAt(0, 0.5, 0);
 
-  // f-string 対策でオブジェクトリテラルは {{ ... }} に
-  const renderer = new THREE.WebGLRenderer({{antialias:true}});
+  const renderer = new THREE.WebGLRenderer({antialias:true});
   renderer.setSize(w, h);
   container.appendChild(renderer.domElement);
 
-  // OrbitControls
   const controls = new THREE.OrbitControls(camera, renderer.domElement);
-  controls.target.set(0, 0.5, 0);     // 注視点（胴体付近）
-  controls.enableDamping = true;      // 慣性
+  controls.target.set(0, 0.5, 0);
+  controls.enableDamping = true;
   controls.dampingFactor = 0.08;
-  controls.rotateSpeed = 0.9;
-  controls.zoomSpeed = 0.9;
-  controls.panSpeed = 0.8;
 
-  // 必要に応じた制限（上下の回転など）
-  controls.minDistance = 1.0;
-  controls.maxDistance = 10.0;
-  controls.minPolarAngle = 0.05;      // 真上/真下すぎないように
-  controls.maxPolarAngle = Math.PI - 0.05;
-
-  // ライティング
   const hemi = new THREE.HemisphereLight(0xffffff, 0x444444, 0.9);
   hemi.position.set(0, 1, 0);
   scene.add(hemi);
@@ -201,22 +187,18 @@ if uploaded is not None:
   dir.position.set(5, 5, 5);
   scene.add(dir);
 
-  // ここにあなたの joints/bones 生成・更新処理（既存コード）を配置
-  // jointMat / boneMat のオブジェクトは {{ ... }} を使う:
-  const jointMat = new THREE.MeshStandardMaterial({{color:0x00e0ff}});
-  const boneMat  = new THREE.LineBasicMaterial({{color:0xffffff}});
-  // ...（略）joints, bones, cooked, tick() など
+  const jointMat = new THREE.MeshStandardMaterial({color:0x00e0ff});
+  const boneMat  = new THREE.LineBasicMaterial({color:0xffffff});
 
-  // レンダリングループ
+  // ... joints, bones, cooked, tick() など既存処理をここに配置 ...
+
   function tick() {
     requestAnimationFrame(tick);
-    // 既存のフレーム更新処理（joint/bone の座標更新）をここで実行
-    controls.update(); // 慣性を有効化する場合は毎フレーム呼ぶ
+    controls.update();
     renderer.render(scene, camera);
   }
   tick();
 
-  // リサイズ対応
   window.addEventListener('resize', () => {
     const nw = container.clientWidth || window.innerWidth;
     const nh = container.clientHeight || 600;
@@ -225,7 +207,18 @@ if uploaded is not None:
     renderer.setSize(nw, nh);
   });
 </script>
-    """
-    st.components.v1.html(html, height=900, scrolling=False)
+"""
+
+# f-string は payload 埋め込み部分だけにする
+html = f"""
+<div id="container" style="width:100%; height:600px;"></div>
+<script>
+  const payload = {payload};
+</script>
+{three_js_code}
+"""
+
+st.components.v1.html(html, height=900, scrolling=False)
+
 else:
     st.warning("MP4などの動画をアップロードしてください。")
