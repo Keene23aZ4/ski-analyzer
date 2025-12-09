@@ -360,17 +360,20 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     draw.text((35, y_pos+10), label, font=font, fill=(255,255,255))
                     draw.text((200, y_pos+10), value, font=font, fill=(255,255,255))
                 canvas = np.array(img_pil)
-                phase_none_img = "image/turn_phase_none.png"
-                h, w = phase_none_img.shape[:2]
-                new_w, new_h = int(w * scale*1.25), int(h * scale*1.25)
-                phase_none_resized = cv2.resize(phase_none_img, (new_w, new_h))
-                
-  
-                # 貼り付け位置（中央寄せ）
-                h, w = phase_none_resized.shape[:2]
-                x_offset = 30
-                y_offset = canvas.shape[0] // 2 + 55
-                canvas[y_offset:y_offset+h, x_offset:x_offset+w] = phase_none_resized
+                if phase_img_path and os.path.exists(phase_img_path):
+                        phase_img = cv2.imread(phase_img_path)
+                        if phase_img is not None:
+                            # 最大横幅に合わせた縮尺率でリサイズ
+                            h, w = phase_img.shape[:2]
+                            new_w, new_h = int(w * scale*1.25), int(h * scale*1.25)
+                            phase_resized = cv2.resize(phase_img, (new_w, new_h))
+                            
+              
+                            # 貼り付け位置（中央寄せ）
+                            h, w = phase_resized.shape[:2]
+                            x_offset = 30
+                            y_offset = canvas.shape[0] // 2 + 55
+                            canvas[y_offset:y_offset+h, x_offset:x_offset+w] = phase_resized
     
                 turn_phase_path = "image/turn_phase.png"
                 turn_phase = cv2.imread(turn_phase_path)
