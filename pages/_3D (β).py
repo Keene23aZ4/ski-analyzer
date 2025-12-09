@@ -203,8 +203,8 @@ if uploaded is not None:
 
   // ここにあなたの joints/bones 生成・更新処理（既存コード）を配置
   // jointMat / boneMat のオブジェクトは {{ ... }} を使う:
-  const jointMat = new THREE.MeshStandardMaterial({{ color: 0x00e0ff }});
-  const boneMat  = new THREE.LineBasicMaterial({{ color: 0xffffff }});
+  const jointMat = new THREE.MeshStandardMaterial({{color: 0x00e0ff}});
+  const boneMat  = new THREE.LineBasicMaterial({{color: 0xffffff}});
   // ...（略）joints, bones, cooked, tick() など
 
   // レンダリングループ
