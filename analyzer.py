@@ -232,7 +232,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     elif turn_phase == "Right":
                         phase_img_path = "image/turn_phase_right.png"
                     else:
-                        phase_img_path = "image/turn_phase_none.png"
+                        phase_img_path = None
                         
 
                     # 骨格ラインと関節点は image に描画
@@ -360,6 +360,7 @@ def process_video(input_path, progress_callback=None, show_background=True, sele
                     draw.text((35, y_pos+10), label, font=font, fill=(255,255,255))
                     draw.text((200, y_pos+10), value, font=font, fill=(255,255,255))
                 canvas = np.array(img_pil)
+                phase_img_path = "image/turn_phase_none.png"
                 if phase_img_path and os.path.exists(phase_img_path):
                         phase_img = cv2.imread(phase_img_path)
                         if phase_img is not None:
