@@ -209,7 +209,7 @@ if uploaded is not None:
           const hipL = lm[23], hipR = lm[24];
           const cx=(hipL.x+hipR.x)/2, cy=(hipL.y+hipR.y)/2, cz=(hipL.z+hipR.z)/2;
           const S=1.2;
-          return lm.map(p=>({{x:(p.x-cx)*S,y:(p.y-cy)*S,z:(p.z-cz)*S}}));
+          return lm.map(p=>({{x:(p.x-cx)*S,y:-(p.y-cy)*S,z:(p.z-cz)*S}}));
         }}
         const cooked = frames.map(formatFrameLandmarks);
         let t=0, idx=0;
