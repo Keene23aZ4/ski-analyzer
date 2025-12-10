@@ -82,6 +82,38 @@ if uploaded:
     <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
     <script>
     const payload = PAYLOAD_PLACEHOLDER;
+    class OrbitControls extends THREE.EventDispatcher {
+      constructor(object, domElement) {
+        super();
+        this.object = object;
+        this.domElement = domElement;
+        this.target = new THREE.Vector3();
+        this.domElement.addEventListener('mousedown', (event) => {
+          event.preventDefault();
+          this.startX = event.clientX;
+          this.startY = event.clientY;
+          const onMove = (e) => {
+            const dx = e.clientX - this.startX;
+            const dy = e.clientY - this.startY;
+            this.startX = e.clientX;
+            this.startY = e.clientY;
+            this.object.position.applyAxisAngle(new THREE.Vector3(0,1,0), dx*0.005);
+            this.object.position.applyAxisAngle(new THREE.Vector3(1,0,0), dy*0.005);
+            this.object.lookAt(this.target);
+          };
+          const onUp = () => {
+            this.domElement.removeEventListener('mousemove', onMove);
+            this.domElement.removeEventListener('mouseup', onUp);
+          };
+          this.domElement.addEventListener('mousemove', onMove);
+          this.domElement.addEventListener('mouseup', onUp);
+        });
+      }
+      update() { this.object.lookAt(this.target); }
+    }
+    THREE.OrbitControls = OrbitControls;
+
+
 
     const container = document.getElementById('container');
     const w = container.clientWidth || window.innerWidth;
