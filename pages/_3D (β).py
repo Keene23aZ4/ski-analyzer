@@ -146,13 +146,18 @@ if uploaded:
     const skeletonLines = new THREE.LineSegments(lineGeometry,lineMaterial);
     scene.add(skeletonLines);
 
-    // 動画タグを取得して currentTime に同期
-    const video = document.querySelector("video");
+    let frameIndex = 0;
+    let lastTime = performance.now();
+    const frameDuration = 1000 / payload.fps;
+    
     function tick(){
       requestAnimationFrame(tick);
-      if (!video) return;
-      const frameIndex = Math.floor(video.currentTime * payload.fps) % payload.frames.length;
-
+      const now = performance.now();
+      if (now - lastTime >= frameDuration) {
+        frameIndex = (frameIndex + 1) % payload.frames.length;
+        lastTime = now;
+      }
+    
       const frame = payload.frames[frameIndex];
       frame.landmarks.forEach((lm,i)=>{
         spheres[i].position.set(lm.x,-lm.y,lm.z);
@@ -164,7 +169,7 @@ if uploaded:
         linePositions[ci*6+3]=b.x; linePositions[ci*6+4]=-b.y; linePositions[ci*6+5]=b.z;
       });
       skeletonLines.geometry.attributes.position.needsUpdate = true;
-
+    
       renderer.render(scene,camera);
     }
     tick();
