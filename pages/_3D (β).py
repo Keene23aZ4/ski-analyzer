@@ -76,24 +76,44 @@ if uploaded:
         "fps": max(10.0, min(seq["fps"], 60.0)),
     })
 
-    # 動画と Three.js を同じ HTML 内に統合
-    html_code = f"""
-    <div style="display:flex; gap:20px;">
-      <div style="flex:1;">
-        <h3>オリジナル動画</h3>
-        <video id="video" width="100%" controls>
-          <source src="data:video/mp4;base64,{base64.b64encode(open(tmp_path,'rb').read()).decode()}" type="video/mp4">
-        </video>
-      </div>
-      <div style="flex:1;">
-        <h3>3Dアバター（スティックフィギュア）再生</h3>
-        <div id="container" style="width:100%; height:600px;"></div>
-      </div>
-    </div>
-
+    # JS 部分は通常文字列にして、payload だけ置換
+    three_js_code = """
+    <div id="container" style="width:100%; height:600px;"></div>
     <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
     <script>
-    const payload = {payload};
+    const payload = PAYLOAD_PLACEHOLDER;
+    class OrbitControls extends THREE.EventDispatcher {
+      constructor(object, domElement) {
+        super();
+        this.object = object;
+        this.domElement = domElement;
+        this.target = new THREE.Vector3();
+        this.domElement.addEventListener('mousedown', (event) => {
+          event.preventDefault();
+          this.startX = event.clientX;
+          this.startY = event.clientY;
+          const onMove = (e) => {
+            const dx = e.clientX - this.startX;
+            const dy = e.clientY - this.startY;
+            this.startX = e.clientX;
+            this.startY = e.clientY;
+            this.object.position.applyAxisAngle(new THREE.Vector3(0,1,0), dx*0.005);
+            this.object.position.applyAxisAngle(new THREE.Vector3(1,0,0), dy*0.005);
+            this.object.lookAt(this.target);
+          };
+          const onUp = () => {
+            this.domElement.removeEventListener('mousemove', onMove);
+            this.domElement.removeEventListener('mouseup', onUp);
+          };
+          this.domElement.addEventListener('mousemove', onMove);
+          this.domElement.addEventListener('mouseup', onUp);
+        });
+      }
+      update() { this.object.lookAt(this.target); }
+    }
+    THREE.OrbitControls = OrbitControls;
+
+
 
     const container = document.getElementById('container');
     const w = container.clientWidth || window.innerWidth;
@@ -126,15 +146,27 @@ if uploaded:
     const skeletonLines = new THREE.LineSegments(lineGeometry,lineMaterial);
     scene.add(skeletonLines);
 
-    const video = document.getElementById("video");
-
+    // 動画タグを取得して currentTime に同期
+    let video = null;
+    
+    function waitForVideo(){
+      video = document.querySelector("video");
+      if(video){
+        console.log("Videoタグを取得しました:", video);
+        tick();  // 動画が見つかったら tick 開始
+      } else {
+        console.log("Videoタグがまだ存在しません。再試行します...");
+        setTimeout(waitForVideo, 500); // 0.5秒ごとにチェック
+      }
+    }
+    
     function tick(){
       requestAnimationFrame(tick);
-      if (!video || video.paused) return;
-
+      if (!video || video.paused) return; // 動画が停止中なら骨格も止める
+    
       const frameIndex = Math.floor(video.currentTime * payload.fps) % payload.frames.length;
+    
       const frame = payload.frames[frameIndex];
-
       frame.landmarks.forEach((lm,i)=>{
         spheres[i].position.set(lm.x,-lm.y,lm.z);
       });
@@ -145,11 +177,24 @@ if uploaded:
         linePositions[ci*6+3]=b.x; linePositions[ci*6+4]=-b.y; linePositions[ci*6+5]=b.z;
       });
       skeletonLines.geometry.attributes.position.needsUpdate = true;
-
+    
       renderer.render(scene,camera);
     }
-    tick();
+    
+    // 最初に動画タグを探す
+    waitForVideo();
     </script>
     """
 
-    st.components.v1.html(html_code, height=700, scrolling=False)
+    html = three_js_code.replace("PAYLOAD_PLACEHOLDER", payload)
+
+    # 動画と 3D ビューを並べて表示
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.subheader("オリジナル動画")
+        st.video(tmp_path)
+
+    with col2:
+        st.subheader("3Dアバター（スティックフィギュア）再生")
+        st.components.v1.html(html, height=700, scrolling=False)
