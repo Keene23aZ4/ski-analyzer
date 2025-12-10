@@ -86,12 +86,13 @@ if uploaded:
         </video>
       </div>
       <div style="flex:1;">
-        <h3>3Dアバター（スティックフィギュア）再生</h3>
+        <h3>3Dアバター再生</h3>
         <div id="container" style="width:100%; height:600px;"></div>
       </div>
     </div>
-    
+
     <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/examples/js/loaders/GLTFLoader.js"></script>
     <script>
     const payload = PAYLOAD_PLACEHOLDER;
 
@@ -107,7 +108,14 @@ if uploaded:
     renderer.setSize(w,h);
     container.appendChild(renderer.domElement);
 
-    // ランドマーク点
+    // ★ アバターモデルを読み込む ★
+    const loader = new THREE.GLTFLoader();
+    loader.load("static/avatar.glb", function(gltf){
+      scene.add(gltf.scene);
+      avatar = gltf.scene;
+    });
+
+    // スティックフィギュア（ランドマーク点）
     const spheres = [];
     payload.names.forEach((name,i) => {
       const geom = new THREE.SphereGeometry(0.02,8,8);
