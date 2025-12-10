@@ -110,25 +110,26 @@ if uploaded:
         "names": seq["landmark_names"],
         "fps": max(10.0, min(seq["fps"], 60.0)),
     })
-
-    three_js_code = f"""
+    
+    # JS 部分は通常の文字列にする
+    three_js_code = """
     <div id="container" style="width:100%; height:600px;"></div>
     <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
     <script>
-    const payload = {payload};
-
-    // OrbitControls 簡易版（フルコードを埋め込む場合は置き換え）
-    class OrbitControls extends THREE.EventDispatcher {{
-      constructor(object, domElement) {{
+    const payload = PAYLOAD_PLACEHOLDER;
+    
+    // OrbitControls 簡易版
+    class OrbitControls extends THREE.EventDispatcher {
+      constructor(object, domElement) {
         super();
         this.object = object;
         this.domElement = domElement;
         this.target = new THREE.Vector3();
-        this.domElement.addEventListener('mousedown', (event) => {{
+        this.domElement.addEventListener('mousedown', (event) => {
           event.preventDefault();
           this.startX = event.clientX;
           this.startY = event.clientY;
-          const onMove = (e) => {{
+          const onMove = (e) => {
             const dx = e.clientX - this.startX;
             const dy = e.clientY - this.startY;
             this.startX = e.clientX;
@@ -136,57 +137,57 @@ if uploaded:
             this.object.position.applyAxisAngle(new THREE.Vector3(0,1,0), dx*0.005);
             this.object.position.applyAxisAngle(new THREE.Vector3(1,0,0), dy*0.005);
             this.object.lookAt(this.target);
-          }};
-          const onUp = () => {{
+          };
+          const onUp = () => {
             this.domElement.removeEventListener('mousemove', onMove);
             this.domElement.removeEventListener('mouseup', onUp);
-          }};
+          };
           this.domElement.addEventListener('mousemove', onMove);
           this.domElement.addEventListener('mouseup', onUp);
-        }});
-      }}
-      update() {{ this.object.lookAt(this.target); }}
-    }}
+        });
+      }
+      update() { this.object.lookAt(this.target); }
+    }
     THREE.OrbitControls = OrbitControls;
-
+    
     const container = document.getElementById('container');
     const w = container.clientWidth || window.innerWidth;
     const h = container.clientHeight || 600;
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x111111);
-
+    
     const camera = new THREE.PerspectiveCamera(60, w/h, 0.01, 1000);
     camera.position.set(0,0,3);
-    const renderer = new THREE.WebGLRenderer({{antialias:true}});
+    const renderer = new THREE.WebGLRenderer({antialias:true});
     renderer.setSize(w,h);
     container.appendChild(renderer.domElement);
-
+    
     const controls = new THREE.OrbitControls(camera, renderer.domElement);
-
+    
     // ランドマーク点
     const spheres = [];
-    payload.names.forEach((name,i) => {{
+    payload.names.forEach((name,i) => {
       const geom = new THREE.SphereGeometry(0.02,8,8);
-      const mat = new THREE.MeshBasicMaterial({{color:0x00ff00}});
+      const mat = new THREE.MeshBasicMaterial({color:0x00ff00});
       const s = new THREE.Mesh(geom,mat);
       scene.add(s);
       spheres.push(s);
-    }});
-
-    // 接続線（簡易版）
+    });
+    
+    // 接続線
     const connections = [[11,13],[13,15],[12,14],[14,16],[11,12],[23,24],[23,25],[25,27],[24,26],[26,28]];
-    const lineMaterial = new THREE.LineBasicMaterial({{color:0xffffff}});
+    const lineMaterial = new THREE.LineBasicMaterial({color:0xffffff});
     const lineGeometry = new THREE.BufferGeometry();
     const linePositions = new Float32Array(connections.length*2*3);
     lineGeometry.setAttribute('position', new THREE.BufferAttribute(linePositions,3));
     const skeletonLines = new THREE.LineSegments(lineGeometry,lineMaterial);
     scene.add(skeletonLines);
-
+    
     let frameIndex = 0;
     let lastTime = performance.now();
-    const frameDuration = 1000 / payload.fps; // 1フレームの時間(ms)
+    const frameDuration = 1000 / payload.fps;
     
-    function tick(){{
+    function tick(){
       requestAnimationFrame(tick);
       const now = performance.now();
       if (now - lastTime >= frameDuration) {
@@ -208,18 +209,11 @@ if uploaded:
     
       controls.update();
       renderer.render(scene,camera);
-    }}
+    }
     tick();
     </script>
     """
-    col1, col2 = st.columns(2)
-
-    with col1:
-        st.subheader("オリジナル動画")
-        st.video(tmp_path)
-
-    with col2:
-        st.subheader("3Dアバター（スティックフィギュア）再生")
-        st.components.v1.html(three_js_code, height=700, scrolling=False)
-
-
+    
+    # f-string で payload を埋め込む
+    html = three_js_code.replace("PAYLOAD_PLACEHOLDER", payload)
+    st.components.v1.html(html, height=700, scrolling=False)
