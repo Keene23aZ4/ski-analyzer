@@ -203,4 +203,14 @@ if uploaded:
     tick();
     </script>
     """
-    st.components.v1.html(three_js_code, height=700, scrolling=False)
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.subheader("オリジナル動画")
+        st.video(tmp_path)
+
+    with col2:
+        st.subheader("3Dアバター（スティックフィギュア）再生")
+        st.components.v1.html(three_js_code, height=700, scrolling=False)
+
+
