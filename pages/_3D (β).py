@@ -111,7 +111,7 @@ if uploaded:
         "fps": max(10.0, min(seq["fps"], 60.0)),
     })
     
-    # JS 部分は通常の文字列にする
+    # JS 部分は通常文字列にする
     three_js_code = """
     <div id="container" style="width:100%; height:600px;"></div>
     <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
@@ -216,4 +216,14 @@ if uploaded:
     
     # f-string で payload を埋め込む
     html = three_js_code.replace("PAYLOAD_PLACEHOLDER", payload)
-    st.components.v1.html(html, height=700, scrolling=False)
+    
+    # 動画と 3D ビューを並べて表示
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.subheader("オリジナル動画")
+        st.video(tmp_path)
+    
+    with col2:
+        st.subheader("3Dアバター（スティックフィギュア）再生")
+        st.components.v1.html(html, height=700, scrolling=False)
