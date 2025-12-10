@@ -76,44 +76,24 @@ if uploaded:
         "fps": max(10.0, min(seq["fps"], 60.0)),
     })
 
-    # JS 部分は通常文字列にして、payload だけ置換
-    three_js_code = """
-    <div id="container" style="width:100%; height:600px;"></div>
+    # 動画と Three.js を同じ HTML 内に統合
+    html_code = f"""
+    <div style="display:flex; gap:20px;">
+      <div style="flex:1;">
+        <h3>オリジナル動画</h3>
+        <video id="video" width="100%" controls>
+          <source src="data:video/mp4;base64,{base64.b64encode(open(tmp_path,'rb').read()).decode()}" type="video/mp4">
+        </video>
+      </div>
+      <div style="flex:1;">
+        <h3>3Dアバター（スティックフィギュア）再生</h3>
+        <div id="container" style="width:100%; height:600px;"></div>
+      </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
     <script>
-    const payload = PAYLOAD_PLACEHOLDER;
-    class OrbitControls extends THREE.EventDispatcher {
-      constructor(object, domElement) {
-        super();
-        this.object = object;
-        this.domElement = domElement;
-        this.target = new THREE.Vector3();
-        this.domElement.addEventListener('mousedown', (event) => {
-          event.preventDefault();
-          this.startX = event.clientX;
-          this.startY = event.clientY;
-          const onMove = (e) => {
-            const dx = e.clientX - this.startX;
-            const dy = e.clientY - this.startY;
-            this.startX = e.clientX;
-            this.startY = e.clientY;
-            this.object.position.applyAxisAngle(new THREE.Vector3(0,1,0), dx*0.005);
-            this.object.position.applyAxisAngle(new THREE.Vector3(1,0,0), dy*0.005);
-            this.object.lookAt(this.target);
-          };
-          const onUp = () => {
-            this.domElement.removeEventListener('mousemove', onMove);
-            this.domElement.removeEventListener('mouseup', onUp);
-          };
-          this.domElement.addEventListener('mousemove', onMove);
-          this.domElement.addEventListener('mouseup', onUp);
-        });
-      }
-      update() { this.object.lookAt(this.target); }
-    }
-    THREE.OrbitControls = OrbitControls;
-
-
+    const payload = {payload};
 
     const container = document.getElementById('container');
     const w = container.clientWidth || window.innerWidth;
@@ -146,19 +126,15 @@ if uploaded:
     const skeletonLines = new THREE.LineSegments(lineGeometry,lineMaterial);
     scene.add(skeletonLines);
 
-    let frameIndex = 0;
-    let lastTime = performance.now();
-    const frameDuration = 1000 / payload.fps;
-    
+    const video = document.getElementById("video");
+
     function tick(){
       requestAnimationFrame(tick);
-      const now = performance.now();
-      if (now - lastTime >= frameDuration) {
-        frameIndex = (frameIndex + 1) % payload.frames.length;
-        lastTime = now;
-      }
-    
+      if (!video || video.paused) return;
+
+      const frameIndex = Math.floor(video.currentTime * payload.fps) % payload.frames.length;
       const frame = payload.frames[frameIndex];
+
       frame.landmarks.forEach((lm,i)=>{
         spheres[i].position.set(lm.x,-lm.y,lm.z);
       });
@@ -169,22 +145,11 @@ if uploaded:
         linePositions[ci*6+3]=b.x; linePositions[ci*6+4]=-b.y; linePositions[ci*6+5]=b.z;
       });
       skeletonLines.geometry.attributes.position.needsUpdate = true;
-    
+
       renderer.render(scene,camera);
     }
     tick();
     </script>
     """
 
-    html = three_js_code.replace("PAYLOAD_PLACEHOLDER", payload)
-
-    # 動画と 3D ビューを並べて表示
-    col1, col2 = st.columns(2)
-
-    with col1:
-        st.subheader("オリジナル動画")
-        st.video(tmp_path)
-
-    with col2:
-        st.subheader("3Dアバター（スティックフィギュア）再生")
-        st.components.v1.html(html, height=700, scrolling=False)
+    st.components.v1.html(html_code, height=700, scrolling=False)
