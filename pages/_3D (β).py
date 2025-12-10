@@ -186,7 +186,7 @@ if uploaded:
     let lastTime = performance.now();
     const frameDuration = 1000 / payload.fps; // 1フレームの時間(ms)
     
-    function tick(){
+    function tick(){{
       requestAnimationFrame(tick);
       const now = performance.now();
       if (now - lastTime >= frameDuration) {
@@ -208,7 +208,7 @@ if uploaded:
     
       controls.update();
       renderer.render(scene,camera);
-    }
+    }}
     tick();
     </script>
     """
