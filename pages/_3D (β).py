@@ -146,25 +146,17 @@ if uploaded:
     const skeletonLines = new THREE.LineSegments(lineGeometry,lineMaterial);
     scene.add(skeletonLines);
 
-    // 動画タグを取得して currentTime に同期
-    let video = null;
-    
-    function waitForVideo(){
-      video = document.querySelector("video");
-      if(video){
-        console.log("Videoタグを取得しました:", video);
-        tick();  // 動画が見つかったら tick 開始
-      } else {
-        console.log("Videoタグがまだ存在しません。再試行します...");
-        setTimeout(waitForVideo, 500); // 0.5秒ごとにチェック
-      }
-    }
+    let frameIndex = 0;
+    let lastTime = performance.now();
+    const frameDuration = 1000 / payload.fps;
     
     function tick(){
       requestAnimationFrame(tick);
-      if (!video || video.paused) return; // 動画が停止中なら骨格も止める
-    
-      const frameIndex = Math.floor(video.currentTime * payload.fps) % payload.frames.length;
+      const now = performance.now();
+      if (now - lastTime >= frameDuration) {
+        frameIndex = (frameIndex + 1) % payload.frames.length;
+        lastTime = now;
+      }
     
       const frame = payload.frames[frameIndex];
       frame.landmarks.forEach((lm,i)=>{
@@ -180,9 +172,7 @@ if uploaded:
     
       renderer.render(scene,camera);
     }
-    
-    // 最初に動画タグを探す
-    waitForVideo();
+    tick();
     </script>
     """
 
