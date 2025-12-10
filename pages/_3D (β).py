@@ -183,23 +183,32 @@ if uploaded:
     scene.add(skeletonLines);
 
     let frameIndex = 0;
-    function tick(){{
+    let lastTime = performance.now();
+    const frameDuration = 1000 / payload.fps; // 1フレームの時間(ms)
+    
+    function tick(){
       requestAnimationFrame(tick);
+      const now = performance.now();
+      if (now - lastTime >= frameDuration) {
+        frameIndex = (frameIndex + 1) % payload.frames.length;
+        lastTime = now;
+      }
+    
       const frame = payload.frames[frameIndex];
-      frame.landmarks.forEach((lm,i)=>{{
+      frame.landmarks.forEach((lm,i)=>{
         spheres[i].position.set(lm.x,-lm.y,lm.z);
-      }});
-      connections.forEach((conn,ci)=>{{
+      });
+      connections.forEach((conn,ci)=>{
         const a = frame.landmarks[conn[0]];
         const b = frame.landmarks[conn[1]];
         linePositions[ci*6+0]=a.x; linePositions[ci*6+1]=-a.y; linePositions[ci*6+2]=a.z;
         linePositions[ci*6+3]=b.x; linePositions[ci*6+4]=-b.y; linePositions[ci*6+5]=b.z;
-      }});
+      });
       skeletonLines.geometry.attributes.position.needsUpdate = true;
+    
       controls.update();
       renderer.render(scene,camera);
-      frameIndex=(frameIndex+1)%payload.frames.length;
-    }}
+    }
     tick();
     </script>
     """
