@@ -77,12 +77,12 @@ if uploaded:
     })
 
     # 動画と Three.js を同じ HTML 内に統合
-    html_code = f"""
+    html_code = """
     <div style="display:flex; gap:20px;">
       <div style="flex:1;">
         <h3>オリジナル動画</h3>
         <video id="video" width="100%" controls>
-          <source src="data:video/mp4;base64,{base64.b64encode(open(tmp_path,'rb').read()).decode()}" type="video/mp4">
+          <source src="VIDEO_PLACEHOLDER" type="video/mp4">
         </video>
       </div>
       <div style="flex:1;">
@@ -90,7 +90,7 @@ if uploaded:
         <div id="container" style="width:100%; height:600px;"></div>
       </div>
     </div>
-
+    
     <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
     <script>
     const payload = PAYLOAD_PLACEHOLDER;
@@ -152,6 +152,8 @@ if uploaded:
     </script>
     """
     html_code = html_code.replace("PAYLOAD_PLACEHOLDER", payload)
-    html_code = html_code.replace("VIDEO_PLACEHOLDER", f"data:video/mp4;base64,{base64.b64encode(open(tmp_path,'rb').read()).decode()}")
-
+    html_code = html_code.replace(
+        "VIDEO_PLACEHOLDER",
+        f"data:video/mp4;base64,{base64.b64encode(open(tmp_path,'rb').read()).decode()}"
+    )
     st.components.v1.html(html_code, height=700, scrolling=False)
