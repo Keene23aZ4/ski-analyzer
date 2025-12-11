@@ -186,6 +186,7 @@ if uploaded:
       const frameIndex = Math.floor(video.currentTime * payload.fps) % payload.frames.length;
       const frame = payload.frames[frameIndex];
     
+      // --- スティックフィギュア更新 ---
       frame.landmarks.forEach((lm,i)=>{
         spheres[i].position.set(lm.x,-lm.y,lm.z);
       });
@@ -198,47 +199,39 @@ if uploaded:
       });
       skeletonLines.geometry.attributes.position.needsUpdate = true;
     
-      // ★★★ アバターの動きを追加 ★★★
-      if (leftUpperArm){
-      const shoulder = new THREE.Vector3(
-        frame.landmarks[11].x,
-        -frame.landmarks[11].y,
-        frame.landmarks[11].z
-      );
-      const elbow = new THREE.Vector3(
-        frame.landmarks[13].x,
-        -frame.landmarks[13].y,
-        frame.landmarks[13].z
-      );
+      // --- アバターの動き（左腕） ---
+      if (leftUpperArm && leftForeArm){
     
-      const dir = elbow.clone().sub(shoulder).normalize();
+        // MediaPipe 座標
+        const shoulder = new THREE.Vector3(
+          frame.landmarks[11].x,
+          -frame.landmarks[11].y,
+          frame.landmarks[11].z
+        );
+        const elbow = new THREE.Vector3(
+          frame.landmarks[13].x,
+          -frame.landmarks[13].y,
+          frame.landmarks[13].z
+        );
+        const wrist = new THREE.Vector3(
+          frame.landmarks[15].x,
+          -frame.landmarks[15].y,
+          frame.landmarks[15].z
+        );
     
-      leftUpperArm.quaternion.setFromUnitVectors(
-        new THREE.Vector3(0, -1, 0), // Mixamo の腕のデフォルト方向
-        dir
-      );
-    }
+        // 上腕の方向ベクトル
+        const upperDir = elbow.clone().sub(shoulder).normalize();
+        leftUpperArm.quaternion.setFromUnitVectors(
+          new THREE.Vector3(0, -1, 0),  // Mixamo のデフォルト方向
+          upperDir
+        );
     
-      const dir = elbow.clone().sub(shoulder).normalize();
-      leftUpperArm.quaternion.setFromUnitVectors(
-        new THREE.Vector3(0, -1, 0), // ボーンのデフォルト方向
-        dir
-      );
-    }
-
-      if (avatar){
-        if (leftShoulder){
-          leftShoulder.position.set(frame.landmarks[11].x, -frame.landmarks[11].y, frame.landmarks[11].z);
-        }
-        if (rightShoulder){
-          rightShoulder.position.set(frame.landmarks[12].x, -frame.landmarks[12].y, frame.landmarks[12].z);
-        }
-        if (leftElbow){
-          leftElbow.position.set(frame.landmarks[13].x, -frame.landmarks[13].y, frame.landmarks[13].z);
-        }
-        if (rightElbow){
-          rightElbow.position.set(frame.landmarks[14].x, -frame.landmarks[14].y, frame.landmarks[14].z);
-        }
+        // 前腕の方向ベクトル
+        const foreDir = wrist.clone().sub(elbow).normalize();
+        leftForeArm.quaternion.setFromUnitVectors(
+          new THREE.Vector3(0, -1, 0),
+          foreDir
+        );
       }
     
       renderer.render(scene,camera);
