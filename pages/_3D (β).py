@@ -75,7 +75,8 @@ if uploaded:
         "names": seq["landmark_names"],
         "fps": max(10.0, min(seq["fps"], 60.0)),
     })
-
+    model_path = Path("static/avatar.glb")
+    model_data = base64.b64encode(model_path.read_bytes()).decode()
     # 動画と Three.js を同じ HTML 内に統合
     html_code = """
     <div style="display:flex; gap:20px;">
@@ -110,11 +111,10 @@ if uploaded:
 
     // ★ アバターモデルを読み込む ★
     const loader = new THREE.GLTFLoader();
-    loader.load("static/avatar.glb", function(gltf){
+    loader.load("data:model/gltf-binary;base64,MODEL_PLACEHOLDER", function(gltf){
       scene.add(gltf.scene);
       avatar = gltf.scene;
     
-      // 例: ボーン参照（モデルに応じて名前を調整）
       leftShoulder = avatar.getObjectByName("LeftShoulder");
       rightShoulder = avatar.getObjectByName("RightShoulder");
       leftElbow = avatar.getObjectByName("LeftElbow");
@@ -185,6 +185,7 @@ if uploaded:
     </script>
     """
     html_code = html_code.replace("PAYLOAD_PLACEHOLDER", payload)
+    html_code = html_code.replace("MODEL_PLACEHOLDER", model_data)
     html_code = html_code.replace(
         "VIDEO_PLACEHOLDER",
         f"data:video/mp4;base64,{base64.b64encode(open(tmp_path,'rb').read()).decode()}"
