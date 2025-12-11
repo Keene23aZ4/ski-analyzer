@@ -199,11 +199,11 @@ if uploaded:
 
     // Tポーズ → 直立姿勢のオフセット
     const offset = {
-      arm: new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, -Math.PI/2)),   // 腕を下げる
+      arm: new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, -Math.PI/2)),
       forearm: new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, -Math.PI/2)),
-      leg: new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, -Math.PI/10)),  // 脚を内側へ
-      lowerLeg: new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, -Math.PI/10)),
-      spine: new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI/12, 0, 0))  // 胴体を前傾
+      leg: new THREE.Quaternion().setFromEuler(new THREE.Euler(0, Math.PI/10, 0)),   // 内側へ10°
+      lowerLeg: new THREE.Quaternion().setFromEuler(new THREE.Euler(0, Math.PI/10, 0)),
+      spine: new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI/12, 0, 0)) // 前傾
     };
 
 
@@ -247,24 +247,24 @@ if uploaded:
         
           // --- 左脚（-Y 基準） ---
           if (leftUpLeg){
-            applyBoneRotation(leftUpLeg, v(23), v(25), new THREE.Vector3(0, -1, 0));
+            applyBoneRotation(leftUpLeg, v(23), v(25), new THREE.Vector3(0,0,1), offset.leg);
           }
           if (leftLeg){
-            applyBoneRotation(leftLeg, v(25), v(27), new THREE.Vector3(0, -1, 0));
+            applyBoneRotation(leftLeg, v(25), v(27), new THREE.Vector3(0,0,1), offset.lowerLeg);
           }
           if (leftFoot){
-            applyBoneRotation(leftFoot, v(27), v(31), new THREE.Vector3(0, -1, 0));
+            applyBoneRotation(leftFoot, v(27), v(31), new THREE.Vector3(0, 0, 1));
           }
         
           // --- 右脚（-Y 基準） ---
           if (rightUpLeg){
-            applyBoneRotation(rightUpLeg, v(24), v(26), new THREE.Vector3(0, -1, 0));
+            applyBoneRotation(rightUpLeg, v(24), v(26), new THREE.Vector3(0,0,1), offset.leg);
           }
           if (rightLeg){
-            applyBoneRotation(rightLeg, v(26), v(28), new THREE.Vector3(0, -1, 0));
+            applyBoneRotation(rightLeg, v(26), v(28), new THREE.Vector3(0,0,1), offset.lowerLeg);
           }
           if (rightFoot){
-            applyBoneRotation(rightFoot, v(28), v(32), new THREE.Vector3(0, -1, 0));
+            applyBoneRotation(rightFoot, v(28), v(32), new THREE.Vector3(0, 0, 1));
           }
         }
       controls.update();
