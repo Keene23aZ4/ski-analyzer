@@ -113,6 +113,14 @@ if uploaded:
     loader.load("static/avatar.glb", function(gltf){
       scene.add(gltf.scene);
       avatar = gltf.scene;
+    
+      // 例: ボーン参照（モデルに応じて名前を調整）
+      leftShoulder = avatar.getObjectByName("LeftShoulder");
+      rightShoulder = avatar.getObjectByName("RightShoulder");
+      leftElbow = avatar.getObjectByName("LeftElbow");
+      rightElbow = avatar.getObjectByName("RightElbow");
+      leftHip = avatar.getObjectByName("LeftHip");
+      rightHip = avatar.getObjectByName("RightHip");
     });
 
     // スティックフィギュア（ランドマーク点）
