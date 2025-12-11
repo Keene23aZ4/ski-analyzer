@@ -137,6 +137,9 @@ if uploaded:
     loader.load("data:application/octet-stream;base64,MODEL_PLACEHOLDER", function(gltf){
       scene.add(gltf.scene);
       avatar = gltf.scene;
+      console.log("=== GLB のノード一覧 ===");
+      avatar.traverse(node => console.log(node.name));
+
       avatar.position.set(0, 0, 0);
       avatar.scale.set(1, 1, 1);
       avatar.rotation.set(0, 0, 0);
