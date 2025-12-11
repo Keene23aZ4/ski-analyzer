@@ -96,11 +96,9 @@ if uploaded:
     <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/examples/js/loaders/GLTFLoader.js"></script>
     <script>
-    let avatar;
-    let leftShoulder, rightShoulder;
-    let leftElbow, rightElbow;
-    let leftHip, rightHip;
-    let leftUpperArm;
+    let leftUpperArm, leftForeArm;
+    let rightUpperArm, rightForeArm;
+    let hips;
 
 
     const payload = PAYLOAD_PLACEHOLDER;
@@ -151,13 +149,14 @@ if uploaded:
           }
       });
     
-      leftShoulder = avatar.getObjectByName("LeftShoulder");
-      rightShoulder = avatar.getObjectByName("RightShoulder");
-      leftElbow = avatar.getObjectByName("LeftElbow");
-      rightElbow = avatar.getObjectByName("RightElbow");
-      leftHip = avatar.getObjectByName("LeftHip");
-      rightHip = avatar.getObjectByName("RightHip");
-    });
+      leftShoulder = avatar.getObjectByName("mixamorigLeftShoulder");
+      leftUpperArm = avatar.getObjectByName("mixamorigLeftArm");
+      leftForeArm = avatar.getObjectByName("mixamorigLeftForeArm");
+      rightShoulder = avatar.getObjectByName("mixamorigRightShoulder");
+      rightUpperArm = avatar.getObjectByName("mixamorigRightArm");
+      rightForeArm = avatar.getObjectByName("mixamorigRightForeArm");
+      hips = avatar.getObjectByName("mixamorigHips");
+  });
 
     // スティックフィギュア（ランドマーク点）
     const spheres = [];
@@ -211,6 +210,14 @@ if uploaded:
         -frame.landmarks[13].y,
         frame.landmarks[13].z
       );
+    
+      const dir = elbow.clone().sub(shoulder).normalize();
+    
+      leftUpperArm.quaternion.setFromUnitVectors(
+        new THREE.Vector3(0, -1, 0), // Mixamo の腕のデフォルト方向
+        dir
+      );
+    }
     
       const dir = elbow.clone().sub(shoulder).normalize();
       leftUpperArm.quaternion.setFromUnitVectors(
