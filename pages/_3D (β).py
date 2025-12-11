@@ -95,6 +95,7 @@ if uploaded:
 
     <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/examples/js/controls/OrbitControls.js"></script>
     <script>
     let avatar;
     
@@ -134,6 +135,9 @@ if uploaded:
       const h = container.clientHeight;
       renderer.setSize(w, h);
     });
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.target.set(0, 1.5, 0);  // アバターの胸あたりを中心にする
+    controls.update();
 
 
     // ★ アバターモデルを読み込む ★
@@ -243,6 +247,7 @@ if uploaded:
               applyBoneRotation(rightFoot, v(28), v(32));     // 足首 → つま先
           }
       }
+      controls.update();
       renderer.render(scene,camera);
     }
     tick();
