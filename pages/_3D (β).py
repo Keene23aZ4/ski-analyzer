@@ -147,13 +147,16 @@ if uploaded:
     function tick(){
       requestAnimationFrame(tick);
       if (!video || video.paused) return;
-
+    
       const frameIndex = Math.floor(video.currentTime * payload.fps) % payload.frames.length;
       const frame = payload.frames[frameIndex];
-
+    
+      // スティックフィギュア更新
       frame.landmarks.forEach((lm,i)=>{
         spheres[i].position.set(lm.x,-lm.y,lm.z);
       });
+    
+      // 接続線更新
       connections.forEach((conn,ci)=>{
         const a = frame.landmarks[conn[0]];
         const b = frame.landmarks[conn[1]];
@@ -161,7 +164,39 @@ if uploaded:
         linePositions[ci*6+3]=b.x; linePositions[ci*6+4]=-b.y; linePositions[ci*6+5]=b.z;
       });
       skeletonLines.geometry.attributes.position.needsUpdate = true;
-
+    
+      // ★★★ ここにアバターの動きを追加する ★★★
+      if (avatar){
+        if (leftShoulder){
+          leftShoulder.position.set(
+            frame.landmarks[11].x,
+            -frame.landmarks[11].y,
+            frame.landmarks[11].z
+          );
+        }
+        if (rightShoulder){
+          rightShoulder.position.set(
+            frame.landmarks[12].x,
+            -frame.landmarks[12].y,
+            frame.landmarks[12].z
+          );
+        }
+        if (leftElbow){
+          leftElbow.position.set(
+            frame.landmarks[13].x,
+            -frame.landmarks[13].y,
+            frame.landmarks[13].z
+          );
+        }
+        if (rightElbow){
+          rightElbow.position.set(
+            frame.landmarks[14].x,
+            -frame.landmarks[14].y,
+            frame.landmarks[14].z
+          );
+        }
+      }
+    
       renderer.render(scene,camera);
     }
     tick();
