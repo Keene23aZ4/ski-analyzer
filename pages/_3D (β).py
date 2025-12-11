@@ -96,6 +96,11 @@ if uploaded:
     <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/examples/js/loaders/GLTFLoader.js"></script>
     <script>
+    let avatar;
+    let leftShoulder, rightShoulder;
+    let leftElbow, rightElbow;
+    let leftHip, rightHip;
+
     const payload = PAYLOAD_PLACEHOLDER;
 
     const container = document.getElementById('container');
