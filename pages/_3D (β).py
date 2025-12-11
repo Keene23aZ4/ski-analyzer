@@ -104,6 +104,9 @@ if uploaded:
     const payload = PAYLOAD_PLACEHOLDER;
 
     const container = document.getElementById('container');
+    const w = container.clientWidth || window.innerWidth;
+    const h = container.clientHeight || 600;
+
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x111111);
     const light = new THREE.HemisphereLight(0xffffff, 0x444444, 1.0);
