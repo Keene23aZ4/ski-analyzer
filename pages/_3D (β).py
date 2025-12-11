@@ -230,7 +230,7 @@ if uploaded:
           if (hips && spine){
               applyBoneRotation(hips, v(23), v(11));  // 左腰 → 左肩
           }
-          if (spine && neck)
+          if (spine && neck){
               applyBoneRotation(spine, v(11), v(0));  // 肩 → 鼻（上方向）
           }
           // --- 左腕 ---
