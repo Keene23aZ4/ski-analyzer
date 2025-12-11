@@ -106,6 +106,14 @@ if uploaded:
     const container = document.getElementById('container');
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x111111);
+    const light = new THREE.HemisphereLight(0xffffff, 0x444444, 1.0);
+    light.position.set(0, 20, 0);
+    scene.add(light);
+    
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    dirLight.position.set(5, 10, 7.5);
+    scene.add(dirLight);
+
 
     const camera = new THREE.PerspectiveCamera(60, w/h, 0.01, 1000);
     camera.position.set(0, 1, 5);
