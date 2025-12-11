@@ -195,6 +195,25 @@ if uploaded:
       skeletonLines.geometry.attributes.position.needsUpdate = true;
     
       // ★★★ アバターの動きを追加 ★★★
+      if (leftUpperArm){
+      const shoulder = new THREE.Vector3(
+        frame.landmarks[11].x,
+        -frame.landmarks[11].y,
+        frame.landmarks[11].z
+      );
+      const elbow = new THREE.Vector3(
+        frame.landmarks[13].x,
+        -frame.landmarks[13].y,
+        frame.landmarks[13].z
+      );
+    
+      const dir = elbow.clone().sub(shoulder).normalize();
+      leftUpperArm.quaternion.setFromUnitVectors(
+        new THREE.Vector3(0, -1, 0), // ボーンのデフォルト方向
+        dir
+      );
+    }
+
       if (avatar){
         if (leftShoulder){
           leftShoulder.position.set(frame.landmarks[11].x, -frame.landmarks[11].y, frame.landmarks[11].z);
