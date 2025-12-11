@@ -186,13 +186,11 @@ if uploaded:
     video.addEventListener("play", () => tick());
     video.addEventListener("seeked", () => tick());
     video.addEventListener("timeupdate", () => tick());
-    function applyBoneRotation(bone, parentPos, childPos){
+    function applyBoneRotation(bone, parentPos, childPos, baseDir){
       const dir = childPos.clone().sub(parentPos).normalize();
-      bone.quaternion.setFromUnitVectors(
-        new THREE.Vector3(0, -1, 0),  // Mixamo のデフォルト方向
-        dir
-      );
+      bone.quaternion.setFromUnitVectors(baseDir, dir);
     }
+
 
     function tick(){
       requestAnimationFrame(tick);
@@ -205,51 +203,55 @@ if uploaded:
     
       // --- アバターの動き（全身） ---
       if (avatar){
-      // MediaPipe 座標を THREE.Vector3 に変換
           const LM = frame.landmarks;
           const v = (i) => new THREE.Vector3(LM[i].x, -LM[i].y, LM[i].z);
-          // --- 胴体（腰 → 背骨 → 首） ---
+        
+          // --- 胴体（+Z 基準） ---
           if (hips && spine){
-              applyBoneRotation(hips, v(23), v(11));  // 左腰 → 左肩
+            applyBoneRotation(hips, v(23), v(11), new THREE.Vector3(0, 0, 1));
           }
           if (spine && neck){
-              applyBoneRotation(spine, v(11), v(0));  // 肩 → 鼻（上方向）
+            applyBoneRotation(spine, v(11), v(0), new THREE.Vector3(0, 0, 1));
           }
-          // --- 左腕 ---
+        
+          // --- 左腕（+X 基準） ---
           if (leftUpperArm){
-              applyBoneRotation(leftUpperArm, v(11), v(13));  // 肩 → 肘
+            applyBoneRotation(leftUpperArm, v(11), v(13), new THREE.Vector3(1, 0, 0));
           }
           if (leftForeArm){
-              applyBoneRotation(leftForeArm, v(13), v(15));   // 肘 → 手首
+            applyBoneRotation(leftForeArm, v(13), v(15), new THREE.Vector3(1, 0, 0));
           }
-          // --- 右腕 ---
+        
+          // --- 右腕（+X 基準） ---
           if (rightUpperArm){
-              applyBoneRotation(rightUpperArm, v(12), v(14)); // 肩 → 肘
+            applyBoneRotation(rightUpperArm, v(12), v(14), new THREE.Vector3(1, 0, 0));
           }
           if (rightForeArm){
-              applyBoneRotation(rightForeArm, v(14), v(16));  // 肘 → 手首
+            applyBoneRotation(rightForeArm, v(14), v(16), new THREE.Vector3(1, 0, 0));
           }
-          // --- 左脚 ---
+        
+          // --- 左脚（-Y 基準） ---
           if (leftUpLeg){
-              applyBoneRotation(leftUpLeg, v(23), v(25));     // 腰 → 膝
+            applyBoneRotation(leftUpLeg, v(23), v(25), new THREE.Vector3(0, -1, 0));
           }
           if (leftLeg){
-              applyBoneRotation(leftLeg, v(25), v(27));       // 膝 → 足首
+            applyBoneRotation(leftLeg, v(25), v(27), new THREE.Vector3(0, -1, 0));
           }
           if (leftFoot){
-              applyBoneRotation(leftFoot, v(27), v(31));      // 足首 → つま先
+            applyBoneRotation(leftFoot, v(27), v(31), new THREE.Vector3(0, -1, 0));
           }
-          // --- 右脚 ---
+        
+          // --- 右脚（-Y 基準） ---
           if (rightUpLeg){
-              applyBoneRotation(rightUpLeg, v(24), v(26));    // 腰 → 膝
+            applyBoneRotation(rightUpLeg, v(24), v(26), new THREE.Vector3(0, -1, 0));
           }
           if (rightLeg){
-              applyBoneRotation(rightLeg, v(26), v(28));      // 膝 → 足首
+            applyBoneRotation(rightLeg, v(26), v(28), new THREE.Vector3(0, -1, 0));
           }
           if (rightFoot){
-              applyBoneRotation(rightFoot, v(28), v(32));     // 足首 → つま先
+            applyBoneRotation(rightFoot, v(28), v(32), new THREE.Vector3(0, -1, 0));
           }
-      }
+        }
       controls.update();
       renderer.render(scene,camera);
     }
