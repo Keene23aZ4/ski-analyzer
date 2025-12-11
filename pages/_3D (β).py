@@ -173,24 +173,9 @@ if uploaded:
       rightFoot = avatar.getObjectByName("mixamorigRightFoot");
   });
 
-    // スティックフィギュア（ランドマーク点）
-    const spheres = [];
-    payload.names.forEach((name,i) => {
-      const geom = new THREE.SphereGeometry(0.02,8,8);
-      const mat = new THREE.MeshBasicMaterial({color:0x00ff00});
-      const s = new THREE.Mesh(geom,mat);
-      scene.add(s);
-      spheres.push(s);
-    });
+    
 
-    // 接続線
-    const connections = [[11,13],[13,15],[12,14],[14,16],[11,12],[23,24],[23,25],[25,27],[24,26],[26,28]];
-    const lineMaterial = new THREE.LineBasicMaterial({color:0xffffff});
-    const lineGeometry = new THREE.BufferGeometry();
-    const linePositions = new Float32Array(connections.length*2*3);
-    lineGeometry.setAttribute('position', new THREE.BufferAttribute(linePositions,3));
-    const skeletonLines = new THREE.LineSegments(lineGeometry,lineMaterial);
-    scene.add(skeletonLines);
+    
 
     const video = document.getElementById("video");
     function applyBoneRotation(bone, parentPos, childPos){
@@ -208,18 +193,7 @@ if uploaded:
       const frameIndex = Math.floor(video.currentTime * payload.fps) % payload.frames.length;
       const frame = payload.frames[frameIndex];
     
-      // --- スティックフィギュア更新 ---
-      frame.landmarks.forEach((lm,i)=>{
-        spheres[i].position.set(lm.x,-lm.y,lm.z);
-      });
-    
-      connections.forEach((conn,ci)=>{
-        const a = frame.landmarks[conn[0]];
-        const b = frame.landmarks[conn[1]];
-        linePositions[ci*6+0]=a.x; linePositions[ci*6+1]=-a.y; linePositions[ci*6+2]=a.z;
-        linePositions[ci*6+3]=b.x; linePositions[ci*6+4]=-b.y; linePositions[ci*6+5]=b.z;
-      });
-      skeletonLines.geometry.attributes.position.needsUpdate = true;
+      
     
       // --- アバターの動き（全身） ---
       if (avatar){
