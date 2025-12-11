@@ -96,9 +96,14 @@ if uploaded:
     <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/examples/js/loaders/GLTFLoader.js"></script>
     <script>
-    let leftUpperArm, leftForeArm;
-    let rightUpperArm, rightForeArm;
-    let hips;
+    let avatar;
+    
+    let hips, spine, neck;
+    let leftShoulder, leftUpperArm, leftForeArm, leftHand;
+    let rightShoulder, rightUpperArm, rightForeArm, rightHand;
+    let leftUpLeg, leftLeg, leftFoot;
+    let rightUpLeg, rightLeg, rightFoot;
+
 
 
     const payload = PAYLOAD_PLACEHOLDER;
@@ -223,47 +228,46 @@ if uploaded:
           const v = (i) => new THREE.Vector3(LM[i].x, -LM[i].y, LM[i].z);
           // --- 胴体（腰 → 背骨 → 首） ---
           if (hips && spine){
-          applyBoneRotation(hips, v(23), v(11));  // 左腰 → 左肩
+              applyBoneRotation(hips, v(23), v(11));  // 左腰 → 左肩
           }
           if (spine && neck)
-          applyBoneRotation(spine, v(11), v(0));  // 肩 → 鼻（上方向）
+              applyBoneRotation(spine, v(11), v(0));  // 肩 → 鼻（上方向）
           }
           // --- 左腕 ---
           if (leftUpperArm){
-          applyBoneRotation(leftUpperArm, v(11), v(13));  // 肩 → 肘
+              applyBoneRotation(leftUpperArm, v(11), v(13));  // 肩 → 肘
           }
           if (leftForeArm){
-          applyBoneRotation(leftForeArm, v(13), v(15));   // 肘 → 手首
+              applyBoneRotation(leftForeArm, v(13), v(15));   // 肘 → 手首
           }
           // --- 右腕 ---
           if (rightUpperArm){
-          applyBoneRotation(rightUpperArm, v(12), v(14)); // 肩 → 肘
+              applyBoneRotation(rightUpperArm, v(12), v(14)); // 肩 → 肘
           }
           if (rightForeArm){
-          applyBoneRotation(rightForeArm, v(14), v(16));  // 肘 → 手首
+              applyBoneRotation(rightForeArm, v(14), v(16));  // 肘 → 手首
           }
           // --- 左脚 ---
           if (leftUpLeg){
-          applyBoneRotation(leftUpLeg, v(23), v(25));     // 腰 → 膝
+              applyBoneRotation(leftUpLeg, v(23), v(25));     // 腰 → 膝
           }
           if (leftLeg){
-          applyBoneRotation(leftLeg, v(25), v(27));       // 膝 → 足首
+              applyBoneRotation(leftLeg, v(25), v(27));       // 膝 → 足首
           }
           if (leftFoot){
-          applyBoneRotation(leftFoot, v(27), v(31));      // 足首 → つま先
+              applyBoneRotation(leftFoot, v(27), v(31));      // 足首 → つま先
           }
           // --- 右脚 ---
           if (rightUpLeg){
-          applyBoneRotation(rightUpLeg, v(24), v(26));    // 腰 → 膝
+              applyBoneRotation(rightUpLeg, v(24), v(26));    // 腰 → 膝
           }
           if (rightLeg){
-          applyBoneRotation(rightLeg, v(26), v(28));      // 膝 → 足首
+              applyBoneRotation(rightLeg, v(26), v(28));      // 膝 → 足首
           }
           if (rightFoot){
-          applyBoneRotation(rightFoot, v(28), v(32));     // 足首 → つま先
+              applyBoneRotation(rightFoot, v(28), v(32));     // 足首 → つま先
           }
       }
-    
       renderer.render(scene,camera);
     }
     tick();
