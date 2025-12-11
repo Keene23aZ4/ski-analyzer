@@ -100,6 +100,8 @@ if uploaded:
     let leftShoulder, rightShoulder;
     let leftElbow, rightElbow;
     let leftHip, rightHip;
+    let leftUpperArm;
+
 
     const payload = PAYLOAD_PLACEHOLDER;
 
