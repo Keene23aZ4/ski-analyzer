@@ -77,6 +77,8 @@ if uploaded:
     })
     model_path = Path("static/avatar.glb")
     model_data = base64.b64encode(model_path.read_bytes()).decode()
+    console.log("avatar loaded:", avatar);
+
     # 動画と Three.js を同じ HTML 内に統合
     html_code = """
     <div style="display:flex; gap:20px;">
