@@ -186,10 +186,25 @@ if uploaded:
     video.addEventListener("play", () => tick());
     video.addEventListener("seeked", () => tick());
     video.addEventListener("timeupdate", () => tick());
-    function applyBoneRotation(bone, parentPos, childPos, baseDir){
+    function applyBoneRotation(bone, parentPos, childPos, baseDir, offsetQuat=null){
       const dir = childPos.clone().sub(parentPos).normalize();
-      bone.quaternion.setFromUnitVectors(baseDir, dir);
+      const q = new THREE.Quaternion().setFromUnitVectors(baseDir, dir);
+    
+      if (offsetQuat){
+        q.multiply(offsetQuat);  // ← オフセットを適用
+      }
+    
+      bone.quaternion.copy(q);
     }
+
+    // Tポーズ → 直立姿勢のオフセット
+    const offset = {
+      arm: new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, -Math.PI/2)),   // -90°
+      forearm: new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, -Math.PI/2)),
+      leg: new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, Math.PI/12)),   // +15° 内側
+      lowerLeg: new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, Math.PI/12)),
+      spine: new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI/12, 0, 0)) // -15° 前傾
+    };
 
 
     function tick(){
@@ -216,18 +231,18 @@ if uploaded:
         
           // --- 左腕（+X 基準） ---
           if (leftUpperArm){
-            applyBoneRotation(leftUpperArm, v(11), v(13), new THREE.Vector3(1, 0, 0));
+            applyBoneRotation(leftUpperArm, v(11), v(13), new THREE.Vector3(1,0,0), offset.arm);
           }
           if (leftForeArm){
-            applyBoneRotation(leftForeArm, v(13), v(15), new THREE.Vector3(1, 0, 0));
+            applyBoneRotation(leftForeArm, v(13), v(15), new THREE.Vector3(1,0,0), offset.forearm);
           }
         
           // --- 右腕（+X 基準） ---
           if (rightUpperArm){
-            applyBoneRotation(rightUpperArm, v(12), v(14), new THREE.Vector3(1, 0, 0));
+            applyBoneRotation(rightUpperArm, v(12), v(14), new THREE.Vector3(1,0,0), offset.arm);
           }
           if (rightForeArm){
-            applyBoneRotation(rightForeArm, v(14), v(16), new THREE.Vector3(1, 0, 0));
+            applyBoneRotation(rightForeArm, v(14), v(16), new THREE.Vector3(1,0,0), offset.forearm);
           }
         
           // --- 左脚（-Y 基準） ---
