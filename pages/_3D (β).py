@@ -111,7 +111,7 @@ if uploaded:
 
     // ★ アバターモデルを読み込む ★
     const loader = new THREE.GLTFLoader();
-    loader.load("data:model/gltf-binary;base64,MODEL_PLACEHOLDER", function(gltf){
+    loader.load("data:application/octet-stream;base64,MODEL_PLACEHOLDER", function(gltf){
       scene.add(gltf.scene);
       avatar = gltf.scene;
     
