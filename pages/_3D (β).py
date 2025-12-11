@@ -184,6 +184,8 @@ if uploaded:
 
     const video = document.getElementById("video");
     video.addEventListener("play", () => tick());
+    video.addEventListener("seeked", () => tick());
+    video.addEventListener("timeupdate", () => tick());
     function applyBoneRotation(bone, parentPos, childPos){
       const dir = childPos.clone().sub(parentPos).normalize();
       bone.quaternion.setFromUnitVectors(
