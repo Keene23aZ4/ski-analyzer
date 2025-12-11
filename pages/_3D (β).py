@@ -115,7 +115,12 @@ if uploaded:
     loader.load("data:application/octet-stream;base64,MODEL_PLACEHOLDER", function(gltf){
       scene.add(gltf.scene);
       avatar = gltf.scene;
-      console.log("avatar loaded:", avatar);
+      console.log("avatar children:", avatar.children);
+      avatar.traverse(function(node){
+          if (node.isMesh){
+          console.log("Mesh found:", node.name, node);
+          }
+      });
     
       leftShoulder = avatar.getObjectByName("LeftShoulder");
       rightShoulder = avatar.getObjectByName("RightShoulder");
