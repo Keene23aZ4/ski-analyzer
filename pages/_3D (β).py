@@ -114,6 +114,12 @@ if uploaded:
     const renderer = new THREE.WebGLRenderer({antialias:true});
     renderer.setSize(w,h);
     container.appendChild(renderer.domElement);
+    window.addEventListener("load", () => {
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      renderer.setSize(w, h);
+    });
+
 
     // ★ アバターモデルを読み込む ★
     const loader = new THREE.GLTFLoader();
