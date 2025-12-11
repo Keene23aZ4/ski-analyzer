@@ -149,13 +149,23 @@ if uploaded:
           }
       });
     
+      hips = avatar.getObjectByName("mixamorigHips");
+      spine = avatar.getObjectByName("mixamorigSpine2");
+      neck = avatar.getObjectByName("mixamorigNeck");
       leftShoulder = avatar.getObjectByName("mixamorigLeftShoulder");
       leftUpperArm = avatar.getObjectByName("mixamorigLeftArm");
       leftForeArm = avatar.getObjectByName("mixamorigLeftForeArm");
+      leftHand = avatar.getObjectByName("mixamorigLeftHand");
       rightShoulder = avatar.getObjectByName("mixamorigRightShoulder");
       rightUpperArm = avatar.getObjectByName("mixamorigRightArm");
       rightForeArm = avatar.getObjectByName("mixamorigRightForeArm");
-      hips = avatar.getObjectByName("mixamorigHips");
+      rightHand = avatar.getObjectByName("mixamorigRightHand");
+      leftUpLeg = avatar.getObjectByName("mixamorigLeftUpLeg");
+      leftLeg = avatar.getObjectByName("mixamorigLeftLeg");
+      leftFoot = avatar.getObjectByName("mixamorigLeftFoot");
+      rightUpLeg = avatar.getObjectByName("mixamorigRightUpLeg");
+      rightLeg = avatar.getObjectByName("mixamorigRightLeg");
+      rightFoot = avatar.getObjectByName("mixamorigRightFoot");
   });
 
     // スティックフィギュア（ランドマーク点）
@@ -178,6 +188,13 @@ if uploaded:
     scene.add(skeletonLines);
 
     const video = document.getElementById("video");
+    function applyBoneRotation(bone, parentPos, childPos){
+      const dir = childPos.clone().sub(parentPos).normalize();
+      bone.quaternion.setFromUnitVectors(
+        new THREE.Vector3(0, -1, 0),  // Mixamo のデフォルト方向
+        dir
+      );
+    }
 
     function tick(){
       requestAnimationFrame(tick);
@@ -199,39 +216,52 @@ if uploaded:
       });
       skeletonLines.geometry.attributes.position.needsUpdate = true;
     
-      // --- アバターの動き（左腕） ---
-      if (leftUpperArm && leftForeArm){
-    
-        // MediaPipe 座標
-        const shoulder = new THREE.Vector3(
-          frame.landmarks[11].x,
-          -frame.landmarks[11].y,
-          frame.landmarks[11].z
-        );
-        const elbow = new THREE.Vector3(
-          frame.landmarks[13].x,
-          -frame.landmarks[13].y,
-          frame.landmarks[13].z
-        );
-        const wrist = new THREE.Vector3(
-          frame.landmarks[15].x,
-          -frame.landmarks[15].y,
-          frame.landmarks[15].z
-        );
-    
-        // 上腕の方向ベクトル
-        const upperDir = elbow.clone().sub(shoulder).normalize();
-        leftUpperArm.quaternion.setFromUnitVectors(
-          new THREE.Vector3(0, -1, 0),  // Mixamo のデフォルト方向
-          upperDir
-        );
-    
-        // 前腕の方向ベクトル
-        const foreDir = wrist.clone().sub(elbow).normalize();
-        leftForeArm.quaternion.setFromUnitVectors(
-          new THREE.Vector3(0, -1, 0),
-          foreDir
-        );
+      // --- アバターの動き（全身） ---
+      if (avatar){
+      // MediaPipe 座標を THREE.Vector3 に変換
+          const LM = frame.landmarks;
+          const v = (i) => new THREE.Vector3(LM[i].x, -LM[i].y, LM[i].z);
+          // --- 胴体（腰 → 背骨 → 首） ---
+          if (hips && spine){
+          applyBoneRotation(hips, v(23), v(11));  // 左腰 → 左肩
+          }
+          if (spine && neck)
+          applyBoneRotation(spine, v(11), v(0));  // 肩 → 鼻（上方向）
+          }
+          // --- 左腕 ---
+          if (leftUpperArm){
+          applyBoneRotation(leftUpperArm, v(11), v(13));  // 肩 → 肘
+          }
+          if (leftForeArm){
+          applyBoneRotation(leftForeArm, v(13), v(15));   // 肘 → 手首
+          }
+          // --- 右腕 ---
+          if (rightUpperArm){
+          applyBoneRotation(rightUpperArm, v(12), v(14)); // 肩 → 肘
+          }
+          if (rightForeArm){
+          applyBoneRotation(rightForeArm, v(14), v(16));  // 肘 → 手首
+          }
+          // --- 左脚 ---
+          if (leftUpLeg){
+          applyBoneRotation(leftUpLeg, v(23), v(25));     // 腰 → 膝
+          }
+          if (leftLeg){
+          applyBoneRotation(leftLeg, v(25), v(27));       // 膝 → 足首
+          }
+          if (leftFoot){
+          applyBoneRotation(leftFoot, v(27), v(31));      // 足首 → つま先
+          }
+          // --- 右脚 ---
+          if (rightUpLeg){
+          applyBoneRotation(rightUpLeg, v(24), v(26));    // 腰 → 膝
+          }
+          if (rightLeg){
+          applyBoneRotation(rightLeg, v(26), v(28));      // 膝 → 足首
+          }
+          if (rightFoot){
+          applyBoneRotation(rightFoot, v(28), v(32));     // 足首 → つま先
+          }
       }
     
       renderer.render(scene,camera);
