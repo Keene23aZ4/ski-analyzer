@@ -151,12 +151,10 @@ if uploaded:
       const frameIndex = Math.floor(video.currentTime * payload.fps) % payload.frames.length;
       const frame = payload.frames[frameIndex];
     
-      // スティックフィギュア更新
       frame.landmarks.forEach((lm,i)=>{
         spheres[i].position.set(lm.x,-lm.y,lm.z);
       });
     
-      // 接続線更新
       connections.forEach((conn,ci)=>{
         const a = frame.landmarks[conn[0]];
         const b = frame.landmarks[conn[1]];
@@ -165,35 +163,19 @@ if uploaded:
       });
       skeletonLines.geometry.attributes.position.needsUpdate = true;
     
-      // ★★★ ここにアバターの動きを追加する ★★★
+      // ★★★ アバターの動きを追加 ★★★
       if (avatar){
         if (leftShoulder){
-          leftShoulder.position.set(
-            frame.landmarks[11].x,
-            -frame.landmarks[11].y,
-            frame.landmarks[11].z
-          );
+          leftShoulder.position.set(frame.landmarks[11].x, -frame.landmarks[11].y, frame.landmarks[11].z);
         }
         if (rightShoulder){
-          rightShoulder.position.set(
-            frame.landmarks[12].x,
-            -frame.landmarks[12].y,
-            frame.landmarks[12].z
-          );
+          rightShoulder.position.set(frame.landmarks[12].x, -frame.landmarks[12].y, frame.landmarks[12].z);
         }
         if (leftElbow){
-          leftElbow.position.set(
-            frame.landmarks[13].x,
-            -frame.landmarks[13].y,
-            frame.landmarks[13].z
-          );
+          leftElbow.position.set(frame.landmarks[13].x, -frame.landmarks[13].y, frame.landmarks[13].z);
         }
         if (rightElbow){
-          rightElbow.position.set(
-            frame.landmarks[14].x,
-            -frame.landmarks[14].y,
-            frame.landmarks[14].z
-          );
+          rightElbow.position.set(frame.landmarks[14].x, -frame.landmarks[14].y, frame.landmarks[14].z);
         }
       }
     
