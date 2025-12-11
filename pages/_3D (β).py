@@ -110,7 +110,7 @@ if uploaded:
     scene.background = new THREE.Color(0x111111);
 
     const camera = new THREE.PerspectiveCamera(60, w/h, 0.01, 1000);
-    camera.position.set(0,0,3);
+    camera.position.set(0, 1, 5);
     const renderer = new THREE.WebGLRenderer({antialias:true});
     renderer.setSize(w,h);
     container.appendChild(renderer.domElement);
