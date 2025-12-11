@@ -199,11 +199,11 @@ if uploaded:
 
     // Tポーズ → 直立姿勢のオフセット
     const offset = {
-      arm: new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, -Math.PI/2)),   // -90°
+      arm: new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, -Math.PI/2)),   // 腕を下げる
       forearm: new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, -Math.PI/2)),
-      leg: new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, Math.PI/12)),   // +15° 内側
-      lowerLeg: new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, Math.PI/12)),
-      spine: new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI/12, 0, 0)) // -15° 前傾
+      leg: new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, -Math.PI/10)),  // 脚を内側へ
+      lowerLeg: new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, -Math.PI/10)),
+      spine: new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI/12, 0, 0))  // 胴体を前傾
     };
 
 
@@ -223,10 +223,10 @@ if uploaded:
         
           // --- 胴体（+Z 基準） ---
           if (hips && spine){
-            applyBoneRotation(hips, v(23), v(11), new THREE.Vector3(0, 0, 1));
+           applyBoneRotation(hips, v(23), v(11), new THREE.Vector3(0,0,1), offset.spine);
           }
           if (spine && neck){
-            applyBoneRotation(spine, v(11), v(0), new THREE.Vector3(0, 0, 1));
+            applyBoneRotation(spine, v(11), v(0), new THREE.Vector3(0,0,1), offset.spine);
           }
         
           // --- 左腕（+X 基準） ---
