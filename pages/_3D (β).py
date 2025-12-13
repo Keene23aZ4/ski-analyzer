@@ -108,22 +108,7 @@ if uploaded:
     // --- MediaPipe payload ---
     const payload = PAYLOAD_PLACEHOLDER;
     
-    // --- Mixamo 初期方向ベクトル ---
-    const defaultDirs = {};
-    
-    function saveDefaultDir(bone, childBone) {
-      const p = new THREE.Vector3();
-      const c = new THREE.Vector3();
-      bone.getWorldPosition(p);
-      childBone.getWorldPosition(c);
-      defaultDirs[bone.name] = c.clone().sub(p).normalize();
-    }
-    
-    function rotateBone(bone, defaultDir, parentPos, childPos) {
-      const targetDir = childPos.clone().sub(parentPos).normalize();
-      const q = new THREE.Quaternion().setFromUnitVectors(defaultDir, targetDir);
-      bone.quaternion.copy(q);
-    }
+   
     
     // --- Three.js 基本セットアップ ---
     const container = document.getElementById('container');
