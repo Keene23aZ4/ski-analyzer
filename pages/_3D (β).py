@@ -202,6 +202,7 @@ if uploaded:
           if (node.name.toLowerCase().includes("foot"))
               console.log("FOOT FOUND:", node.name);
     });
+    });
     
     // --- 動画同期 ---
     const video = document.getElementById("video");
