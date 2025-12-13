@@ -138,10 +138,10 @@ if uploaded:
       defaultDirs[bone.name] = c.clone().sub(p).normalize();
     }
     
-    function rotateBone(bone, defaultDir, parentPos, childPos) {
+    function rotateBone(bone, defaultDir, parentPos, childPos, factor = 1.0) {
       const targetDir = childPos.clone().sub(parentPos).normalize();
       const q = new THREE.Quaternion().setFromUnitVectors(defaultDir, targetDir);
-      bone.quaternion.copy(q);
+      bone.quaternion.slerp(q, factor);
     }
     
     // --- Three.js 基本セットアップ ---
@@ -237,6 +237,8 @@ if uploaded:
     function tick(){
       requestAnimationFrame(tick);
       if (!video || video.paused || !avatar) return;
+      const hipsPos = v(23);
+      avatar.position.set(hipsPos.x, hipsPos.y, hipsPos.z);
     
       const frameIndex = Math.floor(video.currentTime * payload.fps) % payload.frames.length;
       const LM = payload.frames[frameIndex].landmarks;
@@ -262,7 +264,7 @@ if uploaded:
       // 胴体
       rotateBone(hips, defaultDirs["mixamorigHips"], v(23), v(11),0.5);
       const shoulderCenter = v(11).clone().add(v(12)).multiplyScalar(0.5);
-      rotateBone(spine, defaultDirs["mixamorigSpine2"], v(11), shoulderCenter);
+      rotateBone(spine, defaultDirs["mixamorigSpine2"], shoulderCenter, v(0));
     
       controls.update();
       renderer.render(scene, camera);
