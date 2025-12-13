@@ -216,7 +216,7 @@ if uploaded:
       const frameIndex = Math.floor(video.currentTime * payload.fps) % payload.frames.length;
       const LM = payload.frames[frameIndex].landmarks;
     
-      const v = (i) => new THREE.Vector3(LM[i].x, LM[i].y, LM[i].z);
+      const v = (i) => new THREE.Vector3(LM[i].x, -LM[i].y, -LM[i].z);
     
       // 腕
       rotateBone(leftUpperArm, defaultDirs["mixamorigLeftArm"], v(11), v(13));
@@ -235,8 +235,9 @@ if uploaded:
       rotateBone(rightFoot, defaultDirs["mixamorigRightFoot"], v(28), v(32));
     
       // 胴体
-      rotateBone(hips, defaultDirs["mixamorigHips"], v(23), v(11));
-      rotateBone(spine, defaultDirs["mixamorigSpine2"], v(11), v(0));
+      rotateBone(hips, defaultDirs["mixamorigHips"], v(23), v(11),0.5);
+      const shoulderCenter = v(11).clone().add(v(12)).multiplyScalar(0.5);
+      rotateBone(spine, defaultDirs["mixamorigSpine2"], v(11), shoulderCenter);
     
       controls.update();
       renderer.render(scene, camera);
