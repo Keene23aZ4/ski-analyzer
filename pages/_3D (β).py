@@ -100,21 +100,39 @@ if uploaded:
     let avatar;
     
     let hips, spine, neck;
-    let leftShoulder, leftUpperArm, leftForeArm, leftHand;
-    let rightShoulder, rightUpperArm, rightForeArm, rightHand;
+    let leftUpperArm, leftForeArm, leftHand;
+    let rightUpperArm, rightForeArm, rightHand;
     let leftUpLeg, leftLeg, leftFoot;
     let rightUpLeg, rightLeg, rightFoot;
-
-
-
+    
+    // --- MediaPipe payload ---
     const payload = PAYLOAD_PLACEHOLDER;
-
+    
+    // --- Mixamo 初期方向ベクトル ---
+    const defaultDirs = {};
+    
+    function saveDefaultDir(bone, childBone) {
+      const p = new THREE.Vector3();
+      const c = new THREE.Vector3();
+      bone.getWorldPosition(p);
+      childBone.getWorldPosition(c);
+      defaultDirs[bone.name] = c.clone().sub(p).normalize();
+    }
+    
+    function rotateBone(bone, defaultDir, parentPos, childPos) {
+      const targetDir = childPos.clone().sub(parentPos).normalize();
+      const q = new THREE.Quaternion().setFromUnitVectors(defaultDir, targetDir);
+      bone.quaternion.copy(q);
+    }
+    
+    // --- Three.js 基本セットアップ ---
     const container = document.getElementById('container');
     const w = container.clientWidth || window.innerWidth;
     const h = container.clientHeight || 600;
-
+    
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x111111);
+    
     const light = new THREE.HemisphereLight(0xffffff, 0x444444, 1.0);
     light.position.set(0, 20, 0);
     scene.add(light);
@@ -122,159 +140,104 @@ if uploaded:
     const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
     dirLight.position.set(5, 10, 7.5);
     scene.add(dirLight);
-
-
+    
     const camera = new THREE.PerspectiveCamera(60, w/h, 0.01, 1000);
     camera.position.set(0, 1.5, 3);
     camera.lookAt(0, 1.5, 0);
+    
     const renderer = new THREE.WebGLRenderer({antialias:true});
-    renderer.setSize(w,h);
+    renderer.setSize(w, h);
     container.appendChild(renderer.domElement);
-    window.addEventListener("load", () => {
-      const w = container.clientWidth;
-      const h = container.clientHeight;
-      renderer.setSize(w, h);
-    });
+    
     const controls = new THREE.OrbitControls(camera, renderer.domElement);
-    controls.target.set(0, 1.5, 0);  // アバターの胸あたりを中心にする
+    controls.target.set(0, 1.5, 0);
     controls.update();
-
-
-    // ★ アバターモデルを読み込む ★
+    
+    // --- GLB 読み込み ---
     const loader = new THREE.GLTFLoader();
     loader.load("data:application/octet-stream;base64,MODEL_PLACEHOLDER", function(gltf){
       scene.add(gltf.scene);
       avatar = gltf.scene;
-      console.log("=== GLB のノード一覧 ===");
-      avatar.traverse(node => console.log(node.name));
-
-      avatar.position.set(0, 0, 0);
-      avatar.scale.set(1, 1, 1);
-      avatar.rotation.set(0, 0, 0);
-
-      console.log("avatar children:", avatar.children);
-      avatar.traverse(function(node){
-          if (node.isMesh){
-          console.log("Mesh found:", node.name, node);
-          }
-      });
     
       hips = avatar.getObjectByName("mixamorigHips");
       spine = avatar.getObjectByName("mixamorigSpine2");
       neck = avatar.getObjectByName("mixamorigNeck");
-      leftShoulder = avatar.getObjectByName("mixamorigLeftShoulder");
+    
       leftUpperArm = avatar.getObjectByName("mixamorigLeftArm");
       leftForeArm = avatar.getObjectByName("mixamorigLeftForeArm");
       leftHand = avatar.getObjectByName("mixamorigLeftHand");
-      rightShoulder = avatar.getObjectByName("mixamorigRightShoulder");
+    
       rightUpperArm = avatar.getObjectByName("mixamorigRightArm");
       rightForeArm = avatar.getObjectByName("mixamorigRightForeArm");
       rightHand = avatar.getObjectByName("mixamorigRightHand");
+    
       leftUpLeg = avatar.getObjectByName("mixamorigLeftUpLeg");
       leftLeg = avatar.getObjectByName("mixamorigLeftLeg");
       leftFoot = avatar.getObjectByName("mixamorigLeftFoot");
+    
       rightUpLeg = avatar.getObjectByName("mixamorigRightUpLeg");
       rightLeg = avatar.getObjectByName("mixamorigRightLeg");
       rightFoot = avatar.getObjectByName("mixamorigRightFoot");
-      // --- Mixamo 初期方向ベクトルを保存 ---
+    
+      // --- 初期方向ベクトルを保存 ---
       avatar.updateMatrixWorld(true);
+    
       saveDefaultDir(leftUpperArm, leftForeArm);
       saveDefaultDir(leftForeArm, leftHand);
+    
       saveDefaultDir(rightUpperArm, rightForeArm);
       saveDefaultDir(rightForeArm, rightHand);
+    
       saveDefaultDir(leftUpLeg, leftLeg);
       saveDefaultDir(leftLeg, leftFoot);
+    
       saveDefaultDir(rightUpLeg, rightLeg);
-      saveDefaultDir(rightLeg, rightFoot);     
+      saveDefaultDir(rightLeg, rightFoot);
+    
       saveDefaultDir(hips, spine);
       saveDefaultDir(spine, neck);
-  });
-
+    });
     
-
-    
-
+    // --- 動画同期 ---
     const video = document.getElementById("video");
     video.addEventListener("play", () => tick());
     video.addEventListener("seeked", () => tick());
     video.addEventListener("timeupdate", () => tick());
-    function applyBoneRotation(bone, parentPos, childPos, baseDir, offsetQuat=null){
-      const dir = childPos.clone().sub(parentPos).normalize();
-      const q = new THREE.Quaternion().setFromUnitVectors(baseDir, dir);
     
-      if (offsetQuat){
-        q.multiply(offsetQuat);  // ← オフセットを適用
-      }
-    
-      bone.quaternion.copy(q);
-    }
-
-    // Tポーズ → 直立姿勢のオフセット
-    const offset = {
-      arm: new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, -Math.PI/2)),   // 腕を下げる
-      forearm: new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, -Math.PI/2)),
-      leg: new THREE.Quaternion().setFromEuler(new THREE.Euler(0, -Math.PI/12, 0)),  // 内側へ15°
-      lowerLeg: new THREE.Quaternion().setFromEuler(new THREE.Euler(0, -Math.PI/12, 0)),
-      spine: new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI/12, 0, 0))  // 前傾
-    };
-
+    // --- メインループ ---
     function tick(){
       requestAnimationFrame(tick);
-      if (!video || video.paused) return;
+      if (!video || video.paused || !avatar) return;
     
       const frameIndex = Math.floor(video.currentTime * payload.fps) % payload.frames.length;
-      const frame = payload.frames[frameIndex];
-
-      // --- Mixamo 初期方向ベクトルを保存する辞書 ---
-      const defaultDirs = {};
-      function saveDefaultDir(bone, childBone) {
-          const p = new THREE.Vector3();
-          const c = new THREE.Vector3();
-          bone.getWorldPosition(p);
-          childBone.getWorldPosition(c);
-          defaultDirs[bone.name] = c.clone().sub(p).normalize();
-      }
-      // --- Nor-s 方式の回転適用 ---
-      function rotateBone(bone, defaultDir, parentPos, childPos) {
-          const targetDir = childPos.clone().sub(parentPos).normalize();
-          const q = new THREE.Quaternion().setFromUnitVectors(defaultDir, targetDir);
-          bone.quaternion.copy(q);
-      }
+      const LM = payload.frames[frameIndex].landmarks;
     
-      
+      // MediaPipe → Three.js 座標変換（Z 反転）
+      const v = (i) => new THREE.Vector3(LM[i].x, -LM[i].y, -LM[i].z);
     
-      // --- アバターの動き（全身） ---
-      if (avatar){
-          const LM = frame.landmarks;
-          const v = (i) => new THREE.Vector3(LM[i].x, -LM[i].y, -LM[i].z);
-        
-          // --- 腕 ---
-          rotateBone(leftUpperArm, defaultDirs["mixamorigLeftArm"], v(11), v(13));
-          rotateBone(leftForeArm, defaultDirs["mixamorigLeftForeArm"], v(13), v(15));
-
-          rotateBone(rightUpperArm, defaultDirs["mixamorigRightArm"], v(12), v(14));
-          rotateBone(rightForeArm, defaultDirs["mixamorigRightForeArm"], v(14), v(16));
-        
-          // --- 脚 ---
-          rotateBone(leftUpLeg, defaultDirs["mixamorigLeftUpLeg"], v(23), v(25));
-          rotateBone(leftLeg, defaultDirs["mixamorigLeftLeg"], v(25), v(27));
-          rotateBone(leftFoot, defaultDirs["mixamorigLeftFoot"], v(27), v(31));
-        
-          rotateBone(rightUpLeg, defaultDirs["mixamorigRightUpLeg"], v(24), v(26));
-          rotateBone(rightLeg, defaultDirs["mixamorigRightLeg"], v(26), v(28));
-          rotateBone(rightFoot, defaultDirs["mixamorigRightFoot"], v(28), v(32));
-        
-          // --- 胴体 ---
-          rotateBone(hips, defaultDirs["mixamorigHips"], v(23), v(11));
-          rotateBone(spine, defaultDirs["mixamorigSpine2"], v(11), v(0));
-        }
+      // --- 腕 ---
+      rotateBone(leftUpperArm, defaultDirs["mixamorigLeftArm"], v(11), v(13));
+      rotateBone(leftForeArm, defaultDirs["mixamorigLeftForeArm"], v(13), v(15));
     
-        
-
+      rotateBone(rightUpperArm, defaultDirs["mixamorigRightArm"], v(12), v(14));
+      rotateBone(rightForeArm, defaultDirs["mixamorigRightForeArm"], v(14), v(16));
+    
+      // --- 脚 ---
+      rotateBone(leftUpLeg, defaultDirs["mixamorigLeftUpLeg"], v(23), v(25));
+      rotateBone(leftLeg, defaultDirs["mixamorigLeftLeg"], v(25), v(27));
+      rotateBone(leftFoot, defaultDirs["mixamorigLeftFoot"], v(27), v(31));
+    
+      rotateBone(rightUpLeg, defaultDirs["mixamorigRightUpLeg"], v(24), v(26));
+      rotateBone(rightLeg, defaultDirs["mixamorigRightLeg"], v(26), v(28));
+      rotateBone(rightFoot, defaultDirs["mixamorigRightFoot"], v(28), v(32));
+    
+      // --- 胴体 ---
+      rotateBone(hips, defaultDirs["mixamorigHips"], v(23), v(11));
+      rotateBone(spine, defaultDirs["mixamorigSpine2"], v(11), v(0));
+    
       controls.update();
-      renderer.render(scene,camera);
+      renderer.render(scene, camera);
     }
-    tick();
     </script>
     """
     html_code = html_code.replace("PAYLOAD_PLACEHOLDER", payload)
