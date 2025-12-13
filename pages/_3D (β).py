@@ -222,51 +222,28 @@ if uploaded:
           const v = (i) => new THREE.Vector3(LM[i].x, -LM[i].y, LM[i].z);
         
           // --- 胴体（+Z 基準） ---
-          if (hips && spine){
-           applyBoneRotation(hips, v(23), v(11), new THREE.Vector3(0,0,1), offset.spine);
-          }
-          if (spine && neck){
-            applyBoneRotation(spine, v(11), v(0), new THREE.Vector3(0,0,1), offset.spine);
-          }
+          applyBoneRotation(hips, v(23), v(11), new THREE.Vector3(0,0,1), offset.spine);
+          applyBoneRotation(spine, v(11), v(0), new THREE.Vector3(0,0,1), offset.spine);
         
           // --- 左腕（+X 基準） ---
-          if (leftUpperArm){
-            applyBoneRotation(leftUpperArm, v(11), v(13), new THREE.Vector3(1,0,0), offset.arm);
-          }
-          if (leftForeArm){
-            applyBoneRotation(leftForeArm, v(13), v(15), new THREE.Vector3(1,0,0), offset.forearm);
-          }
+          applyBoneRotation(leftUpperArm, v(11), v(13), new THREE.Vector3(1,0,0), offset.arm);
+          applyBoneRotation(leftForeArm, v(13), v(15), new THREE.Vector3(1,0,0), offset.forearm);
         
           // --- 右腕（+X 基準） ---
-          if (rightUpperArm){
-            applyBoneRotation(rightUpperArm, v(12), v(14), new THREE.Vector3(1,0,0), offset.arm);
-          }
-          if (rightForeArm){
-            applyBoneRotation(rightForeArm, v(14), v(16), new THREE.Vector3(1,0,0), offset.forearm);
-          }
+          applyBoneRotation(rightUpperArm, v(12), v(14), new THREE.Vector3(1,0,0), offset.arm);
+          applyBoneRotation(rightForeArm, v(14), v(16), new THREE.Vector3(1,0,0), offset.forearm);
         
           // --- 左脚（-Y 基準） ---
-          if (leftUpLeg){
-            applyBoneRotation(leftUpLeg, v(23), v(25), new THREE.Vector3(0,0,1), offset.leg);
-          }
-          if (leftLeg){
-            applyBoneRotation(leftLeg, v(25), v(27), new THREE.Vector3(0,0,1), offset.lowerLeg);
-          }
-          if (leftFoot){
-            applyBoneRotation(leftFoot, v(27), v(31), new THREE.Vector3(0, 0, 1));
-          }
+          applyBoneRotation(leftUpLeg, v(23), v(25), new THREE.Vector3(0,-1,0), offset.leg);
+          applyBoneRotation(leftLeg, v(25), v(27), new THREE.Vector3(0,-1,0), offset.lowerLeg);
+          applyBoneRotation(leftFoot, v(27), v(31), new THREE.Vector3(0,-1,0));
         
           // --- 右脚（-Y 基準） ---
-          if (rightUpLeg){
-            applyBoneRotation(rightUpLeg, v(24), v(26), new THREE.Vector3(0,0,1), offset.leg);
-          }
-          if (rightLeg){
-            applyBoneRotation(rightLeg, v(26), v(28), new THREE.Vector3(0,0,1), offset.lowerLeg);
-          }
-          if (rightFoot){
-            applyBoneRotation(rightFoot, v(28), v(32), new THREE.Vector3(0,0,1));
-          }
+          applyBoneRotation(rightUpLeg, v(24), v(26), new THREE.Vector3(0,-1,0), offset.leg);
+          applyBoneRotation(rightLeg, v(26), v(28), new THREE.Vector3(0,-1,0), offset.lowerLeg);
+          applyBoneRotation(rightFoot, v(28), v(32), new THREE.Vector3(0,-1,0));
         }
+
       controls.update();
       renderer.render(scene,camera);
     }
