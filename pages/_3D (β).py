@@ -174,8 +174,9 @@ if uploaded:
     controls.update();
     
     const axesHelper = new THREE.AxesHelper(1.0);
-    axesHelper.position.set(0, 1.0, 0); // Y=1.0 の高さに表示
     scene.add(axesHelper);
+    const gridHelper = new THREE.GridHelper(4, 20); // サイズ4, 分割数20
+    scene.add(gridHelper);
         
     // --- GLB 読み込み ---
     const loader = new THREE.GLTFLoader();
