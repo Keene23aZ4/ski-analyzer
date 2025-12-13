@@ -6,6 +6,25 @@ import mediapipe as mp
 import base64
 from pathlib import Path
 
+font_path = Path(__file__).parent / "static" / "BestTen-CRT.otf"
+if font_path.exists():
+    encoded = base64.b64encode(font_path.read_bytes()).decode()
+    st.markdown(
+        f"""
+        <style>
+        @font-face {{
+            font-family: 'BestTen';
+            src: url(data:font/opentype;base64,{encoded}) format('opentype');
+            font-display: swap;
+        }}
+        h1, p, div {{
+            font-family: 'BestTen', monospace !important;
+        }}
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
 # 背景設定（省略可）
 def set_background():
     img_path = Path("static/1704273575813.jpg")
@@ -80,7 +99,7 @@ if uploaded:
     
     # 動画と Three.js を同じ HTML 内に統合
     html_code = """
-    <div style="display:flex; gap:20px;">
+    <div style="display:flex; flex-direction:column; gap:20px;">
       <div style="flex:1;">
         <h3>オリジナル動画</h3>
         <video id="video" width="100%" controls>
