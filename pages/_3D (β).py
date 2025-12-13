@@ -237,13 +237,13 @@ if uploaded:
     function tick(){
       requestAnimationFrame(tick);
       if (!video || video.paused || !avatar) return;
-      const hipsPos = v(23);
-      avatar.position.set(hipsPos.x, hipsPos.y, hipsPos.z);
-    
+   
       const frameIndex = Math.floor(video.currentTime * payload.fps) % payload.frames.length;
       const LM = payload.frames[frameIndex].landmarks;
     
       const v = (i) => new THREE.Vector3(LM[i].x, -LM[i].y, -LM[i].z);
+      const hipsPos = v(23);
+      avatar.position.set(hipsPos.x, hipsPos.y, hipsPos.z);
     
       // 腕
       rotateBone(leftUpperArm, defaultDirs["mixamorigLeftArm"], v(11), v(13));
