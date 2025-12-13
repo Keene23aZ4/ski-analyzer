@@ -190,6 +190,7 @@ if uploaded:
       saveDefaultDir(hips, spine);
       saveDefaultDir(spine, neck);
       console.log("defaultDirs:", defaultDirs);
+      console.log("defaultDirs keys:", Object.keys(defaultDirs));
       console.log("leftFoot:", leftFoot);
       console.log("rightFoot:", rightFoot);
       avatar.traverse(node => {
