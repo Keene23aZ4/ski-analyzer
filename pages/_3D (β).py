@@ -216,7 +216,7 @@ if uploaded:
       const frameIndex = Math.floor(video.currentTime * payload.fps) % payload.frames.length;
       const LM = payload.frames[frameIndex].landmarks;
     
-      const v = (i) => new THREE.Vector3(LM[i].x, -LM[i].y, -LM[i].z);
+      const v = (i) => new THREE.Vector3(LM[i].x, LM[i].y, LM[i].z);
     
       // 腕
       rotateBone(leftUpperArm, defaultDirs["mixamorigLeftArm"], v(11), v(13));
