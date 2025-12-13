@@ -201,11 +201,10 @@ if uploaded:
     const offset = {
       arm: new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, -Math.PI/2)),   // 腕を下げる
       forearm: new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, -Math.PI/2)),
-      leg: new THREE.Quaternion().setFromEuler(new THREE.Euler(0, Math.PI/12, 0)),  // 内側へ15°
-      lowerLeg: new THREE.Quaternion().setFromEuler(new THREE.Euler(0, Math.PI/12, 0)),
+      leg: new THREE.Quaternion().setFromEuler(new THREE.Euler(0, -Math.PI/12, 0)),  // 内側へ15°
+      lowerLeg: new THREE.Quaternion().setFromEuler(new THREE.Euler(0, -Math.PI/12, 0)),
       spine: new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI/12, 0, 0))  // 前傾
     };
-
 
     function tick(){
       requestAnimationFrame(tick);
