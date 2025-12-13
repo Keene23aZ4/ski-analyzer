@@ -196,6 +196,11 @@ if uploaded:
       saveDefaultDir(hips, spine);
       saveDefaultDir(spine, neck);
       console.log("defaultDirs:", defaultDirs);
+      console.log("leftFoot:", leftFoot);
+      console.log("rightFoot:", rightFoot);
+      avatar.traverse(node => {
+          if (node.name.toLowerCase().includes("foot"))
+              console.log("FOOT FOUND:", node.name);
     });
     
     // --- 動画同期 ---
