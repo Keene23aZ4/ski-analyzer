@@ -158,6 +158,7 @@ if uploaded:
     loader.load("data:application/octet-stream;base64,MODEL_PLACEHOLDER", function(gltf){
       scene.add(gltf.scene);
       avatar = gltf.scene;
+      console.log("defaultDirs:", defaultDirs);
     
       hips = avatar.getObjectByName("mixamorigHips");
       spine = avatar.getObjectByName("mixamorigSpine2");
