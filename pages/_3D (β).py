@@ -180,13 +180,13 @@ if uploaded:
       avatar.updateMatrixWorld(true);
       saveDefaultDir(leftUpperArm, leftForeArm);
       saveDefaultDir(leftForeArm, leftHand);
-      aveDefaultDir(rightUpperArm, rightForeArm);
+      saveDefaultDir(rightUpperArm, rightForeArm);
       saveDefaultDir(rightForeArm, rightHand);
       saveDefaultDir(leftUpLeg, leftLeg);
       saveDefaultDir(leftLeg, leftFoot);
       saveDefaultDir(rightUpLeg, rightLeg);
       saveDefaultDir(rightLeg, rightFoot);     
-      aveDefaultDir(hips, spine);
+      saveDefaultDir(hips, spine);
       saveDefaultDir(spine, neck);
   });
 
@@ -234,7 +234,12 @@ if uploaded:
           childBone.getWorldPosition(c);
           defaultDirs[bone.name] = c.clone().sub(p).normalize();
       }
-      
+      // --- Nor-s 方式の回転適用 ---
+      function rotateBone(bone, defaultDir, parentPos, childPos) {
+          const targetDir = childPos.clone().sub(parentPos).normalize();
+          const q = new THREE.Quaternion().setFromUnitVectors(defaultDir, targetDir);
+          bone.quaternion.copy(q);
+      }
     
       
     
@@ -246,7 +251,7 @@ if uploaded:
           // --- 腕 ---
           rotateBone(leftUpperArm, defaultDirs["mixamorigLeftArm"], v(11), v(13));
           rotateBone(leftForeArm, defaultDirs["mixamorigLeftForeArm"], v(13), v(15));
-        
+
           rotateBone(rightUpperArm, defaultDirs["mixamorigRightArm"], v(12), v(14));
           rotateBone(rightForeArm, defaultDirs["mixamorigRightForeArm"], v(14), v(16));
         
@@ -262,12 +267,9 @@ if uploaded:
           // --- 胴体 ---
           rotateBone(hips, defaultDirs["mixamorigHips"], v(23), v(11));
           rotateBone(spine, defaultDirs["mixamorigSpine2"], v(11), v(0));
-          }
-        function rotateBone(bone, defaultDir, parentPos, childPos) {
-          const targetDir = childPos.clone().sub(parentPos).normalize();
-          const q = new THREE.Quaternion().setFromUnitVectors(defaultDir, targetDir);
-          bone.quaternion.copy(q);
         }
+    
+        
 
       controls.update();
       renderer.render(scene,camera);
