@@ -181,18 +181,12 @@ if uploaded:
     
       avatar.updateMatrixWorld(true);
     
-      saveDefaultDir(leftUpperArm, leftForeArm);
-      saveDefaultDir(leftForeArm, leftHand);
-    
-      saveDefaultDir(rightUpperArm, rightForeArm);
-      saveDefaultDir(rightForeArm, rightHand);
-    
       saveDefaultDir(leftUpLeg, leftLeg);
       saveDefaultDir(leftLeg, leftFoot);
-    
+      saveDefaultDir(leftFoot, avatar.getObjectByName("mixamorigLeftToeBase"));   // ★追加
       saveDefaultDir(rightUpLeg, rightLeg);
       saveDefaultDir(rightLeg, rightFoot);
-    
+      saveDefaultDir(rightFoot, avatar.getObjectByName("mixamorigRightToeBase")); // ★追加
       saveDefaultDir(hips, spine);
       saveDefaultDir(spine, neck);
       console.log("defaultDirs:", defaultDirs);
