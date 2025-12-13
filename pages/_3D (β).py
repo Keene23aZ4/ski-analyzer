@@ -176,6 +176,18 @@ if uploaded:
       rightUpLeg = avatar.getObjectByName("mixamorigRightUpLeg");
       rightLeg = avatar.getObjectByName("mixamorigRightLeg");
       rightFoot = avatar.getObjectByName("mixamorigRightFoot");
+      // --- Mixamo 初期方向ベクトルを保存 ---
+      avatar.updateMatrixWorld(true);
+      saveDefaultDir(leftUpperArm, leftForeArm);
+      saveDefaultDir(leftForeArm, leftHand);
+      aveDefaultDir(rightUpperArm, rightForeArm);
+      saveDefaultDir(rightForeArm, rightHand);
+      saveDefaultDir(leftUpLeg, leftLeg);
+      saveDefaultDir(leftLeg, leftFoot);
+      saveDefaultDir(rightUpLeg, rightLeg);
+      saveDefaultDir(rightLeg, rightFoot);     
+      aveDefaultDir(hips, spine);
+      saveDefaultDir(spine, neck);
   });
 
     
@@ -212,6 +224,17 @@ if uploaded:
     
       const frameIndex = Math.floor(video.currentTime * payload.fps) % payload.frames.length;
       const frame = payload.frames[frameIndex];
+
+      // --- Mixamo 初期方向ベクトルを保存する辞書 ---
+      const defaultDirs = {};
+      function saveDefaultDir(bone, childBone) {
+          const p = new THREE.Vector3();
+          const c = new THREE.Vector3();
+          bone.getWorldPosition(p);
+          childBone.getWorldPosition(c);
+          defaultDirs[bone.name] = c.clone().sub(p).normalize();
+      }
+      
     
       
     
@@ -241,6 +264,11 @@ if uploaded:
           applyBoneRotation(rightUpLeg, v(24), v(26), new THREE.Vector3(0,-1,0), offset.leg);
           applyBoneRotation(rightLeg, v(26), v(28), new THREE.Vector3(0,-1,0), offset.lowerLeg);
           applyBoneRotation(rightFoot, v(28), v(32), new THREE.Vector3(0,-1,0));
+        }
+        function rotateBone(bone, defaultDir, parentPos, childPos) {
+          const targetDir = childPos.clone().sub(parentPos).normalize();
+          const q = new THREE.Quaternion().setFromUnitVectors(defaultDir, targetDir);
+          bone.quaternion.copy(q);
         }
 
       controls.update();
