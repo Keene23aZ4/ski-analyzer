@@ -173,6 +173,10 @@ if uploaded:
     controls.target.set(0, 1.5, 0);
     controls.update();
     
+    const axesHelper = new THREE.AxesHelper(1.0);
+    axesHelper.position.set(0, 1.0, 0); // Y=1.0 の高さに表示
+    scene.add(axesHelper);
+        
     // --- GLB 読み込み ---
     const loader = new THREE.GLTFLoader();
     loader.load("data:application/octet-stream;base64,MODEL_PLACEHOLDER", function(gltf){
