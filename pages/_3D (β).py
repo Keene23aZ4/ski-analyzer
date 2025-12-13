@@ -243,28 +243,26 @@ if uploaded:
           const LM = frame.landmarks;
           const v = (i) => new THREE.Vector3(LM[i].x, -LM[i].y, -LM[i].z);
         
-          // --- 胴体（+Z 基準） ---
-          applyBoneRotation(hips, v(23), v(11), new THREE.Vector3(0,0,1), offset.spine);
-          applyBoneRotation(spine, v(11), v(0), new THREE.Vector3(0,0,1), offset.spine);
+          // --- 腕 ---
+          rotateBone(leftUpperArm, defaultDirs["mixamorigLeftArm"], v(11), v(13));
+          rotateBone(leftForeArm, defaultDirs["mixamorigLeftForeArm"], v(13), v(15));
         
-          // --- 左腕（+X 基準） ---
-          applyBoneRotation(leftUpperArm, v(11), v(13), new THREE.Vector3(1,0,0), offset.arm);
-          applyBoneRotation(leftForeArm, v(13), v(15), new THREE.Vector3(1,0,0), offset.forearm);
+          rotateBone(rightUpperArm, defaultDirs["mixamorigRightArm"], v(12), v(14));
+          rotateBone(rightForeArm, defaultDirs["mixamorigRightForeArm"], v(14), v(16));
         
-          // --- 右腕（+X 基準） ---
-          applyBoneRotation(rightUpperArm, v(12), v(14), new THREE.Vector3(1,0,0), offset.arm);
-          applyBoneRotation(rightForeArm, v(14), v(16), new THREE.Vector3(1,0,0), offset.forearm);
+          // --- 脚 ---
+          rotateBone(leftUpLeg, defaultDirs["mixamorigLeftUpLeg"], v(23), v(25));
+          rotateBone(leftLeg, defaultDirs["mixamorigLeftLeg"], v(25), v(27));
+          rotateBone(leftFoot, defaultDirs["mixamorigLeftFoot"], v(27), v(31));
         
-          // --- 左脚（-Y 基準） ---
-          applyBoneRotation(leftUpLeg, v(23), v(25), new THREE.Vector3(0,-1,0), offset.leg);
-          applyBoneRotation(leftLeg, v(25), v(27), new THREE.Vector3(0,-1,0), offset.lowerLeg);
-          applyBoneRotation(leftFoot, v(27), v(31), new THREE.Vector3(0,-1,0));
+          rotateBone(rightUpLeg, defaultDirs["mixamorigRightUpLeg"], v(24), v(26));
+          rotateBone(rightLeg, defaultDirs["mixamorigRightLeg"], v(26), v(28));
+          rotateBone(rightFoot, defaultDirs["mixamorigRightFoot"], v(28), v(32));
         
-          // --- 右脚（-Y 基準） ---
-          applyBoneRotation(rightUpLeg, v(24), v(26), new THREE.Vector3(0,-1,0), offset.leg);
-          applyBoneRotation(rightLeg, v(26), v(28), new THREE.Vector3(0,-1,0), offset.lowerLeg);
-          applyBoneRotation(rightFoot, v(28), v(32), new THREE.Vector3(0,-1,0));
-        }
+          // --- 胴体 ---
+          rotateBone(hips, defaultDirs["mixamorigHips"], v(23), v(11));
+          rotateBone(spine, defaultDirs["mixamorigSpine2"], v(11), v(0));
+          }
         function rotateBone(bone, defaultDir, parentPos, childPos) {
           const targetDir = childPos.clone().sub(parentPos).normalize();
           const q = new THREE.Quaternion().setFromUnitVectors(defaultDir, targetDir);
