@@ -148,8 +148,7 @@ if uploaded:
     const container = document.getElementById('container');
     const w = container.clientWidth || window.innerWidth;
     const h = container.clientHeight || 600;
-    const axesHelper = new THREE.AxesHelper(1.0); // 長さ1.0の軸
-    scene.add(axesHelper);
+
     
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x111111);
