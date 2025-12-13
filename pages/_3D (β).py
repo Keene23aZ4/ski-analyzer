@@ -218,7 +218,7 @@ if uploaded:
       // --- アバターの動き（全身） ---
       if (avatar){
           const LM = frame.landmarks;
-          const v = (i) => new THREE.Vector3(LM[i].x, -LM[i].y, LM[i].z);
+          const v = (i) => new THREE.Vector3(LM[i].x, -LM[i].y, -LM[i].z);
         
           // --- 胴体（+Z 基準） ---
           applyBoneRotation(hips, v(23), v(11), new THREE.Vector3(0,0,1), offset.spine);
