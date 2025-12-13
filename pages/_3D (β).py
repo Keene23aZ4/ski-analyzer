@@ -108,7 +108,22 @@ if uploaded:
     // --- MediaPipe payload ---
     const payload = PAYLOAD_PLACEHOLDER;
     
-   
+    // --- Mixamo 初期方向ベクトル ---
+    const defaultDirs = {};
+    
+    function saveDefaultDir(bone, childBone) {
+      const p = new THREE.Vector3();
+      const c = new THREE.Vector3();
+      bone.getWorldPosition(p);
+      childBone.getWorldPosition(c);
+      defaultDirs[bone.name] = c.clone().sub(p).normalize();
+    }
+    
+    function rotateBone(bone, defaultDir, parentPos, childPos) {
+      const targetDir = childPos.clone().sub(parentPos).normalize();
+      const q = new THREE.Quaternion().setFromUnitVectors(defaultDir, targetDir);
+      bone.quaternion.copy(q);
+    }
     
     // --- Three.js 基本セットアップ ---
     const container = document.getElementById('container');
@@ -143,7 +158,7 @@ if uploaded:
     loader.load("data:application/octet-stream;base64,MODEL_PLACEHOLDER", function(gltf){
       scene.add(gltf.scene);
       avatar = gltf.scene;
-      avatar.traverse(node => console.log(node.name));
+    
       hips = avatar.getObjectByName("mixamorigHips");
       spine = avatar.getObjectByName("mixamorigSpine2");
       neck = avatar.getObjectByName("mixamorigNeck");
@@ -164,7 +179,6 @@ if uploaded:
       rightLeg = avatar.getObjectByName("mixamorigRightLeg");
       rightFoot = avatar.getObjectByName("mixamorigRightFoot");
     
-      // --- 初期方向ベクトルを保存 ---
       avatar.updateMatrixWorld(true);
     
       saveDefaultDir(leftUpperArm, leftForeArm);
@@ -197,17 +211,16 @@ if uploaded:
       const frameIndex = Math.floor(video.currentTime * payload.fps) % payload.frames.length;
       const LM = payload.frames[frameIndex].landmarks;
     
-      // MediaPipe → Three.js 座標変換（Z 反転）
       const v = (i) => new THREE.Vector3(LM[i].x, -LM[i].y, -LM[i].z);
     
-      // --- 腕 ---
+      // 腕
       rotateBone(leftUpperArm, defaultDirs["mixamorigLeftArm"], v(11), v(13));
       rotateBone(leftForeArm, defaultDirs["mixamorigLeftForeArm"], v(13), v(15));
     
       rotateBone(rightUpperArm, defaultDirs["mixamorigRightArm"], v(12), v(14));
       rotateBone(rightForeArm, defaultDirs["mixamorigRightForeArm"], v(14), v(16));
     
-      // --- 脚 ---
+      // 脚
       rotateBone(leftUpLeg, defaultDirs["mixamorigLeftUpLeg"], v(23), v(25));
       rotateBone(leftLeg, defaultDirs["mixamorigLeftLeg"], v(25), v(27));
       rotateBone(leftFoot, defaultDirs["mixamorigLeftFoot"], v(27), v(31));
@@ -216,7 +229,7 @@ if uploaded:
       rotateBone(rightLeg, defaultDirs["mixamorigRightLeg"], v(26), v(28));
       rotateBone(rightFoot, defaultDirs["mixamorigRightFoot"], v(28), v(32));
     
-      // --- 胴体 ---
+      // 胴体
       rotateBone(hips, defaultDirs["mixamorigHips"], v(23), v(11));
       rotateBone(spine, defaultDirs["mixamorigSpine2"], v(11), v(0));
     
