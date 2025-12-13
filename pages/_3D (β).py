@@ -180,7 +180,10 @@ if uploaded:
       rightFoot = avatar.getObjectByName("mixamorigRightFoot");
     
       avatar.updateMatrixWorld(true);
-    
+      saveDefaultDir(leftUpperArm, leftForeArm);
+      saveDefaultDir(leftForeArm, leftHand);
+      saveDefaultDir(rightUpperArm, rightForeArm);
+      saveDefaultDir(rightForeArm, rightHand);    
       saveDefaultDir(leftUpLeg, leftLeg);
       saveDefaultDir(leftLeg, leftFoot);
       saveDefaultDir(leftFoot, avatar.getObjectByName("mixamorigLeftToeBase"));   // ★追加
