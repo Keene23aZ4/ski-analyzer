@@ -7,25 +7,6 @@ import mediapipe as mp
 import base64
 from pathlib import Path
 
-font_path = Path(__file__).parent / "static" / "BestTen-CRT.otf"
-if font_path.exists():
-    encoded = base64.b64encode(font_path.read_bytes()).decode()
-    st.markdown(
-        f"""
-        <style>
-        @font-face {{
-            font-family: 'BestTen';
-            src: url(data:font/opentype;base64,{encoded}) format('opentype');
-            font-display: swap;
-        }}
-        h1, p, div {{
-            font-family: 'BestTen', monospace !important;
-        }}
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
-
 # 背景設定（省略可）
 def set_background():
     img_path = Path("static/1704273575813.jpg")
@@ -92,48 +73,49 @@ if uploaded:
     seq = extract_3d_pose_sequence(tmp_path, stride=3)
     
     MIXAMO_MAP = {
-        "mixamorig:Hips": 23,
-        "mixamorig:LeftArm": 11,
-        "mixamorig:LeftForeArm": 13,
-        "mixamorig:LeftHand": 15,
-        "mixamorig:RightArm": 12,
-        "mixamorig:RightForeArm": 14,
-        "mixamorig:RightHand": 16,
-        "mixamorig:LeftUpLeg": 23,
-        "mixamorig:LeftLeg": 25,
-        "mixamorig:LeftFoot": 27,
-        "mixamorig:LeftToeBase": 31,
-        "mixamorig:RightUpLeg": 24,
-        "mixamorig:RightLeg": 26,
-        "mixamorig:RightFoot": 28,
-        "mixamorig:RightToeBase": 32,
+        "mixamorigHips": 23,
+        "mixamorigLeftArm": 11,
+        "mixamorigLeftForeArm": 13,
+        "mixamorigLeftHand": 15,
+        "mixamorigRightArm": 12,
+        "mixamorigRightForeArm": 14,
+        "mixamorigRightHand": 16,
+        "mixamorigLeftUpLeg": 23,
+        "mixamorigLeftLeg": 25,
+        "mixamorigLeftFoot": 27,
+        "mixamorigLeftToeBase": 31,
+        "mixamorigRightUpLeg": 24,
+        "mixamorigRightLeg": 26,
+        "mixamorigRightFoot": 28,
+        "mixamorigRightToeBase": 32,
     }
+    
     DEFAULT_DIRS = {
-        "mixamorig:Hips": np.array([0, 1, 0]),
+        "mixamorigHips": np.array([0, 1, 0]),
     
-        "mixamorig:Spine": np.array([0, 1, 0]),
-        "mixamorig:Spine1": np.array([0, 1, 0]),
-        "mixamorig:Spine2": np.array([0, 1, 0]),
-        "mixamorig:Neck": np.array([0, 1, 0]),
-        "mixamorig:Head": np.array([0, 1, 0]),
+        "mixamorigSpine":  np.array([0, 1, 0]),
+        "mixamorigSpine1": np.array([0, 1, 0]),
+        "mixamorigSpine2": np.array([0, 1, 0]),
+        "mixamorigNeck":   np.array([0, 1, 0]),
+        "mixamorigHead":   np.array([0, 1, 0]),
     
-        "mixamorig:LeftArm": np.array([1, 0, 0]),
-        "mixamorig:LeftForeArm": np.array([1, 0, 0]),
-        "mixamorig:LeftHand": np.array([1, 0, 0]),
+        "mixamorigLeftArm":      np.array([1, 0, 0]),
+        "mixamorigLeftForeArm":  np.array([1, 0, 0]),
+        "mixamorigLeftHand":     np.array([1, 0, 0]),
     
-        "mixamorig:RightArm": np.array([-1, 0, 0]),
-        "mixamorig:RightForeArm": np.array([-1, 0, 0]),
-        "mixamorig:RightHand": np.array([-1, 0, 0]),
+        "mixamorigRightArm":     np.array([-1, 0, 0]),
+        "mixamorigRightForeArm": np.array([-1, 0, 0]),
+        "mixamorigRightHand":    np.array([-1, 0, 0]),
     
-        "mixamorig:LeftUpLeg": np.array([0, -1, 0]),
-        "mixamorig:LeftLeg": np.array([0, -1, 0]),
-        "mixamorig:LeftFoot": np.array([0, -1, 0]),
-        "mixamorig:LeftToeBase": np.array([0, -1, 0]),
+        "mixamorigLeftUpLeg":   np.array([0, -1, 0]),
+        "mixamorigLeftLeg":     np.array([0, -1, 0]),
+        "mixamorigLeftFoot":    np.array([0, -1, 0]),
+        "mixamorigLeftToeBase": np.array([0, -1, 0]),
     
-        "mixamorig:RightUpLeg": np.array([0, -1, 0]),
-        "mixamorig:RightLeg": np.array([0, -1, 0]),
-        "mixamorig:RightFoot": np.array([0, -1, 0]),
-        "mixamorig:RightToeBase": np.array([0, -1, 0]),
+        "mixamorigRightUpLeg":   np.array([0, -1, 0]),
+        "mixamorigRightLeg":     np.array([0, -1, 0]),
+        "mixamorigRightFoot":    np.array([0, -1, 0]),
+        "mixamorigRightToeBase": np.array([0, -1, 0]),
     }
     
     def mp_to_mixamo_vec(lm):
@@ -179,14 +161,12 @@ if uploaded:
             frame_data["mixamorigHips_pos"] = hips.tolist()
     
             # --- Spine 系の回転を追加 ---
-            frame_data["mixamorig:Spine"] = compute_quaternion(spine1 - hips, spine - hips)
-            frame_data["mixamorig:Spine1"] = compute_quaternion(spine - spine1, spine2 - spine1)
-            frame_data["mixamorig:Spine2"] = compute_quaternion(spine1 - spine2, neck - spine2)
-    
-            # Neck と Head
-            frame_data["mixamorig:Neck"] = compute_quaternion(spine2 - neck, head - neck)
-            frame_data["mixamorig:Head"] = compute_quaternion(neck - head, (head + (head - neck)) - head)
-    
+            frame_data["mixamorigSpine"]  = compute_quaternion(spine1 - hips, spine - hips)
+            frame_data["mixamorigSpine1"] = compute_quaternion(spine - spine1, spine2 - spine1)
+            frame_data["mixamorigSpine2"] = compute_quaternion(spine1 - spine2, neck - spine2)
+            
+            frame_data["mixamorigNeck"] = compute_quaternion(spine2 - neck, head - neck)
+            frame_data["mixamorigHead"] = compute_quaternion(neck - head, (head + (head - neck)) - head)
             # --- Arms / Legs / ToeBase（既存の処理） ---
             for bone, idx in MIXAMO_MAP.items():
                 parent = pts[idx]
@@ -203,6 +183,9 @@ if uploaded:
         return anim
    
     converted = convert_to_mixamo_json(seq["frames"])
+    print("Sample frame keys:", converted["frames"][0].keys())
+    print("Sample hips rot:", converted["frames"][0].get("mixamorigHips"))
+    print("Sample leftArm rot:", converted["frames"][0].get("mixamorigLeftArm"))
     payload = json.dumps(converted)
 
     model_path = Path("static/avatar.glb")
@@ -277,27 +260,52 @@ if uploaded:
       avatar.traverse(node => {
           console.log(node.name);
       });
+      function getDefaultDir(bone, child) {
+          const p = new THREE.Vector3();
+          const c = new THREE.Vector3();
+          bone.getWorldPosition(p);
+          child.getWorldPosition(c);
+          return c.sub(p).normalize();
+      }
+      const defaultDirs = {
+          "mixamorig:Hips": getDefaultDir(hips, spine),
+          "mixamorig:Spine": getDefaultDir(spine, spine1),
+          "mixamorig:Spine1": getDefaultDir(spine1, spine2),
+          "mixamorig:Spine2": getDefaultDir(spine2, neck),
+          "mixamorig:Neck": getDefaultDir(neck, head),
+          "mixamorig:Head": getDefaultDir(head, headEnd),
+          "mixamorig:LeftArm": getDefaultDir(leftUpperArm, leftForeArm),
+          "mixamorig:LeftForeArm": getDefaultDir(leftForeArm, leftHand),
+          "mixamorig:LeftHand": getDefaultDir(leftHand, leftHandEnd),
+          "mixamorig:RightArm": getDefaultDir(rightUpperArm, rightForeArm),
+          "mixamorig:RightForeArm": getDefaultDir(rightForeArm, rightHand),
+          "mixamorig:RightHand": getDefaultDir(rightHand, rightHandEnd),
+          "mixamorig:LeftUpLeg": getDefaultDir(leftUpLeg, leftLeg),
+          "mixamorig:LeftLeg": getDefaultDir(leftLeg, leftFoot),
+          "mixamorig:LeftFoot": getDefaultDir(leftFoot, leftToeBase),
+          "mixamorig:LeftToeBase": getDefaultDir(leftToeBase, leftToeEnd),
+          "mixamorig:RightUpLeg": getDefaultDir(rightUpLeg, rightLeg),
+          "mixamorig:RightLeg": getDefaultDir(rightLeg, rightFoot),
+          "mixamorig:RightFoot": getDefaultDir(rightFoot, rightToeBase),
+          "mixamorig:RightToeBase": getDefaultDir(rightToeBase, rightToeEnd),
+      };
 
     
-      hips = avatar.getObjectByName("mixamorig:Hips");
-      spine = avatar.getObjectByName("mixamorig:Spine2");
-      neck = avatar.getObjectByName("mixamorig:Neck");
-    
-      leftUpperArm = avatar.getObjectByName("mixamorig:LeftArm");
-      leftForeArm = avatar.getObjectByName("mixamorig:LeftForeArm");
-      leftHand = avatar.getObjectByName("mixamorig:LeftHand");
-    
-      rightUpperArm = avatar.getObjectByName("mixamorig:RightArm");
-      rightForeArm = avatar.getObjectByName("mixamorig:RightForeArm");
-      rightHand = avatar.getObjectByName("mixamorig:RightHand");
-    
-      leftUpLeg = avatar.getObjectByName("mixamorig:LeftUpLeg");
-      leftLeg = avatar.getObjectByName("mixamorig:LeftLeg");
-      leftFoot = avatar.getObjectByName("mixamorig:LeftFoot");
-    
-      rightUpLeg = avatar.getObjectByName("mixamorig:RightUpLeg");
-      rightLeg = avatar.getObjectByName("mixamorig:RightLeg");
-      rightFoot = avatar.getObjectByName("mixamorig:RightFoot");
+      hips  = avatar.getObjectByName("mixamorigHips");
+      spine = avatar.getObjectByName("mixamorigSpine2");
+      neck  = avatar.getObjectByName("mixamorigNeck");
+      leftUpperArm  = avatar.getObjectByName("mixamorigLeftArm");
+      leftForeArm   = avatar.getObjectByName("mixamorigLeftForeArm");
+      leftHand      = avatar.getObjectByName("mixamorigLeftHand");
+      rightUpperArm = avatar.getObjectByName("mixamorigRightArm");
+      rightForeArm  = avatar.getObjectByName("mixamorigRightForeArm");
+      rightHand     = avatar.getObjectByName("mixamorigRightHand");
+      leftUpLeg = avatar.getObjectByName("mixamorigLeftUpLeg");
+      leftLeg   = avatar.getObjectByName("mixamorigLeftLeg");
+      leftFoot  = avatar.getObjectByName("mixamorigLeftFoot");
+      rightUpLeg = avatar.getObjectByName("mixamorigRightUpLeg");
+      rightLeg   = avatar.getObjectByName("mixamorigRightLeg");
+      rightFoot  = avatar.getObjectByName("mixamorigRightFoot");
     
       avatar.updateMatrixWorld(true);
       console.log("leftFoot:", leftFoot);
@@ -330,11 +338,16 @@ if uploaded:
     
       // 各ボーンの回転
       for (const boneName in frame) {
-        if (!boneName.startsWith("mixamorig")) continue;
-        const q = frame[boneName];
-        const bone = avatar.getObjectByName(boneName);
-        if (bone) bone.quaternion.set(q[0], q[1], q[2], q[3]);
+          if (!boneName.startsWith("mixamorig")) continue;
+          const bone = avatar.getObjectByName(boneName);
+          if (!bone) {
+            console.warn("Bone not found:", boneName);
+            continue;
+          }
+          const q = frame[boneName];
+          bone.quaternion.set(q[0], q[1], q[2], q[3]);
       }
+
     
       controls.update();
       renderer.render(scene, camera);
