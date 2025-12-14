@@ -1,5 +1,6 @@
 import streamlit as st
 import cv2
+import numpy as np
 import json
 import tempfile
 import mediapipe as mp
@@ -89,11 +90,94 @@ if uploaded:
         tmp_path = tmpf.name
 
     seq = extract_3d_pose_sequence(tmp_path, stride=3)
-    payload = json.dumps({
-        "frames": seq["frames"],
-        "names": seq["landmark_names"],
-        "fps": max(10.0, min(seq["fps"], 60.0)),
-    })
+    
+    MIXAMO_MAP = {
+        "mixamorigHips": 23,
+        "mixamorigLeftArm": 11,
+        "mixamorigLeftForeArm": 13,
+        "mixamorigLeftHand": 15,
+        "mixamorigRightArm": 12,
+        "mixamorigRightForeArm": 14,
+        "mixamorigRightHand": 16,
+        "mixamorigLeftUpLeg": 23,
+        "mixamorigLeftLeg": 25,
+        "mixamorigLeftFoot": 27,
+        "mixamorigLeftToeBase": 31,
+        "mixamorigRightUpLeg": 24,
+        "mixamorigRightLeg": 26,
+        "mixamorigRightFoot": 28,
+        "mixamorigRightToeBase": 32,
+    }
+    
+    def mp_to_mixamo_vec(lm):
+        return np.array([lm["x"], -lm["y"], -lm["z"]], dtype=float)
+    
+    def compute_spine_points(hips, neck):
+        spine1 = (hips + neck) / 2
+        spine = (hips + spine1) / 2
+        spine2 = (spine1 + neck) / 2
+        return spine, spine1, spine2
+    
+    def compute_quaternion(default_dir, target_dir):
+        default_dir = default_dir / np.linalg.norm(default_dir)
+        target_dir = target_dir / np.linalg.norm(target_dir)
+    
+        axis = np.cross(default_dir, target_dir)
+        axis_norm = np.linalg.norm(axis)
+    
+        if axis_norm < 1e-6:
+            return [0, 0, 0, 1]
+    
+        axis = axis / axis_norm
+        angle = np.arccos(np.clip(np.dot(default_dir, target_dir), -1.0, 1.0))
+    
+        qw = np.cos(angle / 2)
+        qx, qy, qz = axis * np.sin(angle / 2)
+        return [qx, qy, qz, qw]
+    
+    def convert_to_mixamo_json(frames):
+        anim = {"frames": []}
+    
+        for f in frames:
+            LM = f["landmarks"]
+            pts = [mp_to_mixamo_vec(lm) for lm in LM]
+    
+            hips = pts[23]
+            neck = pts[0]
+            head = pts[0]
+    
+            spine, spine1, spine2 = compute_spine_points(hips, neck)
+    
+            frame_data = {}
+            frame_data["mixamorigHips_pos"] = hips.tolist()
+    
+            # --- Spine 系の回転を追加 ---
+            frame_data["mixamorigSpine"] = compute_quaternion(spine1 - hips, spine - hips)
+            frame_data["mixamorigSpine1"] = compute_quaternion(spine - spine1, spine2 - spine1)
+            frame_data["mixamorigSpine2"] = compute_quaternion(spine1 - spine2, neck - spine2)
+    
+            # Neck と Head
+            frame_data["mixamorigNeck"] = compute_quaternion(spine2 - neck, head - neck)
+            frame_data["mixamorigHead"] = compute_quaternion(neck - head, (head + (head - neck)) - head)
+    
+            # --- Arms / Legs / ToeBase（既存の処理） ---
+            for bone, idx in MIXAMO_MAP.items():
+                parent = pts[idx]
+                child = pts[idx + 2] if idx + 2 < len(pts) else pts[idx]
+    
+                default_dir = child - parent
+                target_dir = child - parent
+    
+                q = compute_quaternion(default_dir, target_dir)
+                frame_data[bone] = q
+    
+            anim["frames"].append(frame_data)
+    
+        return anim
+   
+    converted = convert_to_mixamo_json(seq["frames"])
+    payload = json.dumps(converted)
+
     model_path = Path("static/avatar.glb")
     model_data = base64.b64encode(model_path.read_bytes()).decode()
     
@@ -123,27 +207,7 @@ if uploaded:
     let rightUpperArm, rightForeArm, rightHand;
     let leftUpLeg, leftLeg, leftFoot;
     let rightUpLeg, rightLeg, rightFoot;
-    
-    // --- MediaPipe payload ---
-    const payload = PAYLOAD_PLACEHOLDER;
-    
-    // --- Mixamo 初期方向ベクトル ---
-    const defaultDirs = {};
-    
-    function saveDefaultDir(bone, childBone) {
-      const p = new THREE.Vector3();
-      const c = new THREE.Vector3();
-      bone.getWorldPosition(p);
-      childBone.getWorldPosition(c);
-      defaultDirs[bone.name] = c.clone().sub(p).normalize();
-    }
-    
-    function rotateBone(bone, defaultDir, parentPos, childPos, factor = 1.0) {
-      const targetDir = childPos.clone().sub(parentPos).normalize();
-      const q = new THREE.Quaternion().setFromUnitVectors(defaultDir, targetDir);
-      bone.quaternion.slerp(q, factor);
-    }
-    
+        
     // --- Three.js 基本セットアップ ---
     const container = document.getElementById('container');
     const w = container.clientWidth || window.innerWidth;
@@ -205,20 +269,6 @@ if uploaded:
       rightFoot = avatar.getObjectByName("mixamorigRightFoot");
     
       avatar.updateMatrixWorld(true);
-      saveDefaultDir(leftUpperArm, leftForeArm);
-      saveDefaultDir(leftForeArm, leftHand);
-      saveDefaultDir(rightUpperArm, rightForeArm);
-      saveDefaultDir(rightForeArm, rightHand);    
-      saveDefaultDir(leftUpLeg, leftLeg);
-      saveDefaultDir(leftLeg, leftFoot);
-      saveDefaultDir(leftFoot, avatar.getObjectByName("mixamorigLeftToeBase"));   // ★追加
-      saveDefaultDir(rightUpLeg, rightLeg);
-      saveDefaultDir(rightLeg, rightFoot);
-      saveDefaultDir(rightFoot, avatar.getObjectByName("mixamorigRightToeBase")); // ★追加
-      saveDefaultDir(hips, spine);
-      saveDefaultDir(spine, neck);
-      console.log("defaultDirs:", defaultDirs);
-      console.log("defaultDirs keys:", Object.keys(defaultDirs));
       console.log("leftFoot:", leftFoot);
       console.log("rightFoot:", rightFoot);
       avatar.traverse(node => {
@@ -233,39 +283,27 @@ if uploaded:
     video.addEventListener("seeked", () => tick());
     video.addEventListener("timeupdate", () => tick());
     
-    // --- メインループ ---
+    // --- JSON アニメーション再生 ---
+    const anim = PAYLOAD_PLACEHOLDER;
+    
     function tick(){
       requestAnimationFrame(tick);
       if (!video || video.paused || !avatar) return;
-   
-      const frameIndex = Math.floor(video.currentTime * payload.fps) % payload.frames.length;
-      const LM = payload.frames[frameIndex].landmarks;
+      const ratio = video.currentTime / video.duration;
+      const frameIndex = Math.floor(video.currentTime * anim.frames.length / video.duration);
+      const frame = anim.frames[frameIndex];
     
-      const v = (i) => new THREE.Vector3(LM[i].x, -LM[i].y, -LM[i].z);
-      const hipsPos = v(23);
-      avatar.position.set(hipsPos.x, hipsPos.y, hipsPos.z);
+      // Hips の位置
+      const p = frame["mixamorigHips_pos"];
+      avatar.position.set(p[0], p[1], p[2]);
     
-      // 腕
-      rotateBone(leftUpperArm, defaultDirs["mixamorigLeftArm"], v(11), v(13));
-      rotateBone(leftForeArm, defaultDirs["mixamorigLeftForeArm"], v(13), v(15));
-    
-      rotateBone(rightUpperArm, defaultDirs["mixamorigRightArm"], v(12), v(14));
-      rotateBone(rightForeArm, defaultDirs["mixamorigRightForeArm"], v(14), v(16));
-    
-      // 脚
-      rotateBone(leftUpLeg, defaultDirs["mixamorigLeftUpLeg"], v(23), v(25));
-      rotateBone(leftLeg, defaultDirs["mixamorigLeftLeg"], v(25), v(27));
-      rotateBone(leftFoot, defaultDirs["mixamorigLeftFoot"], v(27), v(31));
-    
-      rotateBone(rightUpLeg, defaultDirs["mixamorigRightUpLeg"], v(24), v(26));
-      rotateBone(rightLeg, defaultDirs["mixamorigRightLeg"], v(26), v(28));
-      rotateBone(rightFoot, defaultDirs["mixamorigRightFoot"], v(28), v(32));
-    
-      // 胴体
-      const spineParent = v(23).clone().add(v(0)).multiplyScalar(0.5); // hips と neck の中間
-      rotateBone(spine, defaultDirs["mixamorigSpine2"], spineParent, v(0));
-      const shoulderCenter = v(11).clone().add(v(12)).multiplyScalar(0.5);
-      rotateBone(hips, defaultDirs["mixamorigHips"], v(23), shoulderCenter, 0.5);
+      // 各ボーンの回転
+      for (const boneName in frame) {
+        if (!boneName.startsWith("mixamorig")) continue;
+        const q = frame[boneName];
+        const bone = avatar.getObjectByName(boneName);
+        if (bone) bone.quaternion.set(q[0], q[1], q[2], q[3]);
+      }
     
       controls.update();
       renderer.render(scene, camera);
