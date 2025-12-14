@@ -7,7 +7,7 @@ import mediapipe as mp
 import base64
 from pathlib import Path
 
-font_path = Path(__file__).parent /parent / "static" / "BestTen-CRT.otf"
+font_path = Path(__file__).parent / "static" / "BestTen-CRT.otf"
 if font_path.exists():
     encoded = base64.b64encode(font_path.read_bytes()).decode()
     st.markdown(
