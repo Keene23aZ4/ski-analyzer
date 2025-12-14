@@ -262,7 +262,6 @@ if uploaded:
       rotateBone(rightFoot, defaultDirs["mixamorigRightFoot"], v(28), v(32));
     
       // 胴体
-      rotateBone(hips, defaultDirs["mixamorigHips"], v(23), v(11),0.5);
       const spineParent = v(23).clone().add(v(0)).multiplyScalar(0.5); // hips と neck の中間
       rotateBone(spine, defaultDirs["mixamorigSpine2"], spineParent, v(0));
       const shoulderCenter = v(11).clone().add(v(12)).multiplyScalar(0.5);
