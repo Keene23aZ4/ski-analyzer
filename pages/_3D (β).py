@@ -47,7 +47,7 @@ def set_background():
         )
 set_background()
 
-st.set_page_config(page_title="3D Pose → Avatar Motion", page_icon="🕺", layout="wide")
+st.set_page_config(page_title="3D Pose → Avatar Motion", layout="wide")
 
 mp_pose = mp.solutions.pose
 
