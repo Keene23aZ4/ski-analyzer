@@ -165,7 +165,7 @@ if uploaded:
                 parent = pts[idx]
                 child = pts[idx + 2] if idx + 2 < len(pts) else pts[idx]
     
-                default_dir = child - parent
+                default_dir = DEFAULT_DIRS[bone]
                 target_dir = child - parent
     
                 q = compute_quaternion(default_dir, target_dir)
@@ -247,6 +247,10 @@ if uploaded:
     loader.load("data:application/octet-stream;base64,MODEL_PLACEHOLDER", function(gltf){
       scene.add(gltf.scene);
       avatar = gltf.scene;
+      avatar.traverse(node => {
+          console.log(node.name);
+      });
+
     
       hips = avatar.getObjectByName("mixamorigHips");
       spine = avatar.getObjectByName("mixamorigSpine2");
