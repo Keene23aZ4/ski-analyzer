@@ -184,7 +184,7 @@ if uploaded:
             frame_data["mixamorig:Spine2"] = compute_quaternion(spine1 - spine2, neck - spine2)
     
             # Neck と Head
-            frame_data["mixamorig;Neck"] = compute_quaternion(spine2 - neck, head - neck)
+            frame_data["mixamorig:Neck"] = compute_quaternion(spine2 - neck, head - neck)
             frame_data["mixamorig:Head"] = compute_quaternion(neck - head, (head + (head - neck)) - head)
     
             # --- Arms / Legs / ToeBase（既存の処理） ---
