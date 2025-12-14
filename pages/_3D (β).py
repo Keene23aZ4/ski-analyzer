@@ -260,6 +260,7 @@ if uploaded:
       avatar.traverse(node => {
           console.log(node.name);
       });
+      
       function getDefaultDir(bone, child) {
           const p = new THREE.Vector3();
           const c = new THREE.Vector3();
@@ -308,6 +309,8 @@ if uploaded:
       rightFoot  = avatar.getObjectByName("mixamorigRightFoot");
     
       avatar.updateMatrixWorld(true);
+      console.log("LeftArm rotation:", leftUpperArm.rotation);
+      console.log("LeftShoulder rotation:", avatar.getObjectByName("mixamorigLeftShoulder").rotation);
       console.log("leftFoot:", leftFoot);
       console.log("rightFoot:", rightFoot);
       avatar.traverse(node => {
