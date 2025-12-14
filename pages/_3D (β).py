@@ -109,6 +109,8 @@ if uploaded:
         "mixamorigRightToeBase": 32,
     }
     DEFAULT_DIRS = {
+        "mixamorigHips": np.array([0, 1, 0]),
+
         # Spine 系
         "mixamorigSpine":      np.array([0, 1, 0]),
         "mixamorigSpine1":     np.array([0, 1, 0]),
