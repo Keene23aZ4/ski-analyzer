@@ -108,6 +108,36 @@ if uploaded:
         "mixamorigRightFoot": 28,
         "mixamorigRightToeBase": 32,
     }
+    DEFAULT_DIRS = {
+        # Spine 系
+        "mixamorigSpine":      np.array([0, 1, 0]),
+        "mixamorigSpine1":     np.array([0, 1, 0]),
+        "mixamorigSpine2":     np.array([0, 1, 0]),
+        "mixamorigNeck":       np.array([0, 1, 0]),
+        "mixamorigHead":       np.array([0, 1, 0]),
+    
+        # 左腕（Tポーズで +X 方向）
+        "mixamorigLeftArm":        np.array([1, 0, 0]),
+        "mixamorigLeftForeArm":    np.array([1, 0, 0]),
+        "mixamorigLeftHand":       np.array([1, 0, 0]),
+    
+        # 右腕（Tポーズで -X 方向）
+        "mixamorigRightArm":       np.array([-1, 0, 0]),
+        "mixamorigRightForeArm":   np.array([-1, 0, 0]),
+        "mixamorigRightHand":      np.array([-1, 0, 0]),
+    
+        # 左脚（Tポーズで -Y 方向）
+        "mixamorigLeftUpLeg":      np.array([0, -1, 0]),
+        "mixamorigLeftLeg":        np.array([0, -1, 0]),
+        "mixamorigLeftFoot":       np.array([0, -1, 0]),
+        "mixamorigLeftToeBase":    np.array([0, -1, 0]),
+    
+        # 右脚（Tポーズで -Y 方向）
+        "mixamorigRightUpLeg":     np.array([0, -1, 0]),
+        "mixamorigRightLeg":       np.array([0, -1, 0]),
+        "mixamorigRightFoot":      np.array([0, -1, 0]),
+        "mixamorigRightToeBase":   np.array([0, -1, 0]),
+    }
     
     def mp_to_mixamo_vec(lm):
         return np.array([lm["x"], -lm["y"], -lm["z"]], dtype=float)
