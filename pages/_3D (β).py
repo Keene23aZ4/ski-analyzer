@@ -6,17 +6,7 @@ import tempfile
 import mediapipe as mp
 import base64
 from pathlib import Path
-from pygltflib import GLTF2
 
-gltf = GLTF2().load("static/avatar.glb")
-
-print("=== JOINTS ===")
-for skin in gltf.skins:
-    print(skin.joints)
-
-print("=== NODES ===")
-for i, node in enumerate(gltf.nodes):
-    print(i, node.name, node.children)
 
 # 背景設定（省略可）
 def set_background():
@@ -368,6 +358,17 @@ if uploaded:
     }
     </script>
     """
+    from pygltflib import GLTF2
+
+    gltf = GLTF2().load("static/avatar.glb")
+    
+    print("=== JOINTS ===")
+    for skin in gltf.skins:
+        print(skin.joints)
+    
+    print("=== NODES ===")
+    for i, node in enumerate(gltf.nodes):
+        print(i, node.name, node.children)
     html_code = html_code.replace("PAYLOAD_PLACEHOLDER", payload)
     html_code = html_code.replace("MODEL_PLACEHOLDER", model_data)
     html_code = html_code.replace(
