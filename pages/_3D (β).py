@@ -7,7 +7,17 @@ import mediapipe as mp
 import base64
 from pathlib import Path
 from pygltflib import GLTF2
+if st.button("GLB構造を出力"):
+    from pygltflib import GLTF2
+    gltf = GLTF2().load("static/avatar.glb")
 
+    st.write("=== JOINTS ===")
+    for skin in gltf.skins:
+        st.write(skin.joints)
+
+    st.write("=== NODES ===")
+    for i, node in enumerate(gltf.nodes):
+        st.write(i, node.name, node.children)
 
 
 # 背景設定（省略可）
@@ -263,15 +273,7 @@ if uploaded:
       avatar.traverse(node => {
           console.log(node.name);
       });
-      gltf = GLTF2().load("static/avatar.glb")
-      print("=== JOINTS ===")
-      for skin in gltf.skins:
-          print(skin.joints)
-      print("=== NODES ===")
-      for i, node in enumerate(gltf.nodes):
-          print(i, node.name, node.children)
-
-      
+     
       function getDefaultDir(bone, child) {
           const p = new THREE.Vector3();
           const c = new THREE.Vector3();
