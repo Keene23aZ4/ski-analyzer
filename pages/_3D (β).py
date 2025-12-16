@@ -7,7 +7,7 @@ import mediapipe as mp
 import base64
 from pathlib import Path
 
-from retarget import extract_default_dirs  # ここで GLB から default_dir を取る
+from modules/retarget import extract_default_dirs  # ここで GLB から default_dir を取る
 
 # 背景設定（省略可）
 def set_background():
