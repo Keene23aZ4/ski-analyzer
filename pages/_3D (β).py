@@ -7,7 +7,7 @@ import mediapipe as mp
 import base64
 from pathlib import Path
 
-from retarget import extract_default_dirs  # ここで GLB から default_dir を取る
+from retarget import extract_default_dirs  # GLB から default_dir を取る
 
 # 背景設定（省略可）
 def set_background():
@@ -76,32 +76,31 @@ if uploaded:
 
     seq = extract_3d_pose_sequence(tmp_path, stride=3)
 
-    # GLB から Tポーズの default_dir を取得（コロン付き Mixamo 名と対応）
+    # ✅ GLB から Tポーズの default_dir を取得（コロン無しに変換）
     model_path = Path("static/avatar.glb")
-    default_dirs = extract_default_dirs(str(model_path))
+    default_dirs_raw = extract_default_dirs(str(model_path))
+    default_dirs = {k.replace("mixamorig:", "mixamorig"): v for k, v in default_dirs_raw.items()}
 
-    # MediaPipe のランドマーク index と Mixamo のボーン名対応
-    # （※ここは元のマッピングそのまま。必要なら後で微調整）
+    # ✅ MediaPipe → Mixamo の対応（コロン無し）
     MIXAMO_MAP = {
-        "mixamorig:Hips": 23,          # LEFT_HIP をルートとして扱う
-        "mixamorig:LeftArm": 11,
-        "mixamorig:LeftForeArm": 13,
-        "mixamorig:LeftHand": 15,
-        "mixamorig:RightArm": 12,
-        "mixamorig:RightForeArm": 14,
-        "mixamorig:RightHand": 16,
-        "mixamorig:LeftUpLeg": 23,    # hips と同じ起点
-        "mixamorig:LeftLeg": 25,
-        "mixamorig:LeftFoot": 27,
-        "mixamorig:LeftToeBase": 31,
-        "mixamorig:RightUpLeg": 24,
-        "mixamorig:RightLeg": 26,
-        "mixamorig:RightFoot": 28,
-        "mixamorig:RightToeBase": 32,
+        "mixamorigHips": 23,
+        "mixamorigLeftArm": 11,
+        "mixamorigLeftForeArm": 13,
+        "mixamorigLeftHand": 15,
+        "mixamorigRightArm": 12,
+        "mixamorigRightForeArm": 14,
+        "mixamorigRightHand": 16,
+        "mixamorigLeftUpLeg": 23,
+        "mixamorigLeftLeg": 25,
+        "mixamorigLeftFoot": 27,
+        "mixamorigLeftToeBase": 31,
+        "mixamorigRightUpLeg": 24,
+        "mixamorigRightLeg": 26,
+        "mixamorigRightFoot": 28,
+        "mixamorigRightToeBase": 32,
     }
 
     def mp_to_mixamo_vec(lm):
-        # MediaPipe → Three.js / Mixamo の座標系ざっくり合わせ
         return np.array([lm["x"], -lm["y"], -lm["z"]], dtype=float)
 
     def compute_spine_points(hips, neck):
@@ -134,7 +133,6 @@ if uploaded:
             LM = f["landmarks"]
             pts = [mp_to_mixamo_vec(lm) for lm in LM]
 
-            # Hips / Neck / Head の基準（ここはシンプルにまず鼻を neck/head として使う）
             hips = pts[23]
             neck = pts[0]
             head = pts[0]
@@ -142,37 +140,32 @@ if uploaded:
             spine, spine1, spine2 = compute_spine_points(hips, neck)
 
             frame_data = {}
-            frame_data["mixamorig:Hips_pos"] = hips.tolist()
+            frame_data["mixamorigHips_pos"] = hips.tolist()
 
-            # --- Spine 系の回転 ---
-            # default_dir を GLB から取っているので、direction ベクトルだけ与える
-            def_dir_spine  = np.array(default_dirs.get("mixamorig:Spine",  [0, 1, 0]), dtype=float)
-            def_dir_spine1 = np.array(default_dirs.get("mixamorig:Spine1", [0, 1, 0]), dtype=float)
-            def_dir_spine2 = np.array(default_dirs.get("mixamorig:Spine2", [0, 1, 0]), dtype=float)
-            def_dir_neck   = np.array(default_dirs.get("mixamorig:Neck",   [0, 1, 0]), dtype=float)
-            def_dir_head   = np.array(default_dirs.get("mixamorig:Head",   [0, 1, 0]), dtype=float)
+            # ✅ Spine 系（コロン無し）
+            for bone, vec in [
+                ("mixamorigSpine", spine - hips),
+                ("mixamorigSpine1", spine1 - spine),
+                ("mixamorigSpine2", spine2 - spine1),
+                ("mixamorigNeck", neck - spine2),
+                ("mixamorigHead", head - neck),
+            ]:
+                default_dir = np.array(default_dirs.get(bone, [0, 1, 0]), dtype=float)
+                frame_data[bone] = compute_quaternion(default_dir, vec)
 
-            frame_data["mixamorig:Spine"]  = compute_quaternion(def_dir_spine,  spine - hips)
-            frame_data["mixamorig:Spine1"] = compute_quaternion(def_dir_spine1, spine1 - spine)
-            frame_data["mixamorig:Spine2"] = compute_quaternion(def_dir_spine2, spine2 - spine1)
-            frame_data["mixamorig:Neck"]   = compute_quaternion(def_dir_neck,   neck - spine2)
-            frame_data["mixamorig:Head"]   = compute_quaternion(def_dir_head,   head - neck)
-
-            # --- Arms / Legs / ToeBase ---
+            # ✅ Arms / Legs / ToeBase
             for bone, idx in MIXAMO_MAP.items():
                 parent = pts[idx]
                 child = pts[idx + 2] if idx + 2 < len(pts) else pts[idx]
 
                 if bone not in default_dirs:
-                    # GLB 側に default_dir が無い場合はスキップ or 単位回転
                     frame_data[bone] = [0, 0, 0, 1]
                     continue
 
                 default_dir = np.array(default_dirs[bone], dtype=float)
                 target_dir = child - parent
 
-                q = compute_quaternion(default_dir, target_dir)
-                frame_data[bone] = q
+                frame_data[bone] = compute_quaternion(default_dir, target_dir)
 
             anim["frames"].append(frame_data)
 
@@ -184,7 +177,7 @@ if uploaded:
     # GLB を base64 で Three.js に渡す
     model_data = base64.b64encode(model_path.read_bytes()).decode()
 
-    # 動画と Three.js を同じ HTML 内に統合
+    # ✅ Three.js 側もコロン無しで一致
     html_code = """
     <div style="display:flex; flex-direction:column; gap:20px;">
       <div style="flex:1;">
@@ -205,7 +198,6 @@ if uploaded:
     <script>
     let avatar;
 
-    // --- Three.js 基本セットアップ ---
     const container = document.getElementById('container');
     const w = container.clientWidth || window.innerWidth;
     const h = container.clientHeight || 600;
@@ -238,26 +230,18 @@ if uploaded:
     const gridHelper = new THREE.GridHelper(4, 20);
     scene.add(gridHelper);
 
-    // --- GLB 読み込み ---
     const loader = new THREE.GLTFLoader();
     loader.load("data:application/octet-stream;base64,MODEL_PLACEHOLDER", function(gltf){
       scene.add(gltf.scene);
       avatar = gltf.scene;
-
-      avatar.traverse(node => {
-          console.log(node.name);
-      });
-
       avatar.updateMatrixWorld(true);
     });
 
-    // --- 動画同期 ---
     const video = document.getElementById("video");
     video.addEventListener("play", () => tick());
     video.addEventListener("seeked", () => tick());
     video.addEventListener("timeupdate", () => tick());
 
-    // --- JSON アニメーション再生 ---
     const anim = PAYLOAD_PLACEHOLDER;
 
     function tick(){
@@ -267,18 +251,13 @@ if uploaded:
       const frameIndex = Math.floor(video.currentTime * anim.frames.length / video.duration);
       const frame = anim.frames[Math.min(frameIndex, anim.frames.length - 1)];
 
-      // Hips の位置
-      const p = frame["mixamorig:Hips_pos"];
+      const p = frame["mixamorigHips_pos"];
       avatar.position.set(p[0], p[1], p[2]);
 
-      // 各ボーンの回転
       for (const boneName in frame) {
-          if (!boneName.startsWith("mixamorig:")) continue;
+          if (!boneName.startsWith("mixamorig")) continue;
           const bone = avatar.getObjectByName(boneName);
-          if (!bone) {
-            console.warn("Bone not found:", boneName);
-            continue;
-          }
+          if (!bone) continue;
           const q = frame[boneName];
           bone.quaternion.set(q[0], q[1], q[2], q[3]);
       }
@@ -288,6 +267,7 @@ if uploaded:
     }
     </script>
     """
+
     html_code = html_code.replace("PAYLOAD_PLACEHOLDER", payload)
     html_code = html_code.replace("MODEL_PLACEHOLDER", model_data)
     html_code = html_code.replace(
