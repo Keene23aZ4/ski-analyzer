@@ -3,5 +3,6 @@ opencv-contrib-python
 mediapipe
 pandas
 numpy
-
+pygltflib
 matplotlib
+
