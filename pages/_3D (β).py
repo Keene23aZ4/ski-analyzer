@@ -453,34 +453,32 @@ if uploaded:
     const anim = PAYLOAD_JSON;
 
     function updatePose() {
-      if (!video || video.paused || !avatar) return;
+      if (!video || !avatar) return;
       
       const duration = video.duration;
-      if (!duration) return;
-
+      if (!duration || isNaN(duration)) return;
+    
       const progress = video.currentTime / duration;
       const totalFrames = anim.frames.length;
       let frameIndex = Math.floor(progress * totalFrames);
-      
-      if (frameIndex >= totalFrames) frameIndex = totalFrames - 1;
-      if (frameIndex < 0) frameIndex = 0;
-
+      frameIndex = Math.max(0, Math.min(frameIndex, totalFrames - 1));
+    
       const frame = anim.frames[frameIndex];
       if (!frame) return;
-
-      // Hips位置 (スケールが必要ならここで調整)
+    
+      // Hips位置の適用 (倍率調整: 例 * 2.0)
       const hp = frame["mixamorigHips_pos"];
-      // Y座標などがずれる場合はオフセットを加算
-      // avatar.position.set(hp[0], hp[1], hp[2]); 
-      
-      // ボーン回転適用
+      avatar.position.set(hp[0] * 2.0, (hp[1] * 2.0) + 1.0, hp[2] * 2.0); 
+    
       for (const boneName in frame) {
-          if (!boneName.startsWith("mixamorig") || boneName.endsWith("_pos")) continue;
+          if (boneName.endsWith("_pos")) continue;
           
-          const bone = avatar.getObjectByName(boneName);
+          // コロンあり・なし両方を試行
+          let bone = avatar.getObjectByName(boneName) || 
+                     avatar.getObjectByName(boneName.replace("mixamorig", "mixamorig:"));
+          
           if (bone) {
               const q = frame[boneName];
-              // Three.jsは q=[x,y,z,w]
               bone.quaternion.set(q[0], q[1], q[2], q[3]);
           }
       }
