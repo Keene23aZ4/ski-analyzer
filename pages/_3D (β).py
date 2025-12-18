@@ -39,18 +39,17 @@ except:
     import mediapipe.solutions.pose as mp_pose
     Pose = mp_pose.Pose
 
-st.set_page_config(page_title="Advanced Geometric Avatar", layout="centered")
-st.title("🏃 Advanced Geometric Avatar")
-st.caption("カプセル形状（CapsuleGeometry）による滑らかな肉付けモデル")
+st.set_page_config(page_title="Motion Visualize 3D (β)", layout="centered")
+st.title("Motion Visualize 3D (β)")
 
-uploaded = st.file_uploader("スキー・スポーツ動画をアップロード", type=["mp4", "mov"])
+uploaded = st.file_uploader("Upload your video!", type=["mp4", "mov"])
 
 if uploaded:
     with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as tmp:
         tmp.write(uploaded.read())
         video_path = tmp.name
 
-    with st.spinner("ポーズ解析中..."):
+    with st.spinner("ANALYSING..."):
         cap = cv2.VideoCapture(video_path)
         fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
         pose_tracker = Pose(static_image_mode=False, model_complexity=1, smooth_landmarks=True)
