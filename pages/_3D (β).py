@@ -4,237 +4,178 @@ import numpy as np
 import json
 import tempfile
 import base64
+import sys
 from pathlib import Path
-# 背景設定（省略可）
-def set_background():
-    img_path = Path("static/1704273575813.jpg")
-    if img_path.exists():
-        encoded = base64.b64encode(img_path.read_bytes()).decode()
-        mime = "image/jpeg"
-        st.markdown(
-            f"""
-            <style>
-            .stApp {{
-                background-image: url("data:{mime};base64,{encoded}");
-                background-size: cover;
-                background-position: center;
-                background-repeat: no-repeat;
-            }}
-            </style>
-            """,
-            unsafe_allow_html=True
-        )
-set_background()
 
-# --- MediaPipe インポートの最終解決策 ---
+# --- MediaPipe インポートの最終解決策 (Python 3.12 対応) ---
+# solutions 属性エラーを回避するために、直接サブモジュールを探索します
 try:
     import mediapipe as mp
-    # solutions が直接参照できない場合があるため、以下の記述で統一します
-    BasePose = mp.solutions.pose.Pose
-    mp_pose_mod = mp.solutions.pose
-except Exception as e:
-    st.error(f"MediaPipeの読み込みに失敗しました。requirements.txtを確認してください: {e}")
-    st.stop()
+    # パスを手動で通す
+    from mediapipe.python.solutions import pose as mp_pose
+    from mediapipe.python.solutions import drawing_utils as mp_drawing
+    Pose = mp_pose.Pose
+except (ImportError, AttributeError):
+    try:
+        # フォールバック: 標準的なインポート
+        import mediapipe.solutions.pose as mp_pose
+        Pose = mp_pose.Pose
+    except Exception as e:
+        st.error(f"""
+        **MediaPipeの読み込みに失敗しました。**
+        エラー内容: {e}
+        
+        Pythonバージョン: {sys.version}
+        
+        【対策】
+        1. requirements.txt に `mediapipe==0.10.14` と `opencv-python-headless` を記載してください。
+        2. Streamlit Cloudの "Reboot app" を実行してキャッシュをクリアしてください。
+        """)
+        st.stop()
 
 # ==========================================
-# 1. ユーティリティ（GLB解析・数学）
+# 1. 数学・変換ユーティリティ
 # ==========================================
-
-def extract_default_dirs(glb_path):
-    """
-    リターゲティングに必須の関数。
-    GLBからボーンの初期方向（Tポーズベクトル）を抽出します。
-    """
-    # 本来は trimesh 等で解析しますが、簡易化のため標準的な値を返します。
-    # ここが実際のボーン構造と一致することが重要です。
-    return {
-        "mixamorigHips": [0, 1, 0],
-        "mixamorigSpine": [0, 1, 0],
-        "mixamorigSpine1": [0, 1, 0],
-        "mixamorigSpine2": [0, 1, 0],
-        "mixamorigNeck": [0, 1, 0],
-        "mixamorigHead": [0, 1, 0],
-        "mixamorigLeftArm": [1, 0, 0],
-        "mixamorigLeftForeArm": [1, 0, 0],
-        "mixamorigLeftHand": [1, 0, 0],
-        "mixamorigRightArm": [-1, 0, 0],
-        "mixamorigRightForeArm": [-1, 0, 0],
-        "mixamorigRightHand": [-1, 0, 0],
-        "mixamorigLeftUpLeg": [0, -1, 0],
-        "mixamorigLeftLeg": [0, -1, 0],
-        "mixamorigLeftFoot": [0, -1, 0],
-        "mixamorigRightUpLeg": [0, -1, 0],
-        "mixamorigRightLeg": [0, -1, 0],
-        "mixamorigRightFoot": [0, -1, 0],
-    }
 
 def normalize(v):
     norm = np.linalg.norm(v)
     return v / norm if norm > 1e-6 else v
 
-def quat_multiply(q1, q2):
-    x1, y1, z1, w1 = q1
-    x2, y2, z2, w2 = q2
-    return np.array([
-        w1*x2 + x1*w2 + y1*z2 - z1*y2,
-        w1*y2 - x1*z2 + y1*w2 + z1*x2,
-        w1*z2 + x1*y2 - y1*x2 + z1*w2,
-        w1*w2 - x1*x2 - y1*y2 - z1*z2
-    ], dtype=float)
-
-def quat_conjugate(q):
-    return np.array([-q[0], -q[1], -q[2], q[3]], dtype=float)
-
 def compute_quaternion_from_vectors(u, v):
     u, v = normalize(u), normalize(v)
     dot = np.dot(u, v)
-    if dot > 0.999999: return np.array([0, 0, 0, 1], dtype=float)
+    if dot > 0.999999: return [0, 0, 0, 1]
     if dot < -0.999999:
         axis = normalize(np.cross([1, 0, 0], u) if abs(u[0]) < 0.9 else np.cross([0, 1, 0], u))
-        return np.array([axis[0], axis[1], axis[2], 0], dtype=float)
+        return [float(axis[0]), float(axis[1]), float(axis[2]), 0.0]
     axis = np.cross(u, v)
-    q = np.array([axis[0], axis[1], axis[2], 1.0 + dot])
-    return normalize(q)
+    q = [float(axis[0]), float(axis[1]), float(axis[2]), float(1.0 + dot)]
+    # Normalize Q
+    mag = np.sqrt(sum(x*x for x in q))
+    return [x/mag for x in q]
 
 # ==========================================
-# 2. 定数・階層定義
-# ==========================================
-
-HIERARCHY = {
-    "mixamorigHips": None,
-    "mixamorigSpine": "mixamorigHips",
-    "mixamorigSpine1": "mixamorigSpine",
-    "mixamorigSpine2": "mixamorigSpine1",
-    "mixamorigNeck": "mixamorigSpine2",
-    "mixamorigLeftArm": "mixamorigSpine2",
-    "mixamorigLeftForeArm": "mixamorigLeftArm",
-    "mixamorigRightArm": "mixamorigSpine2",
-    "mixamorigRightForeArm": "mixamorigRightArm",
-    "mixamorigLeftUpLeg": "mixamorigHips",
-    "mixamorigLeftLeg": "mixamorigLeftUpLeg",
-    "mixamorigRightUpLeg": "mixamorigHips",
-    "mixamorigRightLeg": "mixamorigRightUpLeg",
-}
-
-PROCESS_ORDER = ["mixamorigHips", "mixamorigSpine", "mixamorigSpine1", "mixamorigSpine2", 
-                 "mixamorigNeck", "mixamorigLeftArm", "mixamorigLeftForeArm", 
-                 "mixamorigRightArm", "mixamorigRightForeArm",
-                 "mixamorigLeftUpLeg", "mixamorigLeftLeg", "mixamorigRightUpLeg", "mixamorigRightLeg"]
-
-# ==========================================
-# 3. Streamlit アプリ
+# 2. アプリケーション本体
 # ==========================================
 
 st.set_page_config(page_title="Ski 3D Analyzer", layout="wide")
+st.title("⛷️ 3D Ski Form Analyzer (Stable Build)")
 
-def extract_3d_pose_sequence(video_path, stride=3):
-    cap = cv2.VideoCapture(video_path)
-    pose = BasePose(model_complexity=1, smooth_landmarks=True)
-    frames = []
-    while cap.isOpened():
-        ret, frame = cap.read()
-        if not ret: break
-        rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        res = pose.process(rgb)
-        if res.pose_world_landmarks:
-            frames.append({"landmarks": [{"x": l.x, "y": l.y, "z": l.z} for l in res.pose_world_landmarks.landmark]})
-    cap.release()
-    return frames
-
-uploaded = st.file_uploader("動画をアップロード", type=["mp4", "mov"])
+uploaded = st.file_uploader("スキー動画をアップロードしてください", type=["mp4", "mov"])
 
 if uploaded:
     with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as tmp:
         tmp.write(uploaded.read())
         video_path = tmp.name
 
-    with st.spinner("解析中..."):
-        frames_raw = extract_3d_pose_sequence(video_path)
+    with st.spinner("AI姿勢解析を実行中..."):
+        cap = cv2.VideoCapture(video_path)
+        # Python 3.12環境向けにPoseインスタンスを作成
+        pose_tracker = Pose(static_image_mode=False, model_complexity=1, min_detection_confidence=0.5)
         
-        # モーション変換ロジック
-        default_dirs = extract_default_dirs("") # GLB解析を代替
-        anim_frames = []
-        for f in frames_raw:
-            pts = [np.array([l["x"], -l["y"], -l["z"]]) for l in f["landmarks"]]
+        frames_data = []
+        while cap.isOpened():
+            ret, frame = cap.read()
+            if not ret: break
             
-            # ボーンごとのベクトル算出（主要部位のみ）
-            current_vectors = {
-                "mixamorigHips": (pts[11]+pts[12])/2 - (pts[23]+pts[24])/2,
-                "mixamorigLeftArm": pts[13] - pts[11],
-                "mixamorigLeftForeArm": pts[15] - pts[13],
-                "mixamorigRightArm": pts[14] - pts[12],
-                "mixamorigRightForeArm": pts[16] - pts[14],
-                "mixamorigLeftUpLeg": pts[25] - pts[23],
-                "mixamorigLeftLeg": pts[27] - pts[25],
-                "mixamorigRightUpLeg": pts[26] - pts[24],
-                "mixamorigRightLeg": pts[28] - pts[26],
-            }
+            rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            results = pose_tracker.process(rgb)
             
-            fd = {}
-            global_quats = {}
-            for bone in PROCESS_ORDER:
-                def_v = np.array(default_dirs.get(bone, [0,1,0]))
-                tgt_v = current_vectors.get(bone, def_v)
-                q_global = compute_quaternion_from_vectors(def_v, tgt_v)
+            if results.pose_world_landmarks:
+                # 3D空間のランドマーク (MediaPipe World Landmarks)
+                pts = [np.array([l.x, -l.y, -l.z]) for l in results.pose_world_landmarks.landmark]
                 
-                parent = HIERARCHY.get(bone)
-                if parent and parent in global_quats:
-                    q_local = quat_multiply(quat_conjugate(global_quats[parent]), q_global)
-                else:
-                    q_local = q_global
+                # スキーのリターゲティングに必要な主要ボーン
+                # 各ボーンの方向ベクトルを計算
+                bone_vectors = {
+                    "mixamorigHips": (pts[11]+pts[12])/2 - (pts[23]+pts[24])/2,
+                    "mixamorigLeftUpLeg": pts[25] - pts[23],
+                    "mixamorigLeftLeg": pts[27] - pts[25],
+                    "mixamorigRightUpLeg": pts[26] - pts[24],
+                    "mixamorigRightLeg": pts[28] - pts[26],
+                    "mixamorigLeftArm": pts[13] - pts[11],
+                    "mixamorigRightArm": pts[14] - pts[12],
+                }
                 
-                global_quats[bone] = q_global
-                fd[bone] = q_local.tolist()
-            
-            fd["mixamorigHips_pos"] = ((pts[23] + pts[24]) / 2).tolist()
-            anim_frames.append(fd)
+                frame_rotation = {}
+                for bone, vec in bone_vectors.items():
+                    # Tポーズの基準方向
+                    base_vec = [0, 1, 0] if "Arm" not in bone else ([1, 0, 0] if "Left" in bone else [-1, 0, 0])
+                    frame_rotation[bone] = compute_quaternion_from_vectors(base_vec, vec)
+                
+                frames_data.append(frame_rotation)
+        
+        cap.release()
+        pose_tracker.close()
 
-    # HTML出力（Three.js 連携）
-    payload = json.dumps({"frames": anim_frames})
+    # --- Three.js 描画セクション ---
+    st.subheader("3Dアバター再生")
+    
     model_path = Path("static/avatar.glb")
-    model_b64 = base64.b64encode(model_path.read_bytes()).decode() if model_path.exists() else ""
+    if not model_path.exists():
+        st.warning("`static/avatar.glb` が見つかりません。デフォルトのボーン構造でプレビューします。")
+        model_b64 = ""
+    else:
+        model_b64 = base64.b64encode(model_path.read_bytes()).decode()
 
-    st.components.v1.html(f"""
-        <div id="container" style="width:100%; height:500px; background:#111;"></div>
-        <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/build/three.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/examples/js/loaders/GLTFLoader.js"></script>
-        <script>
-            const scene = new THREE.Scene();
-            const camera = new THREE.PerspectiveCamera(45, window.innerWidth/500, 0.1, 100);
-            camera.position.set(0, 1, 3);
-            const renderer = new THREE.WebGLRenderer({{antialias:true}});
-            renderer.setSize(window.innerWidth, 500);
-            document.getElementById('container').appendChild(renderer.domElement);
-            scene.add(new THREE.AmbientLight(0xffffff, 0.8));
-            
-            let avatar;
+    # JSON データをJSに渡す
+    payload = json.dumps(frames_data)
+
+    html_code = f"""
+    <div id="container" style="width:100%; height:600px; background-color: #1a1a1a; border-radius: 10px;"></div>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/examples/js/loaders/GLTFLoader.js"></script>
+    
+    <script>
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x1a1a1a);
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth/600, 0.1, 100);
+        camera.position.set(0, 1.5, 4);
+
+        const renderer = new THREE.WebGLRenderer({{ antialias: true }});
+        renderer.setSize(window.innerWidth, 600);
+        document.getElementById('container').appendChild(renderer.domElement);
+
+        scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+        const grid = new THREE.GridHelper(10, 10, 0x444444, 0x222222);
+        scene.add(grid);
+
+        let avatar;
+        if ("{model_b64}") {{
             const loader = new THREE.GLTFLoader();
             loader.load("data:application/octet-stream;base64,{model_b64}", (gltf) => {{
                 avatar = gltf.scene;
                 scene.add(avatar);
+                // ボーン名の正規化（コロン対策）
+                avatar.traverse(n => {{ if(n.isBone) n.name = n.name.replace('mixamorig:', 'mixamorig'); }});
             }});
+        }}
 
-            const anim = {payload};
-            let frameIdx = 0;
-            function animate() {{
-                requestAnimationFrame(animate);
-                if(avatar && anim.frames.length > 0) {{
-                    const frame = anim.frames[frameIdx];
-                    for(const b in frame) {{
-                        const bone = avatar.getObjectByName(b) || avatar.getObjectByName(b.replace('mixamorig', 'mixamorig:'));
-                        if(bone && !b.endsWith('_pos')) bone.quaternion.fromArray(frame[b]);
+        const animationData = {payload};
+        let frame = 0;
+
+        function animate() {{
+            requestAnimationFrame(animate);
+            if (avatar && animationData.length > 0) {{
+                const current = animationData[frame];
+                for (const boneName in current) {{
+                    const bone = avatar.getObjectByName(boneName);
+                    if (bone) {{
+                        const q = current[boneName];
+                        bone.quaternion.set(q[0], q[1], q[2], q[3]);
                     }}
-                    frameIdx = (frameIdx + 1) % anim.frames.length;
                 }}
-                renderer.render(scene, camera);
+                frame = (frame + 1) % animationData.length;
             }}
-            animate();
-        </script>
-    """, height=550)
+            renderer.render(scene, camera);
+        }}
+        animate();
 
-    # プレースホルダー置換
-    html_code = html_code.replace("PAYLOAD_JSON", payload)
-    html_code = html_code.replace("MODEL_B64", model_data)
-    html_code = html_code.replace("VIDEO_B64", video_data)
-
-    st.components.v1.html(html_code, height=750, scrolling=False)
+        window.addEventListener('resize', () => {{
+            camera.aspect = window.innerWidth / 600;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, 600);
+        }});
+    </script>
+    """
+    st.components.v1.html(html_code, height=620)
