@@ -5,6 +5,3 @@ pandas
 numpy
 pygltflib
 matplotlib
-
-
-
