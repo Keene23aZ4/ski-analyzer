@@ -187,15 +187,14 @@ if uploaded:
             if (data) {{
                 for (const name in data) {{
                     if (name === 'hips_pos') {{
-                        // Y軸（高さ）に下駄を履かせて地面の上に。
                         avatar.position.set(data[name][0], data[name][1] + 1.2, data[name][2]);
                     }} else {{
                         const bone = avatar.getObjectByName(name);
                         if (bone) bone.quaternion.fromArray(data[name]);
                     }}
-                }
-            }
-        }
+                }}
+            }}
+        }}
 
         function animate() {{
             requestAnimationFrame(animate);
