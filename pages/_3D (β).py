@@ -6,6 +6,7 @@ import tempfile
 import base64
 from pathlib import Path
 
+
 # 背景設定（省略可）
 def set_background():
     img_path = Path("static/1704273575813.jpg")
@@ -27,7 +28,7 @@ def set_background():
         )
 set_background()
 
-# --- MediaPipe インポート (堅牢版) ---
+# --- MediaPipe インポート (Python 3.12 堅牢版) ---
 try:
     import mediapipe as mp
     from mediapipe.python.solutions import pose as mp_pose
@@ -41,18 +42,17 @@ except (ImportError, AttributeError):
         st.stop()
 
 # ==========================================
-# 1. 座標系・回転の修正関数
+# 1. 座標・回転計算 (リターゲティング・ロジック)
 # ==========================================
 
 def normalize(v):
     norm = np.linalg.norm(v)
     return v / norm if norm > 1e-6 else v
 
-def compute_rotation(from_vec, to_vec):
-    """
-    基準ベクトル(Tポーズ)を目標ベクトル(MediaPipe)へ合わせる回転を計算。
-    """
-    u, v = normalize(from_vec), normalize(to_vec)
+def get_quaternion(u, v):
+    """ベクトルuをベクトルvに回転させる最短回転クォータニオンを計算"""
+    u = normalize(u)
+    v = normalize(v)
     dot = np.dot(u, v)
     if dot > 0.99999: return [0, 0, 0, 1]
     if dot < -0.99999:
@@ -64,11 +64,11 @@ def compute_rotation(from_vec, to_vec):
     return (q / mag).tolist()
 
 # ==========================================
-# 2. メインアプリ
+# 2. メインアプリケーション
 # ==========================================
 
-st.set_page_config(page_title="Ski 3D Axis Fixed", layout="centered")
-st.title("⛷️ Ski Form Synchronized (Axis Fixed)")
+st.set_page_config(page_title="Ski 3D Mocap", layout="centered")
+st.title("⛷️ Professional Ski 3D Analyzer")
 
 uploaded = st.file_uploader("スキー動画をアップロード", type=["mp4", "mov"])
 
@@ -77,7 +77,7 @@ if uploaded:
         tmp.write(uploaded.read())
         video_path = tmp.name
 
-    with st.spinner("AI骨格解析中..."):
+    with st.spinner("AI骨格抽出中..."):
         cap = cv2.VideoCapture(video_path)
         fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
         pose_tracker = Pose(static_image_mode=False, model_complexity=1)
@@ -91,16 +91,13 @@ if uploaded:
             results = pose_tracker.process(rgb)
             
             if results.pose_world_landmarks:
-                # 【重要】座標変換の修正
-                # MediaPipe: x(右正), y(下正), z(手前正)
-                # Three.js:  x(右正), y(上正), z(手前正)
-                # したがって、yの値だけ符号を反転させると「上下」が正しくなります。
-                # また、スキー動画が「自撮り（内カメ）」か「他撮り」かでZ軸の解釈を変える必要があります。
+                # MediaPipe: x(右), y(下), z(奥) -> Three.js: x(右), y(上), z(手前)
+                # yを反転させ、zの符号を調整して右手系に合わせます
                 pts = [np.array([l.x, -l.y, -l.z]) for l in results.pose_world_landmarks.landmark]
                 
-                # ボーン方向ベクトル
+                # ボーンごとのターゲットベクトルを定義
                 vectors = {
-                    "mixamorigHips": (pts[11]+pts[12])/2 - (pts[23]+pts[24])/2, # 背骨
+                    "mixamorigHips": (pts[11]+pts[12])/2 - (pts[23]+pts[24])/2,
                     "mixamorigSpine": (pts[11]+pts[12])/2 - (pts[23]+pts[24])/2,
                     "mixamorigLeftUpLeg": pts[25] - pts[23],
                     "mixamorigLeftLeg": pts[27] - pts[25],
@@ -114,24 +111,22 @@ if uploaded:
                 
                 rots = {}
                 for bone, v in vectors.items():
-                    # MixamoのTポーズ初期方向の定義
+                    # MixamoのTポーズ初期方向 (基準)
                     if "Arm" in bone: base = [1, 0, 0] if "Left" in bone else [-1, 0, 0]
-                    elif "Leg" in bone: base = [0, -1, 0] # 足は下向き
-                    else: base = [0, 1, 0] # 体幹は上向き
-                    rots[bone] = compute_rotation(base, v)
+                    elif "Leg" in bone: base = [0, -1, 0]
+                    else: base = [0, 1, 0]
+                    rots[bone] = get_quaternion(base, v)
                 
-                # Hips（腰）の位置: 倍率をかけて空間内を動かす
+                # 腰の位置 (正規化された座標に倍率をかける)
                 c = (pts[23] + pts[24]) / 2
-                rots["hips_pos"] = [c[0]*3, c[1]*3, c[2]*3]
+                rots["hips_pos"] = [c[0]*2, c[1]*2 + 1.1, c[2]*2]
                 frames_data.append(rots)
             else:
                 frames_data.append(None)
-        
         cap.release()
-        pose_tracker.close()
 
-    # --- UI/JavaScript セクション ---
-    st.subheader("Video & 3D Synchronization")
+    # --- UI & Synchronized Viewer ---
+    st.subheader("Video & 3D Sync View")
     
     video_bytes = open(video_path, 'rb').read()
     video_b64 = base64.b64encode(video_bytes).decode()
@@ -141,6 +136,7 @@ if uploaded:
     
     payload = json.dumps({"fps": fps, "frames": frames_data})
 
+    # Pythonのf-string内でのJavaScript波括弧エラー回避のため {{ }} を使用
     html_code = f"""
     <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
         <video id="sync_video" width="100%" controls playsinline style="border-radius: 8px;">
@@ -160,7 +156,7 @@ if uploaded:
         
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(45, container.clientWidth/500, 0.1, 100);
-        camera.position.set(0, 1.5, 5);
+        camera.position.set(2, 2, 5);
         const renderer = new THREE.WebGLRenderer({{ antialias: true }});
         renderer.setSize(container.clientWidth, 500);
         container.appendChild(renderer.domElement);
@@ -173,6 +169,7 @@ if uploaded:
         new THREE.GLTFLoader().load("data:application/octet-stream;base64,{model_b64}", (gltf) => {{
             avatar = gltf.scene;
             scene.add(avatar);
+            // Mixamoのボーン名コロン対策
             avatar.traverse(n => {{ 
                 if(n.isBone) n.name = n.name.replace('mixamorig:', 'mixamorig'); 
             }});
@@ -187,9 +184,10 @@ if uploaded:
             if (data) {{
                 for (const name in data) {{
                     if (name === 'hips_pos') {{
-                        avatar.position.set(data[name][0], data[name][1] + 1.2, data[name][2]);
+                        avatar.position.set(data[name][0], data[name][1], data[name][2]);
                     }} else {{
-                        const bone = avatar.getObjectByName(name);
+                        // ボーン名が一致するか、接頭辞なしでも探す
+                        const bone = avatar.getObjectByName(name) || avatar.getObjectByName(name.replace('mixamorig', ''));
                         if (bone) bone.quaternion.fromArray(data[name]);
                     }}
                 }}
