@@ -27,7 +27,6 @@ def set_background():
         )
 set_background()
 
-
 # --- MediaPipe インポート (堅牢版) ---
 try:
     import mediapipe as mp
