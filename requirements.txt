@@ -1,8 +1,9 @@
 streamlit
 opencv-contrib-python
-mediapipe
+mediapipe>=0.10.14
 pandas
 numpy
 pygltflib
 matplotlib
+
 
