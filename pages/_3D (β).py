@@ -4,7 +4,6 @@ import numpy as np
 import json
 import tempfile
 import base64
-import sys
 from pathlib import Path
 
 
@@ -29,7 +28,9 @@ def set_background():
         )
 set_background()
 
-# --- MediaPipe インポート (Python 3.12 堅牢版) ---
+
+
+# --- MediaPipe インポート (堅牢版) ---
 try:
     import mediapipe as mp
     from mediapipe.python.solutions import pose as mp_pose
@@ -43,7 +44,7 @@ except (ImportError, AttributeError):
         st.stop()
 
 # ==========================================
-# 1. 高精度クォータニオン計算
+# 1. 数学・変換関数
 # ==========================================
 
 def normalize(v):
@@ -51,39 +52,39 @@ def normalize(v):
     return v / norm if norm > 1e-6 else v
 
 def compute_rotation(from_vec, to_vec):
-    """from_vec を to_vec に向ける最短回転クォータニオンを計算"""
-    u = normalize(from_vec)
-    v = normalize(to_vec)
+    u, v = normalize(from_vec), normalize(to_vec)
     dot = np.dot(u, v)
-    
-    if dot > 0.99999:
-        return [0, 0, 0, 1]
+    if dot > 0.99999: return [0, 0, 0, 1]
     if dot < -0.99999:
-        # 180度回転の場合は任意の直交軸を回転軸にする
         axis = normalize(np.cross([1, 0, 0], u) if abs(u[0]) < 0.9 else np.cross([0, 1, 0], u))
         return [float(axis[0]), float(axis[1]), float(axis[2]), 0.0]
-    
     axis = np.cross(u, v)
-    w = 1.0 + dot
-    q = np.array([axis[0], axis[1], axis[2], w])
+    q = np.array([axis[0], axis[1], axis[2], 1.0 + dot])
     mag = np.linalg.norm(q)
     return (q / mag).tolist()
 
 # ==========================================
-# 2. メインロジック
+# 2. メインアプリ
 # ==========================================
 
-st.set_page_config(page_title="Ski 3D Analyzer Pro", layout="wide")
-st.title("⛷️ 3D Ski Form Analyzer (Motion Fixed)")
+st.set_page_config(page_title="Ski 3D Vertical View", layout="centered")
+st.title("⛷️ Ski Form 3D Analyzer")
 
-uploaded = st.file_uploader("動画をアップロード", type=["mp4", "mov"])
+uploaded = st.file_uploader("スキー動画をアップロードしてください", type=["mp4", "mov"])
 
 if uploaded:
     with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as tmp:
         tmp.write(uploaded.read())
         video_path = tmp.name
 
-    with st.spinner("骨格解析中..."):
+    # --- 1. 元動画の表示 (上段) ---
+    st.subheader("Original Video")
+    video_file = open(video_path, 'rb')
+    video_bytes = video_file.read()
+    st.video(video_bytes)
+
+    # --- 2. 姿勢解析の実行 ---
+    with st.spinner("AI骨格解析中..."):
         cap = cv2.VideoCapture(video_path)
         pose_tracker = Pose(static_image_mode=False, model_complexity=1)
         
@@ -96,14 +97,10 @@ if uploaded:
             results = pose_tracker.process(rgb)
             
             if results.pose_world_landmarks:
-                # MediaPipe: x(右), y(下), z(手前)
-                # Three.js:  x(右), y(上), z(奥) に合わせるため Y, Z を反転
                 pts = [np.array([l.x, -l.y, -l.z]) for l in results.pose_world_landmarks.landmark]
                 
-                # スキーに必要な主要関節ベクトル
-                # MixamoのTポーズは：腕は横(X)、足は下(-Y)、背骨は上(Y)
                 vectors = {
-                    "mixamorigHips": (pts[11]+pts[12])/2 - (pts[23]+pts[24])/2, # 脊椎方向
+                    "mixamorigHips": (pts[11]+pts[12])/2 - (pts[23]+pts[24])/2,
                     "mixamorigSpine": (pts[11]+pts[12])/2 - (pts[23]+pts[24])/2,
                     "mixamorigLeftUpLeg": pts[25] - pts[23],
                     "mixamorigLeftLeg": pts[27] - pts[25],
@@ -115,71 +112,73 @@ if uploaded:
                     "mixamorigRightForeArm": pts[16] - pts[14],
                 }
                 
-                rotations = {}
+                rots = {}
                 for bone, v in vectors.items():
-                    # 各ボーンの初期方向（Tポーズ基準）
-                    if "Arm" in bone:
-                        base = [1, 0, 0] if "Left" in bone else [-1, 0, 0]
-                    elif "Leg" in bone:
-                        base = [0, -1, 0]
-                    else:
-                        base = [0, 1, 0] # Spine/Hips
-                    
-                    rotations[bone] = compute_rotation(base, v)
+                    if "Arm" in bone: base = [1, 0, 0] if "Left" in bone else [-1, 0, 0]
+                    elif "Leg" in bone: base = [0, -1, 0]
+                    else: base = [0, 1, 0]
+                    rots[bone] = compute_rotation(base, v)
                 
-                # 腰のグローバル位置（少しスケーリング）
-                center_hips = (pts[23] + pts[24]) / 2
-                rotations["hips_pos"] = [center_hips[0]*2, center_hips[1]*2, center_hips[2]*2]
-                
-                frames_data.append(rotations)
+                c = (pts[23] + pts[24]) / 2
+                rots["hips_pos"] = [c[0]*2, c[1]*2, c[2]*2]
+                frames_data.append(rots)
         
         cap.release()
+        pose_tracker.close()
 
-    # --- Three.js ビジュアライザー ---
+    # --- 3. 3Dアバターの表示 (下段) ---
+    st.markdown("---")
+    st.subheader("3D Avatar Analysis")
+    
     model_path = Path("static/avatar.glb")
-    model_b64 = base64.b64encode(model_path.read_bytes()).decode() if model_path.exists() else ""
+    if not model_path.exists():
+        st.error("static/avatar.glb が見つかりません。")
+        st.stop()
+    model_b64 = base64.b64encode(model_path.read_bytes()).decode()
+    payload = json.dumps(frames_data)
 
     html_code = f"""
-    <div id="container" style="width:100%; height:600px; background:#111;"></div>
+    <div id="container" style="width:100%; height:600px; background:#111; border-radius:10px;"></div>
     <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/examples/js/loaders/GLTFLoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/examples/js/controls/OrbitControls.js"></script>
     
     <script>
+        const container = document.getElementById('container');
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(45, window.innerWidth/600, 0.1, 100);
-        camera.position.set(0, 1.5, 5);
+        const camera = new THREE.PerspectiveCamera(45, container.clientWidth/600, 0.1, 100);
+        camera.position.set(0, 2, 5);
 
         const renderer = new THREE.WebGLRenderer({{ antialias: true }});
-        renderer.setSize(window.innerWidth, 600);
-        document.getElementById('container').appendChild(renderer.domElement);
+        renderer.setSize(container.clientWidth, 600);
+        container.appendChild(renderer.domElement);
         
-        const controls = new THREE.OrbitControls(camera, renderer.domElement);
-        scene.add(new THREE.AmbientLight(0xffffff, 1.0));
-        scene.add(new THREE.GridHelper(10, 10));
+        new THREE.OrbitControls(camera, renderer.domElement);
+        scene.add(new THREE.AmbientLight(0xffffff, 1.2));
+        scene.add(new THREE.GridHelper(10, 10, 0x444444, 0x222222));
 
-        let model;
+        let avatar;
         const loader = new THREE.GLTFLoader();
         loader.load("data:application/octet-stream;base64,{model_b64}", (gltf) => {{
-            model = gltf.scene;
-            scene.add(model);
-            model.traverse(n => {{ 
+            avatar = gltf.scene;
+            scene.add(avatar);
+            avatar.traverse(n => {{ 
                 if(n.isBone) n.name = n.name.replace('mixamorig:', 'mixamorig'); 
             }});
         }});
 
-        const frames = {json.dumps(frames_data)};
+        const frames = {payload};
         let fIdx = 0;
 
         function animate() {{
             requestAnimationFrame(animate);
-            if (model && frames.length > 0) {{
+            if (avatar && frames.length > 0) {{
                 const data = frames[fIdx];
                 for (const name in data) {{
                     if (name === 'hips_pos') {{
-                        model.position.set(data[name][0], data[name][1] + 1.0, data[name][2]);
+                        avatar.position.set(data[name][0], data[name][1] + 1.2, data[name][2]);
                     }} else {{
-                        const bone = model.getObjectByName(name);
+                        const bone = avatar.getObjectByName(name);
                         if (bone) bone.quaternion.fromArray(data[name]);
                     }}
                 }}
@@ -188,6 +187,15 @@ if uploaded:
             renderer.render(scene, camera);
         }}
         animate();
+
+        window.addEventListener('resize', () => {{
+            const w = container.clientWidth;
+            camera.aspect = w / 600;
+            camera.updateProjectionMatrix();
+            renderer.setSize(w, 600);
+        }});
     </script>
     """
     st.components.v1.html(html_code, height=620)
+
+st.info("下の3Dアバター画面は、マウスやタッチ操作で自由に回転・ズームできます。")
