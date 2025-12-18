@@ -238,5 +238,3 @@ if uploaded:
     </script>
     """
     st.components.v1.html(html_code, height=520)
-
-    st.success("✅ 解析完了: 座標データを直接3D空間にプロットしているため、ねじれ等の計算誤差は発生しません。")
