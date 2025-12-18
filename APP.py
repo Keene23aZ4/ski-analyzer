@@ -176,7 +176,3 @@ if uploaded_file:
             file_name="analyzed_ski_video.mp4",
             mime="video/mp4"
         )
-        video_file = open(output_path, 'rb')
-        video_bytes = video_file.read()
-        st.video(video_bytes)
-        video_b64 = base64.b64encode(video_bytes).decode()
