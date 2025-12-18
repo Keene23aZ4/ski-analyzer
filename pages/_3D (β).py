@@ -31,11 +31,17 @@ set_background()
 # もし retarget.py が手元にない場合は、default_dirs をハードコードする必要がありますが
 # ここではユーザーの環境にある前提で進めます。
 try:
-    from retarget import extract_default_dirs
-except ImportError:
-    st.error("retarget.py が見つかりません。extract_default_dirs 関数が必要です。")
-    st.stop()
+    # 通常の方法
+    mp_pose = mp.solutions.pose
+except AttributeError:
+    # Python 3.12等でパスが解決できない場合の直接インポート
+    import mediapipe.python.solutions.pose as mp_pose
 
+# 他のモジュールも同様に必要な場合
+try:
+    mp_drawing = mp.solutions.drawing_utils
+except AttributeError:
+    import mediapipe.python.solutions.drawing_utils as mp_drawing
 # ==========================================
 # 1. 数学ヘルパー関数（クォータニオン演算）
 # ==========================================
