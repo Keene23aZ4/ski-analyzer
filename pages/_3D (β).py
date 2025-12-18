@@ -7,6 +7,37 @@ import base64
 import sys
 from pathlib import Path
 
+def set_background():
+    img_path = Path(__file__).parent / "static" / "1704273575813.jpg"
+    if img_path.exists():
+        encoded = base64.b64encode(img_path.read_bytes()).decode()
+        mime = "image/jpeg"
+        st.markdown(
+            f"""
+            <style>
+            .stApp {{
+                background-image: url("data:{mime};base64,{encoded}");
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
+            }}
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
+    else:
+        st.markdown(
+            """
+            <style>
+            .stApp {
+                background-color: #ffffff;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
+set_background()
+
 # --- MediaPipe インポートの最終解決策 (Python 3.12 対応) ---
 # solutions 属性エラーを回避するために、直接サブモジュールを探索します
 try:
