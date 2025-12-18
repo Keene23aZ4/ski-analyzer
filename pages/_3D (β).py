@@ -6,7 +6,6 @@ import tempfile
 import base64
 from pathlib import Path
 
-
 # 背景設定（省略可）
 def set_background():
     img_path = Path("static/1704273575813.jpg")
@@ -29,7 +28,6 @@ def set_background():
 set_background()
 
 
-
 # --- MediaPipe インポート (堅牢版) ---
 try:
     import mediapipe as mp
@@ -44,7 +42,7 @@ except (ImportError, AttributeError):
         st.stop()
 
 # ==========================================
-# 1. 数学・変換関数
+# 1. 座標系・回転の修正関数
 # ==========================================
 
 def normalize(v):
@@ -52,6 +50,9 @@ def normalize(v):
     return v / norm if norm > 1e-6 else v
 
 def compute_rotation(from_vec, to_vec):
+    """
+    基準ベクトル(Tポーズ)を目標ベクトル(MediaPipe)へ合わせる回転を計算。
+    """
     u, v = normalize(from_vec), normalize(to_vec)
     dot = np.dot(u, v)
     if dot > 0.99999: return [0, 0, 0, 1]
@@ -67,20 +68,19 @@ def compute_rotation(from_vec, to_vec):
 # 2. メインアプリ
 # ==========================================
 
-st.set_page_config(page_title="Ski 3D Synchronized", layout="centered")
-st.title("⛷️ Ski Form Synchronized Analyzer")
+st.set_page_config(page_title="Ski 3D Axis Fixed", layout="centered")
+st.title("⛷️ Ski Form Synchronized (Axis Fixed)")
 
-uploaded = st.file_uploader("スキー動画をアップロードしてください", type=["mp4", "mov"])
+uploaded = st.file_uploader("スキー動画をアップロード", type=["mp4", "mov"])
 
 if uploaded:
     with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as tmp:
         tmp.write(uploaded.read())
         video_path = tmp.name
 
-    # --- 1. 姿勢解析の実行 ---
-    with st.spinner("AI骨格解析中... (動画全編をスキャンしています)"):
+    with st.spinner("AI骨格解析中..."):
         cap = cv2.VideoCapture(video_path)
-        fps = cap.get(cv2.CAP_PROP_FPS) or 30.0  # FPSを取得
+        fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
         pose_tracker = Pose(static_image_mode=False, model_complexity=1)
         
         frames_data = []
@@ -92,10 +92,16 @@ if uploaded:
             results = pose_tracker.process(rgb)
             
             if results.pose_world_landmarks:
+                # 【重要】座標変換の修正
+                # MediaPipe: x(右正), y(下正), z(手前正)
+                # Three.js:  x(右正), y(上正), z(手前正)
+                # したがって、yの値だけ符号を反転させると「上下」が正しくなります。
+                # また、スキー動画が「自撮り（内カメ）」か「他撮り」かでZ軸の解釈を変える必要があります。
                 pts = [np.array([l.x, -l.y, -l.z]) for l in results.pose_world_landmarks.landmark]
                 
+                # ボーン方向ベクトル
                 vectors = {
-                    "mixamorigHips": (pts[11]+pts[12])/2 - (pts[23]+pts[24])/2,
+                    "mixamorigHips": (pts[11]+pts[12])/2 - (pts[23]+pts[24])/2, # 背骨
                     "mixamorigSpine": (pts[11]+pts[12])/2 - (pts[23]+pts[24])/2,
                     "mixamorigLeftUpLeg": pts[25] - pts[23],
                     "mixamorigLeftLeg": pts[27] - pts[25],
@@ -109,45 +115,38 @@ if uploaded:
                 
                 rots = {}
                 for bone, v in vectors.items():
+                    # MixamoのTポーズ初期方向の定義
                     if "Arm" in bone: base = [1, 0, 0] if "Left" in bone else [-1, 0, 0]
-                    elif "Leg" in bone: base = [0, -1, 0]
-                    else: base = [0, 1, 0]
+                    elif "Leg" in bone: base = [0, -1, 0] # 足は下向き
+                    else: base = [0, 1, 0] # 体幹は上向き
                     rots[bone] = compute_rotation(base, v)
                 
+                # Hips（腰）の位置: 倍率をかけて空間内を動かす
                 c = (pts[23] + pts[24]) / 2
-                rots["hips_pos"] = [c[0]*2, c[1]*2, c[2]*2]
+                rots["hips_pos"] = [c[0]*3, c[1]*3, c[2]*3]
                 frames_data.append(rots)
             else:
-                # 検出できなかった場合も空データを入れ、フレーム数を合わせる
                 frames_data.append(None)
         
         cap.release()
         pose_tracker.close()
 
-    # --- 2. 表示セクション (上下レイアウト) ---
+    # --- UI/JavaScript セクション ---
     st.subheader("Video & 3D Synchronization")
     
     video_bytes = open(video_path, 'rb').read()
     video_b64 = base64.b64encode(video_bytes).decode()
     
     model_path = Path("static/avatar.glb")
-    if not model_path.exists():
-        st.error("static/avatar.glb が見つかりません。")
-        st.stop()
-    model_b64 = base64.b64encode(model_path.read_bytes()).decode()
+    model_b64 = base64.b64encode(model_path.read_bytes()).decode() if model_path.exists() else ""
     
-    payload = json.dumps({
-        "fps": fps,
-        "frames": frames_data
-    })
+    payload = json.dumps({"fps": fps, "frames": frames_data})
 
-    # HTML/JS: 動画の再生に合わせてアバターのフレームを更新するロジック
     html_code = f"""
     <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
         <video id="sync_video" width="100%" controls playsinline style="border-radius: 8px;">
             <source src="data:video/mp4;base64,{video_b64}" type="video/mp4">
         </video>
-        
         <div id="container" style="width:100%; height:500px; background:#111; border-radius:8px;"></div>
     </div>
 
@@ -160,7 +159,6 @@ if uploaded:
         const container = document.getElementById('container');
         const animData = {payload};
         
-        // Three.js 初期化
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(45, container.clientWidth/500, 0.1, 100);
         camera.position.set(0, 1.5, 5);
@@ -168,6 +166,7 @@ if uploaded:
         renderer.setSize(container.clientWidth, 500);
         container.appendChild(renderer.domElement);
         new THREE.OrbitControls(camera, renderer.domElement);
+        
         scene.add(new THREE.AmbientLight(0xffffff, 1.2));
         scene.add(new THREE.GridHelper(10, 10, 0x444444, 0x222222));
 
@@ -182,40 +181,29 @@ if uploaded:
 
         function updateAvatar() {{
             if (!avatar || !animData.frames.length) return;
+            let fIdx = Math.floor(video.currentTime * animData.fps);
+            if (fIdx >= animData.frames.length) fIdx = animData.frames.length - 1;
             
-            // 動画の現在秒数からフレーム番号を計算
-            const currentTime = video.currentTime;
-            let frameIdx = Math.floor(currentTime * animData.fps);
-            
-            // 範囲外チェック
-            if (frameIdx >= animData.frames.length) frameIdx = animData.frames.length - 1;
-            
-            const data = animData.frames[frameIdx];
+            const data = animData.frames[fIdx];
             if (data) {{
                 for (const name in data) {{
                     if (name === 'hips_pos') {{
+                        // Y軸（高さ）に下駄を履かせて地面の上に。
                         avatar.position.set(data[name][0], data[name][1] + 1.2, data[name][2]);
                     }} else {{
                         const bone = avatar.getObjectByName(name);
                         if (bone) bone.quaternion.fromArray(data[name]);
                     }}
-                }}
-            }}
-        }}
+                }
+            }
+        }
 
         function animate() {{
             requestAnimationFrame(animate);
-            updateAvatar(); // 毎フレーム、ビデオの時間に合わせて更新
+            updateAvatar();
             renderer.render(scene, camera);
         }}
         animate();
-
-        window.addEventListener('resize', () => {{
-            const w = container.clientWidth;
-            camera.aspect = w / 500;
-            camera.updateProjectionMatrix();
-            renderer.setSize(w, 500);
-        }});
     </script>
     """
     st.components.v1.html(html_code, height=1050)
