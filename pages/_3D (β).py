@@ -83,7 +83,7 @@ if uploaded:
         <video id="sync_video" width="100%" controls playsinline style="border-radius: 8px;">
             <source src="data:video/mp4;base64,{video_b64}" type="video/mp4">
         </video>
-        <div id="container" style="width:100%; height:500px; background:#1a1a1a; border-radius:8px;"></div>
+        <div id="container" style="width:100%; height:1000px; background:#1a1a1a; border-radius:8px;"></div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/build/three.min.js"></script>
