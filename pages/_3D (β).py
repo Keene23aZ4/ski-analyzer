@@ -7,8 +7,9 @@ import base64
 import sys
 from pathlib import Path
 
+# 背景設定（省略可）
 def set_background():
-    img_path = Path(__file__).parent / "static" / "1704273575813.jpg"
+    img_path = Path("static/1704273575813.jpg")
     if img_path.exists():
         encoded = base64.b64encode(img_path.read_bytes()).decode()
         mime = "image/jpeg"
@@ -21,17 +22,6 @@ def set_background():
                 background-position: center;
                 background-repeat: no-repeat;
             }}
-            </style>
-            """,
-            unsafe_allow_html=True
-        )
-    else:
-        st.markdown(
-            """
-            <style>
-            .stApp {
-                background-color: #ffffff;
-            }
             </style>
             """,
             unsafe_allow_html=True
