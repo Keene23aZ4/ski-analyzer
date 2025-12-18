@@ -28,6 +28,8 @@ def set_background():
         )
 set_background()
 
+import streamlit as st
+
 # MediaPipe読み込み
 try:
     import mediapipe as mp
@@ -37,33 +39,29 @@ except:
     import mediapipe.solutions.pose as mp_pose
     Pose = mp_pose.Pose
 
-st.set_page_config(page_title="Solid Geometric Avatar", layout="centered")
-st.title("⛷️ Solid Ski Avatar (Gap Fixed)")
-st.caption("関節のズレを完全修正した肉付けモデル")
+st.set_page_config(page_title="Advanced Geometric Avatar", layout="centered")
+st.title("🏃 Advanced Geometric Avatar")
+st.caption("カプセル形状（CapsuleGeometry）による滑らかな肉付けモデル")
 
-uploaded = st.file_uploader("スキー動画をアップロード", type=["mp4", "mov"])
+uploaded = st.file_uploader("スキー・スポーツ動画をアップロード", type=["mp4", "mov"])
 
 if uploaded:
     with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as tmp:
         tmp.write(uploaded.read())
         video_path = tmp.name
 
-    with st.spinner("座標抽出中..."):
+    with st.spinner("ポーズ解析中..."):
         cap = cv2.VideoCapture(video_path)
         fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
-        # モデル複雑度1で高速処理
         pose_tracker = Pose(static_image_mode=False, model_complexity=1, smooth_landmarks=True)
         
         frames_data = []
         while cap.isOpened():
             ret, frame = cap.read()
             if not ret: break
-            
             rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             results = pose_tracker.process(rgb)
-            
             if results.pose_world_landmarks:
-                # 座標抽出 (Y, Z反転でThree.jsに合わせる)
                 lm = results.pose_world_landmarks.landmark
                 frame_pts = [[p.x, -p.y, -p.z] for p in lm]
                 frames_data.append(frame_pts)
@@ -72,7 +70,6 @@ if uploaded:
         cap.release()
         pose_tracker.close()
 
-    # データ埋め込み
     video_bytes = open(video_path, 'rb').read()
     video_b64 = base64.b64encode(video_bytes).decode()
     payload = json.dumps({"fps": fps, "frames": frames_data})
@@ -83,7 +80,7 @@ if uploaded:
         <video id="sync_video" width="100%" controls playsinline style="border-radius: 8px;">
             <source src="data:video/mp4;base64,{video_b64}" type="video/mp4">
         </video>
-        <div id="container" style="width:100%; height:1000px; background:#1a1a1a; border-radius:8px;"></div>
+        <div id="container" style="width:100%; height:600px; background:#111; border-radius:8px;"></div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/build/three.min.js"></script>
@@ -95,40 +92,39 @@ if uploaded:
         const animData = {payload};
         
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x1a1a1a); // 暗い背景
+        scene.background = new THREE.Color(0x111111);
         
-        const camera = new THREE.PerspectiveCamera(45, container.clientWidth/500, 0.1, 100);
-        camera.position.set(0, 1, 3.5);
+        const camera = new THREE.PerspectiveCamera(45, container.clientWidth/600, 0.1, 100);
+        camera.position.set(0, 1.5, 4);
         
         const renderer = new THREE.WebGLRenderer({{ antialias: true }});
-        renderer.setSize(container.clientWidth, 500);
+        renderer.setSize(container.clientWidth, 600);
+        renderer.shadowMap.enabled = true;
         container.appendChild(renderer.domElement);
         
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.target.set(0, 0.8, 0);
+        controls.target.set(0, 1, 0);
         controls.update();
 
-        // ライティング
-        scene.add(new THREE.AmbientLight(0xffffff, 0.5));
-        const spotLight = new THREE.SpotLight(0xffffff, 1);
-        spotLight.position.set(5, 10, 7);
-        scene.add(spotLight);
+        // ライティング強化
+        scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(5, 10, 5);
+        scene.add(dirLight);
 
-        // マテリアル
-        const boneMat = new THREE.MeshStandardMaterial({{ color: 0x0088ff, roughness: 0.3 }});
-        const jointMat = new THREE.MeshStandardMaterial({{ color: 0xffffff, roughness: 0.3 }});
+        // マテリアル設定
+        const boneMat = new THREE.MeshStandardMaterial({{ color: 0x3399ff, roughness: 0.4, metalness: 0.2 }});
+        const jointMat = new THREE.MeshStandardMaterial({{ color: 0xeeeeee, roughness: 0.3 }});
 
         const meshes = {{}};
 
-        // --- 修正ポイント: ジオメトリの原点を「端っこ」に移動 ---
+        // カプセル形状で骨を作成
         function createLimb(name, thickness) {{
-            // CylinderGeometry(上半径, 下半径, 高さ) -> 初期状態は縦向き(Y軸)で中心が原点
-            const geometry = new THREE.CylinderGeometry(thickness, thickness, 1, 12);
-            
-            // 1. まず横倒しにする (Z軸向きにする)
+            // CapsuleGeometry(半径, 長さ, キャップ分割, 筒分割)
+            // 長さ1で作成し、後で距離(dist)に応じてスケール
+            const geometry = new THREE.CapsuleGeometry(thickness, 1, 4, 12);
             geometry.rotateX(-Math.PI / 2);
-            // 2. 原点を「中心」から「始点」にずらす (Z軸方向に0.5移動)
-            geometry.translate(0, 0, 0.5);
+            geometry.translate(0, 0, 0.5); // 始点を原点に
             
             const mesh = new THREE.Mesh(geometry, boneMat);
             scene.add(mesh);
@@ -136,29 +132,30 @@ if uploaded:
         }}
         
         function createJoint(index, radius) {{
-            const geo = new THREE.SphereGeometry(radius, 16, 16);
+            let r = radius;
+            // 主要な関節（腰・膝）を少し大きく
+            if ([23, 24, 25, 26].includes(index)) r *= 1.1;
+            const geo = new THREE.SphereGeometry(r, 20, 20);
             const mesh = new THREE.Mesh(geo, jointMat);
             scene.add(mesh);
             meshes['joint_' + index] = mesh;
         }}
 
-        // 接続定義
+        // 接続定義: [始点, 終点, 名前, 太さ]
         const connections = [
-            [11, 12, 'shoulders', 0.04],
-            [11, 23, 'leftSide', 0.06], [12, 24, 'rightSide', 0.06], [23, 24, 'hips', 0.06],
-            [11, 13, 'L_Arm', 0.035], [13, 15, 'L_ForeArm', 0.03],
-            [12, 14, 'R_Arm', 0.035], [14, 16, 'R_ForeArm', 0.03],
-            [23, 25, 'L_Thigh', 0.05], [25, 27, 'L_Shin', 0.04],
-            [24, 26, 'R_Thigh', 0.05], [26, 28, 'R_Shin', 0.04]
+            [11, 12, 'shoulders', 0.05],
+            [11, 23, 'leftSide', 0.06], [12, 24, 'rightSide', 0.06], 
+            [23, 24, 'hips', 0.07],
+            [11, 13, 'L_Arm', 0.04], [13, 15, 'L_ForeArm', 0.03],
+            [12, 14, 'R_Arm', 0.04], [14, 16, 'R_ForeArm', 0.03],
+            [23, 25, 'L_Thigh', 0.07], [25, 27, 'L_Shin', 0.05],
+            [24, 26, 'R_Thigh', 0.07], [26, 28, 'R_Shin', 0.05]
         ];
 
-        // メッシュ生成
         connections.forEach(c => createLimb(c[2], c[3]));
-        // 関節（主要な部分のみ）
-        [11,12,13,14,15,16,23,24,25,26,27,28,0].forEach(i => createJoint(i, 0.065)); 
+        [11,12,13,14,15,16,23,24,25,26,27,28,0].forEach(i => createJoint(i, 0.055)); 
         
-        // 頭
-        const headMesh = new THREE.Mesh(new THREE.SphereGeometry(0.12, 24, 24), boneMat);
+        const headMesh = new THREE.Mesh(new THREE.SphereGeometry(0.14, 24, 24), boneMat);
         scene.add(headMesh);
         meshes['head'] = headMesh;
 
@@ -170,36 +167,31 @@ if uploaded:
             const rawPts = animData.frames[fIdx];
             if (!rawPts) return;
 
-            // 座標スケーリング (見やすく2倍に)
-            const pts = rawPts.map(p => new THREE.Vector3(p[0]*2, p[1]*2 + 1.2, p[2]*2));
+            // スケーリングと高さ調整
+            const pts = rawPts.map(p => new THREE.Vector3(p[0]*2.5, p[1]*2.5 + 1.2, p[2]*2.5));
 
-            // 1. 関節の更新
+            // 関節
             for (let i=0; i<33; i++) {{
                 const mesh = meshes['joint_' + i];
                 if (mesh && pts[i]) mesh.position.copy(pts[i]);
             }}
             if (meshes['head'] && pts[0]) meshes['head'].position.copy(pts[0]);
 
-            // 2. 骨の更新 (ここが修正版)
+            // 骨の伸縮と向き
             connections.forEach(c => {{
-                const idxA = c[0];
-                const idxB = c[1];
-                const name = c[2];
-                const mesh = meshes[name];
+                const mesh = meshes[c[2]];
+                const pA = pts[c[0]];
+                const pB = pts[c[1]];
                 
-                if (mesh && pts[idxA] && pts[idxB]) {{
-                    const pA = pts[idxA];
-                    const pB = pts[idxB];
-                    
-                    // 始点に配置
+                if (mesh && pA && pB) {{
                     mesh.position.copy(pA);
-                    
-                    // 終点の方を向く
                     mesh.lookAt(pB);
-                    
-                    // 距離に合わせてZ軸(長さ)を伸縮
                     const dist = pA.distanceTo(pB);
-                    mesh.scale.set(1, 1, dist);
+                    // カプセルの全高は (本体長さ + 半径*2) なので、
+                    // スケール計算で半径分を考慮して調整
+                    const radius = c[3];
+                    const scaleFactor = Math.max(0.01, dist - radius * 2);
+                    mesh.scale.set(1, 1, scaleFactor);
                 }}
             }});
         }}
@@ -212,10 +204,10 @@ if uploaded:
         animate();
         
         window.addEventListener('resize', () => {{
-            camera.aspect = container.clientWidth / 500;
+            camera.aspect = container.clientWidth / 600;
             camera.updateProjectionMatrix();
-            renderer.setSize(container.clientWidth, 500);
+            renderer.setSize(container.clientWidth, 600);
         }});
     </script>
     """
-    st.components.v1.html(html_code, height=520)
+    st.components.v1.html(html_code, height=650)
