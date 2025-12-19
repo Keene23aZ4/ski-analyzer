@@ -41,6 +41,7 @@ except:
 # --- Page Setup ---
 st.set_page_config(page_title="3D Plot Avatar", layout="centered")
 st.title("3D motion (β)")
+uploaded = st.file_uploader("Upload your video", type=["mp4", "mov"])
 
 if uploaded:
     with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as tmp:
