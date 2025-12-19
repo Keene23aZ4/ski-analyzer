@@ -177,9 +177,9 @@ if uploaded:
             const shMid = new THREE.Vector3().addVectors(pts[11], pts[12]).multiplyScalar(0.5);
             const hiMid = new THREE.Vector3().addVectors(pts[23], pts[24]).multiplyScalar(0.5);
             if (meshes['torso']) {{
-                meshes['torso'].position.copy(hiMid); // 始点を腰に
-                meshes['torso'].lookAt(shMid);        // 肩の方向を向く
-                meshes['torso'].scale.set(1, 1, hiMid.distanceTo(shMid));
+                meshes['torso'].position.copy(shMid); // 始点を腰に
+                meshes['torso'].lookAt(hiMid);        // 肩の方向を向く
+                meshes['torso'].scale.set(1, 1, shMid.distanceTo(hiMid));
             }}
 
             conns.forEach(c => {{
