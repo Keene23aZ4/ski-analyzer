@@ -53,7 +53,6 @@ if uploaded:
     with st.spinner("座標抽出中..."):
         cap = cv2.VideoCapture(video_path)
         fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
-        # 解析精度を求める場合は model_complexity=2 に変更（ただし重くなります）
         pose_tracker = Pose(static_image_mode=False, model_complexity=1, smooth_landmarks=True)
         
         frames_data = []
@@ -64,7 +63,6 @@ if uploaded:
             results = pose_tracker.process(rgb)
             if results.pose_world_landmarks:
                 lm = results.pose_world_landmarks.landmark
-                # Y軸を反転させ、かつ位置調整を行いやすいように生データをリスト化
                 frame_pts = [[p.x, -p.y, -p.z] for p in lm]
                 frames_data.append(frame_pts)
             else:
@@ -72,10 +70,9 @@ if uploaded:
         cap.release()
         pose_tracker.close()
 
-    # JSに渡すためのJSONデータ（ここで NameError の原因となった payload を定義）
     payload = json.dumps({"fps": fps, "frames": frames_data})
 
-    # Three.js コード
+    # Three.js コード (f-stringのエスケープ済み)
     html_code = f"""
     <div id="container" style="width:100%; height:600px; background:#ffffff; border:1px solid #ccc; border-radius:8px;"></div>
 
@@ -84,10 +81,10 @@ if uploaded:
     
     <script>
         const container = document.getElementById('container');
-        const animData = {payload}; // Pythonの変数をJSに埋め込み
+        const animData = {payload}; 
         
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0xfcfcfc); // プロット風の白背景
+        scene.background = new THREE.Color(0xfcfcfc); 
         
         const camera = new THREE.PerspectiveCamera(45, container.clientWidth/600, 0.1, 100);
         camera.position.set(4, 4, 6);
@@ -100,34 +97,26 @@ if uploaded:
         controls.target.set(0, 1, 0);
         controls.update();
 
-        // --- プロット空間（グリッド）の作成 ---
-        // XZ面（底面）
+        // 3Dグリッドの作成
         const gridXZ = new THREE.GridHelper(10, 10, 0x888888, 0xdddddd);
         scene.add(gridXZ);
         
-        // XY面（背面）
         const gridXY = new THREE.GridHelper(10, 10, 0x888888, 0xeeeeee);
         gridXY.rotation.x = Math.PI / 2;
         gridXY.position.set(0, 5, -5);
         scene.add(gridXY);
 
-        // YZ面（左側面）
         const gridYZ = new THREE.GridHelper(10, 10, 0x888888, 0xeeeeee);
         gridYZ.rotation.z = Math.PI / 2;
         gridYZ.position.set(-5, 5, 0);
         scene.add(gridYZ);
 
-        // 座標軸
-        const axesHelper = new THREE.AxesHelper(5);
-        scene.add(axesHelper);
-
-        // ライティング
+        scene.add(new THREE.AxesHelper(5));
         scene.add(new THREE.AmbientLight(0xffffff, 0.6));
         const dirLight = new THREE.DirectionalLight(0xffffff, 0.6);
         dirLight.position.set(5, 10, 5);
         scene.add(dirLight);
 
-        // --- アバター構成パーツ ---
         const skinMat = new THREE.MeshStandardMaterial({{ color: 0x3399ff, roughness: 0.5 }});
         const jointMat = new THREE.MeshStandardMaterial({{ color: 0x666666 }});
         const meshes = {{}};
@@ -147,7 +136,6 @@ if uploaded:
             meshes['j' + i] = mesh;
         }}
 
-        // 定義
         const conns = [
             [11,12,'sh',.05],[11,23,'ls',.06],[12,24,'rs',.06],[23,24,'hp',.07],
             [11,13,'la',.04],[13,15,'lf',.03],[12,14,'ra',.04],[14,16,'rf',.03],
@@ -155,25 +143,23 @@ if uploaded:
         ];
         conns.forEach(c => createLimb(c[2], c[3]));
         [11,12,13,14,15,16,23,24,25,26,27,28,0].forEach(i => createJoint(i, 0.05));
+        
         meshes['head'] = new THREE.Mesh(new THREE.SphereGeometry(0.14, 20, 20), skinMat);
         scene.add(meshes['head']);
 
         let startTime = Date.now();
         function updateAvatar() {{
             if (!animData.frames.length) return;
-            // ループ再生のための時間計算
             let time = (Date.now() - startTime) / 1000;
             let fIdx = Math.floor(time * animData.fps) % animData.frames.length;
-            
             const raw = animData.frames[fIdx];
             if (!raw) return;
 
-            // プロット空間に合わせたスケーリング（中心を原点付近に）
-            const pts = raw.map(p => new THREE.Vector3(p[0]*4, p[1]*4 + 2, p[2]*4));
+            const pts = raw.map(p => new THREE.Vector3(p[0]*4, p[1]*4 + 2.5, p[2]*4));
 
             for (let i=0; i<33; i++) {{
                 if (meshes['j'+i]) meshes['j'+i].position.copy(pts[i]);
-            }
+            }}
             if (meshes['head']) meshes['head'].position.copy(pts[0]);
 
             conns.forEach(c => {{
@@ -181,7 +167,7 @@ if uploaded:
                 if (m && pA && pB) {{
                     m.position.copy(pA);
                     m.lookAt(pB);
-                    m.scale.set(1, 1, pA.distanceTo(pB) - c[3]*2);
+                    m.scale.set(1, 1, pA.distanceTo(pB));
                 }}
             }});
         }}
