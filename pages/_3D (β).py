@@ -85,6 +85,11 @@ if uploaded:
     # JavaScriptに渡すデータ
     payload = json.dumps({"fps": fps, "frames": frames_data})
 
+    # (前略: ライブラリのインポートやMediaPipeの解析部分はこれまでのコードを維持)
+
+    # JavaScriptに渡すデータ
+    payload = json.dumps({"fps": fps, "frames": frames_data})
+
     html_code = f"""
     <div style="display: flex; flex-direction: column; align-items: center; gap: 15px;">
         <video id="sync_video" width="100%" controls playsinline style="border-radius: 12px; border: 1px solid #ccc;">
@@ -123,23 +128,16 @@ if uploaded:
         scene.add(spotLight);
 
         // 床とグリッド
-        // --- 3Dプロット空間の構築 ---
+        const plane = new THREE.Mesh(new THREE.PlaneGeometry(20, 20), new THREE.ShadowMaterial({{ opacity: 0.1 }}));
+        plane.rotation.x = -Math.PI / 2;
+        plane.receiveShadow = true;
+        scene.add(plane);
+        scene.add(new THREE.GridHelper(10, 20, 0x0088ff, 0xdddddd));
 
-        // 1. 地面 (XZ平面) - メングリッドとサブグリッド
-        const gridXZ = new THREE.GridHelper(10, 10, 0x444444, 0xdddddd);
-        scene.add(gridXZ);
-        
-        // 2. 背面 (XY平面)
-        const gridXY = new THREE.GridHelper(10, 10, 0x888888, 0xeeeeee);
-        gridXY.rotation.x = Math.PI / 2;
-        gridXY.position.set(0, 5, -5);
-        scene.add(gridXY);
+        const skinMat = new THREE.MeshStandardMaterial({{ color: 0x2c3e50, roughness: 0.4, metalness: 0.2 }});
+        const jointMat = new THREE.MeshStandardMaterial({{ color: 0x00d2ff, emissive: 0x00d2ff, emissiveIntensity: 0.3 }});
+        const meshes = {{}};
 
-        // 3. 側面 (YZ平面)
-        const gridYZ = new THREE.GridHelper(10, 10, 0x888888, 0xeeeeee);
-        gridYZ.rotation.z = Math.PI / 2;
-        gridYZ.position.set(-5, 5, 0);
-        scene.add(gridYZ);
         // --- テーパー（先細り）円柱を作成する関数 ---
         function createLimb(name, radStart, radEnd) {{
             // CylinderGeometry(上半径, 下半径, 高さ, 分割数)
