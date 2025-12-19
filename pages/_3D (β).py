@@ -78,6 +78,8 @@ if uploaded:
 
     # (前略: MediaPipeの処理とpayloadの定義までは共通)
 
+    # (前略: MediaPipeの処理とpayloadの定義までは共通)
+
     html_code = f"""
     <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
         <video id="sync_video" width="100%" controls playsinline style="border-radius: 8px; border: 1px solid #ddd;">
