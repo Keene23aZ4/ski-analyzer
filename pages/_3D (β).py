@@ -174,9 +174,9 @@ if uploaded:
             const dynamicRadTop = shoulderWidth * 0.45; // 片側半径なので幅の半分弱に設定
 
             if (meshes['torso']) {{
-                meshes['torso'].position.copy(hiMid);
-                meshes['torso'].lookAt(shMid);
-                const dist = hiMid.distanceTo(shMid);
+                meshes['torso'].position.copy(shMid);
+                meshes['torso'].lookAt(hiMid);
+                const dist = shMid.distanceTo(hiMid);
                 meshes['torso'].scale.set(dynamicRadTop / 0.16, dynamicRadTop / 0.16, dist);
             }}
 
