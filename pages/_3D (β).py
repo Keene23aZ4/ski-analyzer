@@ -28,9 +28,6 @@ def set_background():
         )
 set_background()
 
-
-
-# MediaPipe読み込み
 try:
     import mediapipe as mp
     from mediapipe.python.solutions import pose as mp_pose
@@ -103,13 +100,13 @@ if uploaded:
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
 
-        // --- XYZプロット用グリッド ---
-        scene.add(new THREE.GridHelper(10, 20, 0x0088ff, 0xdddddd)); // XZ面
+        // --- XYZグリッド ---
+        scene.add(new THREE.GridHelper(10, 20, 0x0088ff, 0xdddddd));
         const gridXY = new THREE.GridHelper(10, 20, 0x888888, 0xeeeeee);
-        gridXY.rotation.x = Math.PI / 2; gridXY.position.set(0, 5, -5); scene.add(gridXY); // XY面
+        gridXY.rotation.x = Math.PI / 2; gridXY.position.set(0, 5, -5); scene.add(gridXY);
         const gridYZ = new THREE.GridHelper(10, 20, 0x888888, 0xeeeeee);
-        gridYZ.rotation.z = Math.PI / 2; gridYZ.position.set(-5, 5, 0); scene.add(gridYZ); // YZ面
-        scene.add(new THREE.AxesHelper(5)); // 座標軸
+        gridYZ.rotation.z = Math.PI / 2; gridYZ.position.set(-5, 5, 0); scene.add(gridYZ);
+        scene.add(new THREE.AxesHelper(5));
 
         scene.add(new THREE.AmbientLight(0xffffff, 0.6));
         const light = new THREE.DirectionalLight(0xffffff, 0.7);
@@ -122,9 +119,7 @@ if uploaded:
         const jointMat = new THREE.MeshStandardMaterial({{ color: 0x00d2ff, emissive: 0x00d2ff, emissiveIntensity: 0.2 }});
         const meshes = {{}};
 
-        // パーツ作成関数
         function createLimb(name, rStart, rEnd) {{
-            // CylinderGeometry(上面半径, 下面半径, 高さ, 分割数)
             const geo = new THREE.CylinderGeometry(rEnd, rStart, 1, 16);
             geo.rotateX(-Math.PI / 2);
             geo.translate(0, 0, 0.5);
@@ -141,10 +136,8 @@ if uploaded:
             meshes['j' + i] = mesh;
         }}
 
-        // 接続定義
+        // 肩と腰のライン（conns[0], conns[1]）を削除
         const conns = [
-            [11, 12, 'shoulder', 0.04, 0.04],
-            [23, 24, 'hip', 0.06, 0.06],
             [11, 13, 'L_upArm', 0.05, 0.035], [13, 15, 'L_lowArm', 0.035, 0.02],
             [12, 14, 'R_upArm', 0.05, 0.035], [14, 16, 'R_lowArm', 0.035, 0.02],
             [23, 25, 'L_thigh', 0.08, 0.06],  [25, 27, 'L_shin', 0.06, 0.035],
@@ -153,8 +146,7 @@ if uploaded:
 
         conns.forEach(c => createLimb(c[2], c[3], c[4]));
         
-        // --- 胴体を逆円錐台（上が太く、下が細い）で作成 ---
-        // hiMid(下)を基準に shMid(上)へ向かう。rStart(下)=0.08, rEnd(上)=0.16
+        // 胴体：初期化は標準サイズで行う
         createLimb('torso', 0.08, 0.16); 
         
         [11,12,13,14,15,16,23,24,25,26,27,28,0].forEach(i => createJoint(i, 0.05));
@@ -173,13 +165,19 @@ if uploaded:
             for (let i=0; i<33; i++) {{ if (meshes['j'+i]) meshes['j'+i].position.copy(pts[i]); }}
             if (meshes['head']) meshes['head'].position.copy(pts[0]);
 
-            // 胴体(逆円錐)の更新
+            // --- 胴体の動的更新 ---
             const shMid = new THREE.Vector3().addVectors(pts[11], pts[12]).multiplyScalar(0.5);
             const hiMid = new THREE.Vector3().addVectors(pts[23], pts[24]).multiplyScalar(0.5);
+            
+            // 肩幅の計算 (左肩11と右肩12の距離)
+            const shoulderWidth = pts[11].distanceTo(pts[12]);
+            const dynamicRadTop = shoulderWidth * 0.45; // 片側半径なので幅の半分弱に設定
+
             if (meshes['torso']) {{
-                meshes['torso'].position.copy(shMid); // 始点を腰に
-                meshes['torso'].lookAt(hiMid);        // 肩の方向を向く
-                meshes['torso'].scale.set(1, 1, shMid.distanceTo(hiMid));
+                meshes['torso'].position.copy(hiMid);
+                meshes['torso'].lookAt(shMid);
+                const dist = hiMid.distanceTo(shMid);
+                meshes['torso'].scale.set(dynamicRadTop / 0.16, dynamicRadTop / 0.16, dist);
             }}
 
             conns.forEach(c => {{
@@ -187,7 +185,7 @@ if uploaded:
                 if (m) {{ m.position.copy(pA); m.lookAt(pB); m.scale.set(1, 1, pA.distanceTo(pB)); }}
             }});
         }}
-    
+
         function animate() {{
             requestAnimationFrame(animate);
             controls.update();
