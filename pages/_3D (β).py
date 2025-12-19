@@ -28,7 +28,9 @@ def set_background():
         )
 set_background()
 
-# MediaPipe読み込み（エラー回避用）
+
+
+# MediaPipe読み込み
 try:
     import mediapipe as mp
     from mediapipe.python.solutions import pose as mp_pose
@@ -69,7 +71,6 @@ if uploaded:
 
     video_bytes = open(video_path, 'rb').read()
     video_b64 = base64.b64encode(video_bytes).decode()
-
     payload = json.dumps({"fps": fps, "frames": frames_data})
     
     html_code = f"""
@@ -102,46 +103,28 @@ if uploaded:
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
 
-        // --- 3Dプロット用グリッドの設置 ---
-        // XZ面 (地面)
-        scene.add(new THREE.GridHelper(10, 20, 0x0088ff, 0xdddddd));
-        
-        // XY面 (背面)
+        // --- XYZプロット用グリッド ---
+        scene.add(new THREE.GridHelper(10, 20, 0x0088ff, 0xdddddd)); // XZ面
         const gridXY = new THREE.GridHelper(10, 20, 0x888888, 0xeeeeee);
-        gridXY.rotation.x = Math.PI / 2;
-        gridXY.position.set(0, 5, -5);
-        scene.add(gridXY);
-
-        // YZ面 (側面)
+        gridXY.rotation.x = Math.PI / 2; gridXY.position.set(0, 5, -5); scene.add(gridXY); // XY面
         const gridYZ = new THREE.GridHelper(10, 20, 0x888888, 0xeeeeee);
-        gridYZ.rotation.z = Math.PI / 2;
-        gridYZ.position.set(-5, 5, 0);
-        scene.add(gridYZ);
+        gridYZ.rotation.z = Math.PI / 2; gridYZ.position.set(-5, 5, 0); scene.add(gridYZ); // YZ面
+        scene.add(new THREE.AxesHelper(5)); // 座標軸
 
-        // 座標軸 (R:X, G:Y, B:Z)
-        scene.add(new THREE.AxesHelper(5));
-
-        // ライティング
         scene.add(new THREE.AmbientLight(0xffffff, 0.6));
         const light = new THREE.DirectionalLight(0xffffff, 0.7);
-        light.position.set(5, 10, 5);
-        light.castShadow = true;
-        scene.add(light);
+        light.position.set(5, 10, 5); light.castShadow = true; scene.add(light);
 
-        // 影を受けるための透明な床
-        const plane = new THREE.Mesh(
-            new THREE.PlaneGeometry(20, 20), 
-            new THREE.ShadowMaterial({{ opacity: 0.1 }})
-        );
-        plane.rotation.x = -Math.PI / 2;
-        plane.receiveShadow = true;
-        scene.add(plane);
+        const plane = new THREE.Mesh(new THREE.PlaneGeometry(20, 20), new THREE.ShadowMaterial({{ opacity: 0.1 }}));
+        plane.rotation.x = -Math.PI / 2; plane.receiveShadow = true; scene.add(plane);
 
         const skinMat = new THREE.MeshStandardMaterial({{ color: 0x2c3e50, roughness: 0.4 }});
         const jointMat = new THREE.MeshStandardMaterial({{ color: 0x00d2ff, emissive: 0x00d2ff, emissiveIntensity: 0.2 }});
         const meshes = {{}};
 
+        // パーツ作成関数
         function createLimb(name, rStart, rEnd) {{
+            // CylinderGeometry(上面半径, 下面半径, 高さ, 分割数)
             const geo = new THREE.CylinderGeometry(rEnd, rStart, 1, 16);
             geo.rotateX(-Math.PI / 2);
             geo.translate(0, 0, 0.5);
@@ -158,7 +141,7 @@ if uploaded:
             meshes['j' + i] = mesh;
         }}
 
-        // 接続定義: [始点, 終点, 名前, 始点R, 終点R]
+        // 接続定義
         const conns = [
             [11, 12, 'shoulder', 0.04, 0.04],
             [23, 24, 'hip', 0.06, 0.06],
@@ -169,8 +152,10 @@ if uploaded:
         ];
 
         conns.forEach(c => createLimb(c[2], c[3], c[4]));
-        // 胴体用の円錐台 (肩の中点と腰の中点を結ぶ)
-        createLimb('torso', 0.12, 0.15); 
+        
+        // --- 胴体を逆円錐台（上が太く、下が細い）で作成 ---
+        // hiMid(下)を基準に shMid(上)へ向かう。rStart(下)=0.08, rEnd(上)=0.16
+        createLimb('torso', 0.08, 0.16); 
         
         [11,12,13,14,15,16,23,24,25,26,27,28,0].forEach(i => createJoint(i, 0.05));
         meshes['head'] = new THREE.Mesh(new THREE.SphereGeometry(0.15, 32, 32), skinMat);
@@ -183,32 +168,23 @@ if uploaded:
             const raw = animData.frames[fIdx];
             if (!raw) return;
 
-            // プロット空間に合わせたスケーリング
             const pts = raw.map(p => new THREE.Vector3(p[0]*4, p[1]*4 + 2.5, p[2]*4));
 
-            for (let i=0; i<33; i++) {{
-                if (meshes['j'+i]) meshes['j'+i].position.copy(pts[i]);
-            }}
+            for (let i=0; i<33; i++) {{ if (meshes['j'+i]) meshes['j'+i].position.copy(pts[i]); }}
             if (meshes['head']) meshes['head'].position.copy(pts[0]);
 
-            // 胴体の更新 (肩の中点と腰の中点)
+            // 胴体(逆円錐)の更新
             const shMid = new THREE.Vector3().addVectors(pts[11], pts[12]).multiplyScalar(0.5);
             const hiMid = new THREE.Vector3().addVectors(pts[23], pts[24]).multiplyScalar(0.5);
             if (meshes['torso']) {{
-                meshes['torso'].position.copy(hiMid);
-                meshes['torso'].lookAt(shMid);
+                meshes['torso'].position.copy(hiMid); // 始点を腰に
+                meshes['torso'].lookAt(shMid);        // 肩の方向を向く
                 meshes['torso'].scale.set(1, 1, hiMid.distanceTo(shMid));
             }}
 
             conns.forEach(c => {{
-                const m = meshes[c[2]];
-                const pA = pts[c[0]];
-                const pB = pts[c[1]];
-                if (m && pA && pB) {{
-                    m.position.copy(pA);
-                    m.lookAt(pB);
-                    m.scale.set(1, 1, pA.distanceTo(pB));
-                }}
+                const m = meshes[c[2]], pA = pts[c[0]], pB = pts[c[1]];
+                if (m) {{ m.position.copy(pA); m.lookAt(pB); m.scale.set(1, 1, pA.distanceTo(pB)); }}
             }});
         }}
 
@@ -219,12 +195,6 @@ if uploaded:
             renderer.render(scene, camera);
         }}
         animate();
-
-        window.addEventListener('resize', () => {{
-            camera.aspect = container.clientWidth / 600;
-            camera.updateProjectionMatrix();
-            renderer.setSize(container.clientWidth, 600);
-        }});
     </script>
     """
     st.components.v1.html(html_code, height=1250)
