@@ -80,12 +80,17 @@ if uploaded:
 
     # (前略: MediaPipeの処理とpayloadの定義までは共通)
 
+    # (前略: ライブラリのインポートやMediaPipeの解析部分はこれまでのコードを維持)
+
+    # JavaScriptに渡すデータ
+    payload = json.dumps({"fps": fps, "frames": frames_data})
+
     html_code = f"""
-    <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
-        <video id="sync_video" width="100%" controls playsinline style="border-radius: 8px; border: 1px solid #ddd;">
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 15px;">
+        <video id="sync_video" width="100%" controls playsinline style="border-radius: 12px; border: 1px solid #ccc;">
             <source src="data:video/mp4;base64,{video_b64}" type="video/mp4">
         </video>
-        <div id="container" style="width:100%; height:600px; background:#ffffff; border-radius:8px; border: 1px solid #ccc;"></div>
+        <div id="container" style="width:100%; height:550px; background:#ffffff; border-radius:12px; overflow:hidden; border: 1px solid #eaeaea;"></div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/build/three.min.js"></script>
@@ -97,20 +102,27 @@ if uploaded:
         const animData = {payload}; 
         
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0xfcfcfc); // プロット風の明るい背景
+        scene.background = new THREE.Color(0xf7f9fc);
         
-        const camera = new THREE.PerspectiveCamera(45, container.clientWidth/600, 0.1, 100);
-        camera.position.set(5, 5, 8);
+        const camera = new THREE.PerspectiveCamera(40, container.clientWidth/550, 0.1, 100);
+        camera.position.set(5, 4, 7);
         
-        const renderer = new THREE.WebGLRenderer({{ antialias: true }});
-        renderer.setSize(container.clientWidth, 600);
-        renderer.shadowMap.enabled = true; // 影を有効化
+        const renderer = new THREE.WebGLRenderer({{ antialias: true, alpha: true }});
+        renderer.setSize(container.clientWidth, 550);
+        renderer.shadowMap.enabled = true;
         container.appendChild(renderer.domElement);
         
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.target.set(0, 1, 0);
-        controls.update();
+        controls.enableDamping = true;
 
+        // ライティング
+        scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+        const spotLight = new THREE.SpotLight(0xffffff, 0.8);
+        spotLight.position.set(5, 10, 5);
+        spotLight.castShadow = true;
+        scene.add(spotLight);
+
+        // 床とグリッド
         // --- 3Dプロット空間の構築 ---
 
         // 1. 地面 (XZ平面) - メングリッドとサブグリッド
@@ -128,53 +140,47 @@ if uploaded:
         gridYZ.rotation.z = Math.PI / 2;
         gridYZ.position.set(-5, 5, 0);
         scene.add(gridYZ);
-
-        // 4. 座標軸 (X:赤, Y:緑, Z:青)
-        const axesHelper = new THREE.AxesHelper(5);
-        scene.add(axesHelper);
-
-        // ライティング (影が出るように設定)
-        scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-        const light = new THREE.DirectionalLight(0xffffff, 0.7);
-        light.position.set(5, 10, 5);
-        light.castShadow = true;
-        scene.add(light);
-
-        // 影を受ける透明な地面
-        const plane = new THREE.Mesh(
-            new THREE.PlaneGeometry(20, 20),
-            new THREE.ShadowMaterial({{ opacity: 0.1 }})
-        );
-        plane.rotation.x = -Math.PI / 2;
-        plane.receiveShadow = true;
-        scene.add(plane);
-
-        // --- アバター設定 (テーパー円柱 & 左右色分け) ---
-        const matL = new THREE.MeshStandardMaterial({{ color: 0xff4444, roughness: 0.4 }}); // 左:赤
-        const matR = new THREE.MeshStandardMaterial({{ color: 0x4444ff, roughness: 0.4 }}); // 右:青
-        const matC = new THREE.MeshStandardMaterial({{ color: 0x666666, roughness: 0.4 }}); // 中央:グレー
-        const meshes = {{}};
-
-        function createLimb(name, r1, r2, side) {{
-            const geo = new THREE.CylinderGeometry(r2, r1, 1, 16);
-            geo.rotateX(-Math.PI / 2); geo.translate(0, 0, 0.5);
-            let mat = matC;
-            if(side === 'L') mat = matL;
-            if(side === 'R') mat = matR;
-            const mesh = new THREE.Mesh(geo, mat);
+        // --- テーパー（先細り）円柱を作成する関数 ---
+        function createLimb(name, radStart, radEnd) {{
+            // CylinderGeometry(上半径, 下半径, 高さ, 分割数)
+            // MediaPipeの接続順に合わせて、上が「始点側」、下が「終点側」になるよう設定
+            const geo = new THREE.CylinderGeometry(radEnd, radStart, 1, 16);
+            geo.rotateX(-Math.PI / 2);
+            geo.translate(0, 0, 0.5); // 原点を円柱の端に移動
+            const mesh = new THREE.Mesh(geo, skinMat);
             mesh.castShadow = true;
             scene.add(mesh);
             meshes[name] = mesh;
         }}
+        
+        function createJoint(i, r) {{
+            const mesh = new THREE.Mesh(new THREE.SphereGeometry(r, 24, 24), jointMat);
+            mesh.castShadow = true;
+            scene.add(mesh);
+            meshes['j' + i] = mesh;
+        }}
 
+        // 接続定義: [始点INDEX, 終点INDEX, 名前, 始点半径, 終点半径]
         const conns = [
-            [11,12,'sh',.05,.05,'C'], [23,24,'hp',.07,.07,'C'],
-            [11,13,'la1',.05,.04,'L'], [13,15,'la2',.04,.02,'L'],
-            [12,14,'ra1',.05,.04,'R'], [14,16,'ra2',.04,.02,'R'],
-            [23,25,'ll1',.08,.06,'L'], [25,27,'ll2',.06,.03,'L'],
-            [24,26,'rl1',.08,.06,'R'], [26,28,'rl2',.06,.03,'R']
+            [11, 12, 'shoulder', 0.05, 0.05],   // 肩
+            [23, 24, 'hip', 0.07, 0.07],        // 腰
+            [11, 23, 'L_torso', 0.05, 0.07],    // 左脇腹
+            [12, 24, 'R_torso', 0.05, 0.07],    // 右脇腹
+            [11, 13, 'L_upArm', 0.05, 0.035],   // 左上腕（太→細）
+            [13, 15, 'L_lowArm', 0.035, 0.02],  // 左前腕（中→細）
+            [12, 14, 'R_upArm', 0.05, 0.035],   // 右上腕
+            [14, 16, 'R_lowArm', 0.035, 0.02],  // 右前腕
+            [23, 25, 'L_thigh', 0.08, 0.06],    // 左太もも（太→中）
+            [25, 27, 'L_shin', 0.06, 0.035],    // 左すね（中→細）
+            [24, 26, 'R_thigh', 0.08, 0.06],    // 右太もも
+            [26, 28, 'R_shin', 0.06, 0.035]     // 右すね
         ];
-        conns.forEach(c => createLimb(c[2], c[3], c[4], c[5]));
+
+        conns.forEach(c => createLimb(c[2], c[3], c[4]));
+        [11,12,13,14,15,16,23,24,25,26,27,28,0].forEach(i => createJoint(i, 0.05));
+        
+        meshes['head'] = new THREE.Mesh(new THREE.SphereGeometry(0.15, 32, 32), skinMat);
+        scene.add(meshes['head']);
 
         function updateAvatar() {{
             if (!animData.frames.length) return;
@@ -183,25 +189,36 @@ if uploaded:
             const raw = animData.frames[fIdx];
             if (!raw) return;
 
-            // スケールをプロット空間(10x10)に合わせて調整
-            const pts = raw.map(p => new THREE.Vector3(p[0]*4, p[1]*4 + 2.5, p[2]*4));
+            const pts = raw.map(p => new THREE.Vector3(p[0]*3.5, p[1]*3.5 + 2.0, p[2]*3.5));
 
+            // 関節の更新
+            for (let i=0; i<33; i++) {{
+                if (meshes['j'+i]) meshes['j'+i].position.copy(pts[i]);
+            }}
+            if (meshes['head']) meshes['head'].position.copy(pts[0]);
+
+            // テーパー円柱の更新
             conns.forEach(c => {{
-                const m = meshes[c[2]], p1 = pts[c[0]], p2 = pts[c[1]];
-                if (m && p1 && p2) {{
-                    m.position.copy(p1);
-                    m.lookAt(p2);
-                    m.scale.set(1, 1, p1.distanceTo(p2));
+                const m = meshes[c[2]];
+                const pA = pts[c[0]]; // 付け根
+                const pB = pts[c[1]]; // 先端
+                if (m && pA && pB) {{
+                    m.position.copy(pA);
+                    m.lookAt(pB);
+                    // 距離に合わせてスケール
+                    const dist = pA.distanceTo(pB);
+                    m.scale.set(1, 1, dist);
                 }}
             }});
         }}
 
         function animate() {{
             requestAnimationFrame(animate);
+            controls.update();
             updateAvatar();
             renderer.render(scene, camera);
         }}
         animate();
     </script>
     """
-    st.components.v1.html(html_code, height=1050)
+    st.components.v1.html(html_code, height=1150)
