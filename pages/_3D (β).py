@@ -187,7 +187,7 @@ if uploaded:
                 if (m) {{ m.position.copy(pA); m.lookAt(pB); m.scale.set(1, 1, pA.distanceTo(pB)); }}
             }});
         }}
-
+    
         function animate() {{
             requestAnimationFrame(animate);
             controls.update();
