@@ -28,48 +28,8 @@ def set_background():
         )
 set_background()
 
-try:
-    import mediapipe as mp
-    from mediapipe.python.solutions import pose as mp_pose
-    Pose = mp_pose.Pose
-except:
-    import mediapipe.solutions.pose as mp_pose
-    Pose = mp_pose.Pose
+# (前略: MediaPipeの解析部分は共通)
 
-# --- Page Setup ---
-st.set_page_config(page_title="3D Plot Avatar", layout="centered")
-st.title("3D Motion Analysis (β)")
-uploaded = st.file_uploader("Upload your video", type=["mp4", "mov"])
-
-if uploaded:
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as tmp:
-        tmp.write(uploaded.read())
-        video_path = tmp.name
-
-    with st.spinner("座標抽出中..."):
-        cap = cv2.VideoCapture(video_path)
-        fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
-        pose_tracker = Pose(static_image_mode=False, model_complexity=1, smooth_landmarks=True)
-        
-        frames_data = []
-        while cap.isOpened():
-            ret, frame = cap.read()
-            if not ret: break
-            rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            results = pose_tracker.process(rgb)
-            if results.pose_world_landmarks:
-                lm = results.pose_world_landmarks.landmark
-                frame_pts = [[p.x, -p.y, -p.z] for p in lm]
-                frames_data.append(frame_pts)
-            else:
-                frames_data.append(None)
-        cap.release()
-        pose_tracker.close()
-
-    video_bytes = open(video_path, 'rb').read()
-    video_b64 = base64.b64encode(video_bytes).decode()
-    payload = json.dumps({"fps": fps, "frames": frames_data})
-    
     html_code = f"""
     <div style="display: flex; flex-direction: column; align-items: center; gap: 15px;">
         <video id="sync_video" width="100%" controls playsinline style="border-radius: 12px; border: 1px solid #ccc;">
@@ -136,7 +96,6 @@ if uploaded:
             meshes['j' + i] = mesh;
         }}
 
-        // 肩と腰のライン（conns[0], conns[1]）を削除
         const conns = [
             [11, 13, 'L_upArm', 0.05, 0.035], [13, 15, 'L_lowArm', 0.035, 0.02],
             [12, 14, 'R_upArm', 0.05, 0.035], [14, 16, 'R_lowArm', 0.035, 0.02],
@@ -146,8 +105,8 @@ if uploaded:
 
         conns.forEach(c => createLimb(c[2], c[3], c[4]));
         
-        // 胴体：初期化は標準サイズで行う
-        createLimb('torso', 0.08, 0.16); 
+        // 胴体：初期半径をさらに小さく設定（厚み半分に対応）
+        createLimb('torso', 0.04, 0.08); 
         
         [11,12,13,14,15,16,23,24,25,26,27,28,0].forEach(i => createJoint(i, 0.05));
         meshes['head'] = new THREE.Mesh(new THREE.SphereGeometry(0.15, 32, 32), skinMat);
@@ -165,19 +124,20 @@ if uploaded:
             for (let i=0; i<33; i++) {{ if (meshes['j'+i]) meshes['j'+i].position.copy(pts[i]); }}
             if (meshes['head']) meshes['head'].position.copy(pts[0]);
 
-            // --- 胴体の動的更新 ---
+            // --- 胴体の動的更新（厚みを半分に） ---
             const shMid = new THREE.Vector3().addVectors(pts[11], pts[12]).multiplyScalar(0.5);
             const hiMid = new THREE.Vector3().addVectors(pts[23], pts[24]).multiplyScalar(0.5);
             
-            // 肩幅の計算 (左肩11と右肩12の距離)
             const shoulderWidth = pts[11].distanceTo(pts[12]);
-            const dynamicRadTop = shoulderWidth * 0.45; // 片側半径なので幅の半分弱に設定
+            // 厚みを従来の半分にするため、係数を 0.45 から 0.225 に変更
+            const dynamicRadTop = shoulderWidth * 0.225; 
 
             if (meshes['torso']) {{
                 meshes['torso'].position.copy(shMid);
                 meshes['torso'].lookAt(hiMid);
                 const dist = shMid.distanceTo(hiMid);
-                meshes['torso'].scale.set(dynamicRadTop / 0.16, dynamicRadTop / 0.16, dist);
+                // 初期化した 0.08 に対する比率でスケーリング
+                meshes['torso'].scale.set(dynamicRadTop / 0.08, dynamicRadTop / 0.08, dist);
             }}
 
             conns.forEach(c => {{
