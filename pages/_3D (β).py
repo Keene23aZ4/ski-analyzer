@@ -90,7 +90,7 @@ if uploaded:
         const animData = {payload}; 
         
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x2c3e50);
+        scene.background = new THREE.Color(0x1c2833);
         
         const camera = new THREE.PerspectiveCamera(40, container.clientWidth/600, 0.1, 100);
         camera.position.set(6, 4, 8);
