@@ -48,7 +48,7 @@ if uploaded:
         tmp.write(uploaded.read())
         video_path = tmp.name
 
-    with st.spinner("座標抽出中..."):
+    with st.spinner("MODELING..."):
         cap = cv2.VideoCapture(video_path)
         fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
         pose_tracker = Pose(static_image_mode=False, model_complexity=1, smooth_landmarks=True)
@@ -139,14 +139,14 @@ if uploaded:
         }}
 
         const conns = [
-            [11, 13, 'L_upArm', 0.05, 0.035], [13, 15, 'L_lowArm', 0.035, 0.02],
-            [12, 14, 'R_upArm', 0.05, 0.035], [14, 16, 'R_lowArm', 0.035, 0.02],
-            [23, 25, 'L_thigh', 0.08, 0.06],  [25, 27, 'L_shin', 0.06, 0.035],
-            [24, 26, 'R_thigh', 0.08, 0.06],  [26, 28, 'R_shin', 0.06, 0.035]
+            [11, 13, 'L_upArm', 0.035, 0.05], [13, 15, 'L_lowArm', 0.02, 0.035],
+            [12, 14, 'R_upArm', 0.035, 0.05], [14, 16, 'R_lowArm', 0.02, 0.035],
+            [23, 25, 'L_thigh', 0.06, 0.08],  [25, 27, 'L_shin', 0.035, 0.06],
+            [24, 26, 'R_thigh', 0.06, 0.08],  [26, 28, 'R_shin', 0.035, 0.06]
         ];
 
         conns.forEach(c => createLimb(c[2], c[3], c[4]));
-        createLimb('torso', 0.04, 0.08); 
+        createLimb('torso', 0.08, 0.16); 
         
         [11,12,13,14,15,16,23,24,25,26,27,28,0].forEach(i => createJoint(i, 0.05));
         meshes['head'] = new THREE.Mesh(new THREE.SphereGeometry(0.15, 32, 32), skinMat);
