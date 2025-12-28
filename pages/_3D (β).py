@@ -146,7 +146,7 @@ if uploaded:
         ];
 
         conns.forEach(c => createLimb(c[2], c[3], c[4]));
-        createLimb('torso', 0.06, 0.12); 
+        createLimb('torso', 0.04, 0.10); 
         
         [11,12,13,14,15,16,23,24,25,26,27,28,0].forEach(i => createJoint(i, 0.05));
         meshes['head'] = new THREE.Mesh(new THREE.SphereGeometry(0.15, 32, 32), skinMat);
