@@ -117,7 +117,7 @@ if uploaded:
         const plane = new THREE.Mesh(new THREE.PlaneGeometry(20, 20), new THREE.ShadowMaterial({{ opacity: 0.1 }}));
         plane.rotation.x = -Math.PI / 2; plane.receiveShadow = true; scene.add(plane);
 
-        const skinMat = new THREE.MeshStandardMaterial({{ color: 0xfcfcfc, roughness: 0.4 }});
+        const skinMat = new THREE.MeshStandardMaterial({{ color: 0x828282, roughness: 0.4 }});
         const jointMat = new THREE.MeshStandardMaterial({{ color: 0x00d2ff, emissive: 0x00d2ff, emissiveIntensity: 0.2 }});
         const meshes = {{}};
 
