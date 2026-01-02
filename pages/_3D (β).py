@@ -182,24 +182,24 @@ if uploaded:
             
             // --- 上半身（upperTorso） ---
             const upper = meshes['upperTorso'];
-            if (upper) {
+            if (upper) {{
                 upper.position.copy(shMid);
                 upper.lookAt(chestMid);
             
                 const upperDist = shMid.distanceTo(chestMid);
                 upper.scale.set(dynamicRadTop / 0.08, dynamicRadTop / 0.08, upperDist);
-            }
+            }}
             
             
             // --- 下半身（lowerTorso） ---
             const lower = meshes['lowerTorso'];
-            if (lower) {
+            if (lower) {{
                 lower.position.copy(chestMid);
                 lower.lookAt(hiMid);
             
                 const lowerDist = chestMid.distanceTo(hiMid);
                 lower.scale.set((dynamicRadTop * 0.8) / 0.08, (dynamicRadTop * 0.8) / 0.08, lowerDist);
-            }
+            }}
 
             conns.forEach(c => {{
                 const m = meshes[c[2]], pA = pts[c[0]], pB = pts[c[1]];
