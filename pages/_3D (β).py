@@ -160,111 +160,33 @@ if uploaded:
             if (fIdx >= animData.frames.length) fIdx = animData.frames.length - 1;
             const raw = animData.frames[fIdx];
             if (!raw) return;
-
+        
             const pts = raw.map(p => new THREE.Vector3(p[0]*4, p[1]*4 + 2.5, p[2]*4));
-
-            for (let i=0; i<33; i++) {{ if (meshes['j'+i]) meshes['j'+i].position.copy(pts[i]); }}
+        
+            // --- joints ---
+            for (let i=0; i<33; i++) {{
+                if (meshes['j'+i]) meshes['j'+i].position.copy(pts[i]);
+            }}
             if (meshes['head']) meshes['head'].position.copy(pts[0]);
-
-            // ===== 胴体3分割（完全版） =====
-            
-            // 肩の中央
-            const shMid = new THREE.Vector3().addVectors(pts[11], pts[12]).multiplyScalar(0.5);
-            
-            // 腰の中央
-            const hiMid = new THREE.Vector3().addVectors(pts[23], pts[24]).multiplyScalar(0.5);
-            
-            // 胸（肩→腰の 1/3）
-            const chestMid = shMid.clone().lerp(hiMid, 0.33);
-            
-            // みぞおち（肩→腰の 2/3）
-            const stomachMid = shMid.clone().lerp(hiMid, 0.66);
-            
-            
-            // ===== S 字カーブ補正 =====
-            // 胸を少し前へ、腰を少し後ろへ
-            chestMid.z += 0.05;
-            stomachMid.z -= 0.05;
-            
-            
-            // ===== 太さ（人体比率） =====
-            const shoulderWidth = pts[11].distanceTo(pts[12]);
-            const hipWidth = pts[23].distanceTo(pts[24]);
-            
-            const radUpper = shoulderWidth * 0.28;   // 胸が最も太い
-            const radMid   = shoulderWidth * 0.22;   // みぞおちは少し細い
-            const radLower = hipWidth      * 0.20;   // 腰はさらに細い
-            
-            
-            // ===== ひねり補正（肩と腰の差分） =====
-            const shoulderVec = new THREE.Vector3().subVectors(pts[12], pts[11]).normalize();
-            const hipVec      = new THREE.Vector3().subVectors(pts[24], pts[23]).normalize();
-            
-            // 肩と腰の角度差
-            const twistAngle = shoulderVec.angleTo(hipVec);
-            
-            // ひねり方向
-            const twistAxis = new THREE.Vector3().crossVectors(shoulderVec, hipVec).normalize();
-            
-            
-            // ===== upperTorso（肩 → 胸） =====
-            const upper = meshes['upperTorso'];
-            if (upper) {{
-                upper.position.copy(shMid);
-                upper.lookAt(chestMid);
-            
-                const dist = shMid.distanceTo(chestMid);
-                upper.scale.set(radUpper / 0.08 * 1.3, radUpper / 0.08 * 0.8, dist); // 楕円体化
-            
-                // ひねりはほぼ肩に合わせる
-                upper.rotateOnAxis(twistAxis, twistAngle * 0.2);
-            }}
-            
-            
-            // ===== midTorso（胸 → みぞおち） =====
-            const mid = meshes['midTorso'];
-            if (mid) {{
-                mid.position.copy(chestMid);
-                mid.lookAt(stomachMid);
-            
-                const dist = chestMid.distanceTo(stomachMid);
-                mid.scale.set(radMid / 0.08 * 1.25, radMid / 0.08 * 0.75, dist);
-            
-                // ひねりの中間
-                mid.rotateOnAxis(twistAxis, twistAngle * 0.5);
-            }}
-            
-            
-            // ===== lowerTorso（みぞおち → 腰） =====
-            const lower = meshes['lowerTorso'];
-            if (lower) {{
-                lower.position.copy(stomachMid);
-                lower.lookAt(hiMid);
-            
-                const dist = stomachMid.distanceTo(hiMid);
-                lower.scale.set(radLower / 0.08 * 1.2, radLower / 0.08 * 0.7, dist);
-            
-                // 腰に近いのでひねりを強めに
-                lower.rotateOnAxis(twistAxis, twistAngle * 0.8);
-            }}
-            conns.forEach(c => {{
-                const m = meshes[c[2]], pA = pts[c[0]], pB = pts[c[1]];
-                if (m) {{ m.position.copy(pA); m.lookAt(pB); m.scale.set(1, 1, pA.distanceTo(pB)); }}
-            }});
+        
+        
+            // --- torso（あなたの完全版） ---
+            // ここはそのままでOK（省略）
+        
+        
+            // --- 腕と脚の自然形状（ここが正しい位置） ---
+            updateArm('L_upArm',  pts[11], pts[13], shoulderWidth * 0.18,  0.15);
+            updateArm('L_lowArm', pts[13], pts[15], shoulderWidth * 0.14, -0.10);
+        
+            updateArm('R_upArm',  pts[12], pts[14], shoulderWidth * 0.18, -0.15);
+            updateArm('R_lowArm', pts[14], pts[16], shoulderWidth * 0.14,  0.10);
+        
+            updateLeg('L_thigh', pts[23], pts[25], hipWidth * 0.22,  0.10);
+            updateLeg('L_shin',  pts[25], pts[27], hipWidth * 0.18, -0.05);
+        
+            updateLeg('R_thigh', pts[24], pts[26], hipWidth * 0.22, -0.10);
+            updateLeg('R_shin',  pts[26], pts[28], hipWidth * 0.18,  0.05);
         }}
-                // 腕
-        updateArm('L_upArm',  pts[11], pts[13], shoulderWidth * 0.18,  0.15);
-        updateArm('L_lowArm', pts[13], pts[15], shoulderWidth * 0.14, -0.10);
-        
-        updateArm('R_upArm',  pts[12], pts[14], shoulderWidth * 0.18, -0.15);
-        updateArm('R_lowArm', pts[14], pts[16], shoulderWidth * 0.14,  0.10);
-        
-        // 脚
-        updateLeg('L_thigh', pts[23], pts[25], hipWidth * 0.22,  0.10);
-        updateLeg('L_shin',  pts[25], pts[27], hipWidth * 0.18, -0.05);
-        
-        updateLeg('R_thigh', pts[24], pts[26], hipWidth * 0.22, -0.10);
-        updateLeg('R_shin',  pts[26], pts[28], hipWidth * 0.18,  0.05);
         // ===== 腕の自然形状 =====
         function updateArm(name, pA, pB, baseRadius, twist=0) {{
             const m = meshes[name];
@@ -275,15 +197,15 @@ if uploaded:
             m.position.copy(pA);
             m.lookAt(pB);
         
-            // 楕円断面（横広・前後薄）
             const scaleX = baseRadius * 1.25;
             const scaleY = baseRadius * 0.75;
         
             m.scale.set(scaleX / 0.05, scaleY / 0.05, length);
         
-            // 軽い外旋・内旋補正
             m.rotateZ(twist);
         }}
+        
+        
         // ===== 脚の自然形状 =====
         function updateLeg(name, pA, pB, baseRadius, twist=0) {{
             const m = meshes[name];
@@ -294,13 +216,11 @@ if uploaded:
             m.position.copy(pA);
             m.lookAt(pB);
         
-            // 楕円断面（脚は腕より太い）
             const scaleX = baseRadius * 1.3;
             const scaleY = baseRadius * 0.8;
         
             m.scale.set(scaleX / 0.06, scaleY / 0.06, length);
         
-            // 股関節・膝の自然な内旋/外旋
             m.rotateZ(twist);
         }}
 
