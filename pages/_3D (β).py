@@ -250,7 +250,7 @@ if uploaded:
             m.position.copy(pA);
             m.lookAt(pB);
         
-            const scaleX = baseRadius * 1.25;
+            const scaleX = baseRadius * 1;
             const scaleY = baseRadius * 0.75;
         
             m.scale.set(scaleX / 0.05, scaleY / 0.05, length);
@@ -269,7 +269,7 @@ if uploaded:
             m.position.copy(pA);
             m.lookAt(pB);
         
-            const scaleX = baseRadius * 1.3;
+            const scaleX = baseRadius * 1;
             const scaleY = baseRadius * 0.8;
         
             m.scale.set(scaleX / 0.06, scaleY / 0.06, length);
