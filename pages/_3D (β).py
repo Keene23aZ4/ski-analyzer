@@ -146,8 +146,8 @@ if uploaded:
         ];
 
         conns.forEach(c => createLimb(c[2], c[3], c[4]));
-        createLimb('torso', 0.04, 0.10); 
-        
+        createLimb('upperTorso', 0.05, 0.10);  // 肩〜胸
+        createLimb('lowerTorso', 0.04, 0.07);  // 胸〜腰        
         [11,12,13,14,15,16,23,24,25,26,27,28,0].forEach(i => createJoint(i, 0.05));
         meshes['head'] = new THREE.Mesh(new THREE.SphereGeometry(0.15, 32, 32), skinMat);
         scene.add(meshes['head']);
@@ -164,17 +164,42 @@ if uploaded:
             for (let i=0; i<33; i++) {{ if (meshes['j'+i]) meshes['j'+i].position.copy(pts[i]); }}
             if (meshes['head']) meshes['head'].position.copy(pts[0]);
 
-            const shMid = new THREE.Vector3().addVectors(pts[11], pts[12]).multiplyScalar(0.5);
-            const hiMid = new THREE.Vector3().addVectors(pts[23], pts[24]).multiplyScalar(0.5);
-            const shoulderWidth = pts[11].distanceTo(pts[12]);
-            const dynamicRadTop = shoulderWidth * 0.225; 
+            // ===== 胴体2分割処理 =====
 
-            if (meshes['torso']) {{
-                meshes['torso'].position.copy(shMid);
-                meshes['torso'].lookAt(hiMid);
-                const dist = shMid.distanceTo(hiMid);
-                meshes['torso'].scale.set(dynamicRadTop / 0.08, dynamicRadTop / 0.08, dist);
-            }}
+            // 肩の中央
+            const shMid = new THREE.Vector3().addVectors(pts[11], pts[12]).multiplyScalar(0.5);
+            
+            // 腰の中央
+            const hiMid = new THREE.Vector3().addVectors(pts[23], pts[24]).multiplyScalar(0.5);
+            
+            // 胸の位置（肩→腰の 1/3）
+            const chestMid = shMid.clone().lerp(hiMid, 0.33);
+            
+            // 肩幅から上半身の太さを決定
+            const shoulderWidth = pts[11].distanceTo(pts[12]);
+            const dynamicRadTop = shoulderWidth * 0.225;
+            
+            
+            // --- 上半身（upperTorso） ---
+            const upper = meshes['upperTorso'];
+            if (upper) {
+                upper.position.copy(shMid);
+                upper.lookAt(chestMid);
+            
+                const upperDist = shMid.distanceTo(chestMid);
+                upper.scale.set(dynamicRadTop / 0.08, dynamicRadTop / 0.08, upperDist);
+            }
+            
+            
+            // --- 下半身（lowerTorso） ---
+            const lower = meshes['lowerTorso'];
+            if (lower) {
+                lower.position.copy(chestMid);
+                lower.lookAt(hiMid);
+            
+                const lowerDist = chestMid.distanceTo(hiMid);
+                lower.scale.set((dynamicRadTop * 0.8) / 0.08, (dynamicRadTop * 0.8) / 0.08, lowerDist);
+            }
 
             conns.forEach(c => {{
                 const m = meshes[c[2]], pA = pts[c[0]], pB = pts[c[1]];
