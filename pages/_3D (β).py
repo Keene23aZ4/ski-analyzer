@@ -167,7 +167,7 @@ if uploaded:
             if (meshes['head']) meshes['head'].position.copy(pts[0]);
 
             // ===== 胴体3分割処理 =====
-
+            
             // 肩の中央
             const shMid = new THREE.Vector3().addVectors(pts[11], pts[12]).multiplyScalar(0.5);
             
@@ -182,7 +182,11 @@ if uploaded:
             
             // 肩幅から上半身の太さを決定
             const shoulderWidth = pts[11].distanceTo(pts[12]);
-            const dynamicRadTop = shoulderWidth * 0.225;
+            
+            // 3パーツの太さ比率（自然な人体比率）
+            const radUpper = shoulderWidth * 0.28;   // 一番太い
+            const radMid   = shoulderWidth * 0.22;   // 少し細い
+            const radLower = shoulderWidth * 0.18;   // さらに細い
             
             
             // --- upperTorso（肩 → 胸） ---
@@ -192,7 +196,7 @@ if uploaded:
                 upper.lookAt(chestMid);
             
                 const dist = shMid.distanceTo(chestMid);
-                upper.scale.set(dynamicRadTop / 0.08, dynamicRadTop / 0.08, dist);
+                upper.scale.set(radUpper / 0.08, radUpper / 0.08, dist);
             }}
             
             
@@ -203,7 +207,7 @@ if uploaded:
                 mid.lookAt(stomachMid);
             
                 const dist = chestMid.distanceTo(stomachMid);
-                mid.scale.set((dynamicRadTop * 0.9) / 0.08, (dynamicRadTop * 0.9) / 0.08, dist);
+                mid.scale.set(radMid / 0.08, radMid / 0.08, dist);
             }}
             
             
@@ -214,7 +218,7 @@ if uploaded:
                 lower.lookAt(hiMid);
             
                 const dist = stomachMid.distanceTo(hiMid);
-                lower.scale.set((dynamicRadTop * 0.8) / 0.08, (dynamicRadTop * 0.8) / 0.08, dist);
+                lower.scale.set(radLower / 0.08, radLower / 0.08, dist);
             }}
             conns.forEach(c => {{
                 const m = meshes[c[2]], pA = pts[c[0]], pB = pts[c[1]];
