@@ -252,6 +252,57 @@ if uploaded:
                 if (m) {{ m.position.copy(pA); m.lookAt(pB); m.scale.set(1, 1, pA.distanceTo(pB)); }}
             }});
         }}
+                // 腕
+        updateArm('L_upArm',  pts[11], pts[13], shoulderWidth * 0.18,  0.15);
+        updateArm('L_lowArm', pts[13], pts[15], shoulderWidth * 0.14, -0.10);
+        
+        updateArm('R_upArm',  pts[12], pts[14], shoulderWidth * 0.18, -0.15);
+        updateArm('R_lowArm', pts[14], pts[16], shoulderWidth * 0.14,  0.10);
+        
+        // 脚
+        updateLeg('L_thigh', pts[23], pts[25], hipWidth * 0.22,  0.10);
+        updateLeg('L_shin',  pts[25], pts[27], hipWidth * 0.18, -0.05);
+        
+        updateLeg('R_thigh', pts[24], pts[26], hipWidth * 0.22, -0.10);
+        updateLeg('R_shin',  pts[26], pts[28], hipWidth * 0.18,  0.05);
+        // ===== 腕の自然形状 =====
+        function updateArm(name, pA, pB, baseRadius, twist=0) {{
+            const m = meshes[name];
+            if (!m) return;
+        
+            const length = pA.distanceTo(pB);
+        
+            m.position.copy(pA);
+            m.lookAt(pB);
+        
+            // 楕円断面（横広・前後薄）
+            const scaleX = baseRadius * 1.25;
+            const scaleY = baseRadius * 0.75;
+        
+            m.scale.set(scaleX / 0.05, scaleY / 0.05, length);
+        
+            // 軽い外旋・内旋補正
+            m.rotateZ(twist);
+        }}
+        // ===== 脚の自然形状 =====
+        function updateLeg(name, pA, pB, baseRadius, twist=0) {{
+            const m = meshes[name];
+            if (!m) return;
+        
+            const length = pA.distanceTo(pB);
+        
+            m.position.copy(pA);
+            m.lookAt(pB);
+        
+            // 楕円断面（脚は腕より太い）
+            const scaleX = baseRadius * 1.3;
+            const scaleY = baseRadius * 0.8;
+        
+            m.scale.set(scaleX / 0.06, scaleY / 0.06, length);
+        
+            // 股関節・膝の自然な内旋/外旋
+            m.rotateZ(twist);
+        }}
 
         function animate() {{
             requestAnimationFrame(animate);
