@@ -166,7 +166,7 @@ if uploaded:
             for (let i=0; i<33; i++) {{ if (meshes['j'+i]) meshes['j'+i].position.copy(pts[i]); }}
             if (meshes['head']) meshes['head'].position.copy(pts[0]);
 
-            // ===== 胴体3分割処理 =====
+            // ===== 胴体3分割（完全版） =====
             
             // 肩の中央
             const shMid = new THREE.Vector3().addVectors(pts[11], pts[12]).multiplyScalar(0.5);
@@ -180,45 +180,72 @@ if uploaded:
             // みぞおち（肩→腰の 2/3）
             const stomachMid = shMid.clone().lerp(hiMid, 0.66);
             
-            // 肩幅から上半身の太さを決定
+            
+            // ===== S 字カーブ補正 =====
+            // 胸を少し前へ、腰を少し後ろへ
+            chestMid.z += 0.05;
+            stomachMid.z -= 0.05;
+            
+            
+            // ===== 太さ（人体比率） =====
             const shoulderWidth = pts[11].distanceTo(pts[12]);
+            const hipWidth = pts[23].distanceTo(pts[24]);
             
-            // 3パーツの太さ比率（自然な人体比率）
-            const radUpper = shoulderWidth * 0.28;   // 一番太い
-            const radMid   = shoulderWidth * 0.22;   // 少し細い
-            const radLower = shoulderWidth * 0.18;   // さらに細い
+            const radUpper = shoulderWidth * 0.28;   // 胸が最も太い
+            const radMid   = shoulderWidth * 0.22;   // みぞおちは少し細い
+            const radLower = hipWidth      * 0.20;   // 腰はさらに細い
             
             
-            // --- upperTorso（肩 → 胸） ---
+            // ===== ひねり補正（肩と腰の差分） =====
+            const shoulderVec = new THREE.Vector3().subVectors(pts[12], pts[11]).normalize();
+            const hipVec      = new THREE.Vector3().subVectors(pts[24], pts[23]).normalize();
+            
+            // 肩と腰の角度差
+            const twistAngle = shoulderVec.angleTo(hipVec);
+            
+            // ひねり方向
+            const twistAxis = new THREE.Vector3().crossVectors(shoulderVec, hipVec).normalize();
+            
+            
+            // ===== upperTorso（肩 → 胸） =====
             const upper = meshes['upperTorso'];
             if (upper) {{
                 upper.position.copy(shMid);
                 upper.lookAt(chestMid);
             
                 const dist = shMid.distanceTo(chestMid);
-                upper.scale.set(radUpper / 0.08, radUpper / 0.08, dist);
+                upper.scale.set(radUpper / 0.08 * 1.3, radUpper / 0.08 * 0.8, dist); // 楕円体化
+            
+                // ひねりはほぼ肩に合わせる
+                upper.rotateOnAxis(twistAxis, twistAngle * 0.2);
             }}
             
             
-            // --- midTorso（胸 → みぞおち） ---
+            // ===== midTorso（胸 → みぞおち） =====
             const mid = meshes['midTorso'];
             if (mid) {{
                 mid.position.copy(chestMid);
                 mid.lookAt(stomachMid);
             
                 const dist = chestMid.distanceTo(stomachMid);
-                mid.scale.set(radMid / 0.08, radMid / 0.08, dist);
+                mid.scale.set(radMid / 0.08 * 1.25, radMid / 0.08 * 0.75, dist);
+            
+                // ひねりの中間
+                mid.rotateOnAxis(twistAxis, twistAngle * 0.5);
             }}
             
             
-            // --- lowerTorso（みぞおち → 腰） ---
+            // ===== lowerTorso（みぞおち → 腰） =====
             const lower = meshes['lowerTorso'];
             if (lower) {{
                 lower.position.copy(stomachMid);
                 lower.lookAt(hiMid);
             
                 const dist = stomachMid.distanceTo(hiMid);
-                lower.scale.set(radLower / 0.08, radLower / 0.08, dist);
+                lower.scale.set(radLower / 0.08 * 1.2, radLower / 0.08 * 0.7, dist);
+            
+                // 腰に近いのでひねりを強めに
+                lower.rotateOnAxis(twistAxis, twistAngle * 0.8);
             }}
             conns.forEach(c => {{
                 const m = meshes[c[2]], pA = pts[c[0]], pB = pts[c[1]];
