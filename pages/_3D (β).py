@@ -1,6 +1,5 @@
 import streamlit as st
 import cv2
-import numpy as np
 import json
 import tempfile
 import base64
@@ -73,7 +72,7 @@ if uploaded:
     video_b64 = base64.b64encode(video_bytes).decode()
     payload = json.dumps({"fps": fps, "frames": frames_data})
 
-    # --- HTML + JS (VRM対応版) ---
+    # --- HTML + JS (VRM対応版・中括弧エスケープ済) ---
     html_code = f"""
     <div style="display:flex; flex-direction:column; align-items:center; gap:15px;">
         <video id="sync_video" width="100%" controls playsinline style="border-radius:12px; border:1px solid #ccc;">
@@ -99,7 +98,7 @@ if uploaded:
         const camera = new THREE.PerspectiveCamera(40, container.clientWidth/600, 0.1, 100);
         camera.position.set(6, 4, 8);
 
-        const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
+        const renderer = new THREE.WebGLRenderer({{ antialias:true, alpha:true }});
         renderer.setSize(container.clientWidth, 600);
         container.appendChild(renderer.domElement);
 
@@ -135,6 +134,7 @@ if uploaded:
             if (!bone) return;
             const dir = new THREE.Vector3().subVectors(pB, pA).normalize();
             const quat = new THREE.Quaternion();
+            // VRMのデフォルト姿勢（Y軸下向き）を基準に方向ベクトルへ回転
             quat.setFromUnitVectors(new THREE.Vector3(0, -1, 0), dir);
             bone.quaternion.slerp(quat, 0.4);
         }}
@@ -153,19 +153,20 @@ if uploaded:
 
             const h = currentVrm.humanoid;
 
-            applyBoneRotation(h.getBoneNode("leftUpperArm"), pts[11], pts[13]);
-            applyBoneRotation(h.getBoneNode("leftLowerArm"), pts[13], pts[15]);
-
+            // 腕
+            applyBoneRotation(h.getBoneNode("leftUpperArm"),  pts[11], pts[13]);
+            applyBoneRotation(h.getBoneNode("leftLowerArm"),  pts[13], pts[15]);
             applyBoneRotation(h.getBoneNode("rightUpperArm"), pts[12], pts[14]);
             applyBoneRotation(h.getBoneNode("rightLowerArm"), pts[14], pts[16]);
 
-            applyBoneRotation(h.getBoneNode("leftUpperLeg"), pts[23], pts[25]);
-            applyBoneRotation(h.getBoneNode("leftLowerLeg"), pts[25], pts[27]);
-
+            // 脚
+            applyBoneRotation(h.getBoneNode("leftUpperLeg"),  pts[23], pts[25]);
+            applyBoneRotation(h.getBoneNode("leftLowerLeg"),  pts[25], pts[27]);
             applyBoneRotation(h.getBoneNode("rightUpperLeg"), pts[24], pts[26]);
             applyBoneRotation(h.getBoneNode("rightLowerLeg"), pts[26], pts[28]);
 
-            applyBoneRotation(h.getBoneNode("head"), pts[0], pts[11]);
+            // 頭（ざっくり肩〜頭方向）
+            applyBoneRotation(h.getBoneNode("head"), pts[11], pts[0]);
         }}
 
         // --- レンダリング ---
