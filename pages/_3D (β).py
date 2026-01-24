@@ -6,8 +6,7 @@ import tempfile
 import base64
 from pathlib import Path
 
-
-# 背景設定（省略可）
+# 背景設定（任意）
 def set_background():
     img_path = Path("static/1704273575813.jpg")
     if img_path.exists():
@@ -28,8 +27,7 @@ def set_background():
         )
 set_background()
 
-
-# MediaPipe読み込み
+# MediaPipe 読み込み
 try:
     import mediapipe as mp
     from mediapipe.python.solutions import pose as mp_pose
@@ -39,8 +37,9 @@ except:
     Pose = mp_pose.Pose
 
 # --- Page Setup ---
-st.set_page_config(page_title="3D Plot Avatar", layout="centered")
-st.title("3D Motion Analysis (β)")
+st.set_page_config(page_title="3D VRM Motion Analysis", layout="centered")
+st.title("3D Motion Analysis with VRM Avatar")
+
 uploaded = st.file_uploader("Upload your video", type=["mp4", "mov"])
 
 if uploaded:
@@ -52,11 +51,12 @@ if uploaded:
         cap = cv2.VideoCapture(video_path)
         fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
         pose_tracker = Pose(static_image_mode=False, model_complexity=1, smooth_landmarks=True)
-        
+
         frames_data = []
         while cap.isOpened():
             ret, frame = cap.read()
-            if not ret: break
+            if not ret:
+                break
             rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             results = pose_tracker.process(rgb)
             if results.pose_world_landmarks:
@@ -65,225 +65,123 @@ if uploaded:
                 frames_data.append(frame_pts)
             else:
                 frames_data.append(None)
+
         cap.release()
         pose_tracker.close()
 
     video_bytes = open(video_path, 'rb').read()
     video_b64 = base64.b64encode(video_bytes).decode()
     payload = json.dumps({"fps": fps, "frames": frames_data})
-    
-    # 修正ポイント: html_codeの定義から末尾までインデントを正確に揃えました
+
+    # --- HTML + JS (VRM対応版) ---
     html_code = f"""
-    <div style="display: flex; flex-direction: column; align-items: center; gap: 15px;">
-        <video id="sync_video" width="100%" controls playsinline style="border-radius: 12px; border: 1px solid #ccc;">
+    <div style="display:flex; flex-direction:column; align-items:center; gap:15px;">
+        <video id="sync_video" width="100%" controls playsinline style="border-radius:12px; border:1px solid #ccc;">
             <source src="data:video/mp4;base64,{video_b64}" type="video/mp4">
         </video>
-        <div id="container" style="width:100%; height:600px; background:#ffffff; border-radius:12px; overflow:hidden; border: 1px solid #eaeaea;"></div>
+        <div id="container" style="width:100%; height:600px; background:#ffffff; border-radius:12px; overflow:hidden; border:1px solid #eaeaea;"></div>
     </div>
 
+    <!-- Three.js & VRM -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@2.0.0/lib/three-vrm.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/examples/js/controls/OrbitControls.js"></script>
-    
+
     <script>
         const video = document.getElementById('sync_video');
         const container = document.getElementById('container');
-        const animData = {payload}; 
-        
+        const animData = {payload};
+
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x1c2833);
-        
+
         const camera = new THREE.PerspectiveCamera(40, container.clientWidth/600, 0.1, 100);
         camera.position.set(6, 4, 8);
-        
-        const renderer = new THREE.WebGLRenderer({{ antialias: true, alpha: true }});
+
+        const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
         renderer.setSize(container.clientWidth, 600);
-        renderer.shadowMap.enabled = true;
         container.appendChild(renderer.domElement);
-        
+
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
 
         scene.add(new THREE.GridHelper(10, 20, 0x0088ff, 0xdddddd));
-        const gridXY = new THREE.GridHelper(10, 20, 0x888888, 0xeeeeee);
-        gridXY.rotation.x = Math.PI / 2; gridXY.position.set(0, 5, -5); scene.add(gridXY);
-        const gridYZ = new THREE.GridHelper(10, 20, 0x888888, 0xeeeeee);
-        gridYZ.rotation.z = Math.PI / 2; gridYZ.position.set(-5, 5, 0); scene.add(gridYZ);
         scene.add(new THREE.AxesHelper(5));
 
-        scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-        const light = new THREE.DirectionalLight(0xffffff, 0.7);
-        light.position.set(5, 10, 5); light.castShadow = true; scene.add(light);
+        scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+        const light = new THREE.DirectionalLight(0xffffff, 0.8);
+        light.position.set(5, 10, 5);
+        scene.add(light);
 
-        const plane = new THREE.Mesh(new THREE.PlaneGeometry(20, 20), new THREE.ShadowMaterial({{ opacity: 0.1 }}));
-        plane.rotation.x = -Math.PI / 2; plane.receiveShadow = true; scene.add(plane);
+        // --- VRMモデル読み込み ---
+        let currentVrm = null;
+        const loader = new THREE.GLTFLoader();
+        loader.crossOrigin = "anonymous";
 
-        const skinMat = new THREE.MeshStandardMaterial({{ color: 0x828282, roughness: 0.4 }});
-        const jointMat = new THREE.MeshStandardMaterial({{ color: 0x00d2ff, emissive: 0x00d2ff, emissiveIntensity: 0.2 }});
-        const meshes = {{}};
+        loader.load(
+            "model.vrm",
+            (gltf) => {{
+                THREE.VRMUtils.removeUnnecessaryJoints(gltf.scene);
+                THREE.VRM.from(gltf).then((vrm) => {{
+                    currentVrm = vrm;
+                    scene.add(vrm.scene);
+                }});
+            }}
+        );
 
-        function createLimb(name, rStart, rEnd) {{
-            const geo = new THREE.CylinderGeometry(rEnd, rStart, 1, 16);
-            geo.rotateX(-Math.PI / 2);
-            geo.translate(0, 0, 0.5);
-            const mesh = new THREE.Mesh(geo, skinMat);
-            mesh.castShadow = true;
-            scene.add(mesh);
-            meshes[name] = mesh;
+        // --- ボーン回転適用 ---
+        function applyBoneRotation(bone, pA, pB) {{
+            if (!bone) return;
+            const dir = new THREE.Vector3().subVectors(pB, pA).normalize();
+            const quat = new THREE.Quaternion();
+            quat.setFromUnitVectors(new THREE.Vector3(0, -1, 0), dir);
+            bone.quaternion.slerp(quat, 0.4);
         }}
-        
-        function createJoint(i, r) {{
-            const mesh = new THREE.Mesh(new THREE.SphereGeometry(r, 24, 24), jointMat);
-            mesh.castShadow = true;
-            scene.add(mesh);
-            meshes['j' + i] = mesh;
-        }}
 
-        const conns = [
-            [11, 13, 'L_upArm', 0.04, 0.06], [13, 15, 'L_lowArm', 0.03, 0.04],
-            [12, 14, 'R_upArm', 0.04, 0.06], [14, 16, 'R_lowArm', 0.03, 0.04],
-            [23, 25, 'L_thigh', 0.08, 0.1],  [25, 27, 'L_shin', 0.04, 0.07],
-            [24, 26, 'R_thigh', 0.08, 0.1],  [26, 28, 'R_shin', 0.04, 0.07]
-        ];
-
-        conns.forEach(c => createLimb(c[2], c[3], c[4]));
-        // 胴体を3分割
-        createLimb('upperTorso', 0.06, 0.10);  // 肩 → 胸
-        createLimb('midTorso',   0.05, 0.08);  // 胸 → みぞおち
-        createLimb('lowerTorso', 0.04, 0.07);  // みぞおち → 腰     
-        [11,12,13,14,15,16,23,24,25,26,27,28,0].forEach(i => createJoint(i, 0.05));
-        meshes['head'] = new THREE.Mesh(new THREE.SphereGeometry(0.15, 32, 32), skinMat);
-        scene.add(meshes['head']);
-
+        // --- VRMアバター更新 ---
         function updateAvatar() {{
-            if (!animData.frames.length) return;
+            if (!currentVrm) return;
+
             let fIdx = Math.floor(video.currentTime * animData.fps);
             if (fIdx >= animData.frames.length) fIdx = animData.frames.length - 1;
+
             const raw = animData.frames[fIdx];
             if (!raw) return;
-        
+
             const pts = raw.map(p => new THREE.Vector3(p[0]*4, p[1]*4 + 2.5, p[2]*4));
-        
-            // --- joints ---
-            for (let i=0; i<33; i++) {{
-                if (meshes['j'+i]) meshes['j'+i].position.copy(pts[i]);
-            }}
-            if (meshes['head']) meshes['head'].position.copy(pts[0]);
-        
-        
-            // ===== 胴体3分割（完全版） =====
-        
-            const shMid = new THREE.Vector3().addVectors(pts[11], pts[12]).multiplyScalar(0.5);
-            const hiMid = new THREE.Vector3().addVectors(pts[23], pts[24]).multiplyScalar(0.5);
-        
-            const chestMid = shMid.clone().lerp(hiMid, 0.33);
-            const stomachMid = shMid.clone().lerp(hiMid, 0.66);
-        
-            // S字カーブ
-            chestMid.z += 0.05;
-            stomachMid.z -= 0.05;
-        
-            // 太さ
-            const shoulderWidth = pts[11].distanceTo(pts[12]);
-            const hipWidth = pts[23].distanceTo(pts[24]);
-        
-            const radUpper = shoulderWidth * 0.28;
-            const radMid   = shoulderWidth * 0.22;
-            const radLower = hipWidth      * 0.20;
-        
-            // ひねり
-            const shoulderVec = new THREE.Vector3().subVectors(pts[12], pts[11]).normalize();
-            const hipVec      = new THREE.Vector3().subVectors(pts[24], pts[23]).normalize();
-            const twistAngle = shoulderVec.angleTo(hipVec);
-            const twistAxis = new THREE.Vector3().crossVectors(shoulderVec, hipVec).normalize();
-        
-            // upperTorso
-            const upper = meshes['upperTorso'];
-            if (upper) {{
-                upper.position.copy(shMid);
-                upper.lookAt(chestMid);
-                const dist = shMid.distanceTo(chestMid);
-                upper.scale.set(radUpper / 0.08 * 1.3, radUpper / 0.08 * 0.8, dist);
-                upper.rotateOnAxis(twistAxis, twistAngle * 0.2);
-            }}
-        
-            // midTorso
-            const mid = meshes['midTorso'];
-            if (mid) {{
-                mid.position.copy(chestMid);
-                mid.lookAt(stomachMid);
-                const dist = chestMid.distanceTo(stomachMid);
-                mid.scale.set(radMid / 0.08 * 1.25, radMid / 0.08 * 0.75, dist);
-                mid.rotateOnAxis(twistAxis, twistAngle * 0.5);
-            }}
-        
-            // lowerTorso
-            const lower = meshes['lowerTorso'];
-            if (lower) {{
-                lower.position.copy(stomachMid);
-                lower.lookAt(hiMid);
-                const dist = stomachMid.distanceTo(hiMid);
-                lower.scale.set(radLower / 0.08 * 1.2, radLower / 0.08 * 0.7, dist);
-                lower.rotateOnAxis(twistAxis, twistAngle * 0.8);
-            }}
-        
-        
-            // ===== 腕と脚の自然形状 =====
-            updateArm('L_upArm',  pts[11], pts[13], shoulderWidth * 0.18,  0.15);
-            updateArm('L_lowArm', pts[13], pts[15], shoulderWidth * 0.14, -0.10);
-        
-            updateArm('R_upArm',  pts[12], pts[14], shoulderWidth * 0.18, -0.15);
-            updateArm('R_lowArm', pts[14], pts[16], shoulderWidth * 0.14,  0.10);
-        
-            updateLeg('L_thigh', pts[23], pts[25], hipWidth * 0.22,  0.10);
-            updateLeg('L_shin',  pts[25], pts[27], hipWidth * 0.18, -0.05);
-        
-            updateLeg('R_thigh', pts[24], pts[26], hipWidth * 0.22, -0.10);
-            updateLeg('R_shin',  pts[26], pts[28], hipWidth * 0.18,  0.05);
-        }}
-        // ===== 腕の自然形状 =====
-        function updateArm(name, pA, pB, baseRadius, twist=0) {{
-            const m = meshes[name];
-            if (!m) return;
-        
-            const length = pA.distanceTo(pB);
-        
-            m.position.copy(pA);
-            m.lookAt(pB);
-        
-            const scaleX = baseRadius * 0.65;
-            const scaleY = baseRadius * 0.5;
-        
-            m.scale.set(scaleX / 0.05, scaleY / 0.05, length);
-        
-            m.rotateZ(twist);
-        }}
-        
-        
-        // ===== 脚の自然形状 =====
-        function updateLeg(name, pA, pB, baseRadius, twist=0) {{
-            const m = meshes[name];
-            if (!m) return;
-        
-            const length = pA.distanceTo(pB);
-        
-            m.position.copy(pA);
-            m.lookAt(pB);
-        
-            const scaleX = baseRadius * 0.8;
-            const scaleY = baseRadius * 0.65;
-        
-            m.scale.set(scaleX / 0.06, scaleY / 0.06, length);
-        
-            m.rotateZ(twist);
+
+            const h = currentVrm.humanoid;
+
+            applyBoneRotation(h.getBoneNode("leftUpperArm"), pts[11], pts[13]);
+            applyBoneRotation(h.getBoneNode("leftLowerArm"), pts[13], pts[15]);
+
+            applyBoneRotation(h.getBoneNode("rightUpperArm"), pts[12], pts[14]);
+            applyBoneRotation(h.getBoneNode("rightLowerArm"), pts[14], pts[16]);
+
+            applyBoneRotation(h.getBoneNode("leftUpperLeg"), pts[23], pts[25]);
+            applyBoneRotation(h.getBoneNode("leftLowerLeg"), pts[25], pts[27]);
+
+            applyBoneRotation(h.getBoneNode("rightUpperLeg"), pts[24], pts[26]);
+            applyBoneRotation(h.getBoneNode("rightLowerLeg"), pts[26], pts[28]);
+
+            applyBoneRotation(h.getBoneNode("head"), pts[0], pts[11]);
         }}
 
+        // --- レンダリング ---
         function animate() {{
             requestAnimationFrame(animate);
             controls.update();
+
+            if (currentVrm) {{
+                currentVrm.update(1/60);
+            }}
+
             updateAvatar();
             renderer.render(scene, camera);
         }}
         animate();
     </script>
     """
+
     st.components.v1.html(html_code, height=1250)
