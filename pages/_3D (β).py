@@ -121,22 +121,37 @@ if uploaded:
         const jointMat = new THREE.MeshStandardMaterial({{ color: 0x00d2ff, emissive: 0x00d2ff, emissiveIntensity: 0.2 }});
         const meshes = {{}};
 
-        function createLimb(name, rStart, rEnd) {{
-            const geo = new THREE.CylinderGeometry(rEnd, rStart, 1, 16);
+        function createLimb(name, rStart, rEnd) {
+            const taper = 0.65; // 中くらいの先細り
+            const geo = new THREE.CylinderGeometry(rEnd * taper, rStart, 1, 20);
             geo.rotateX(-Math.PI / 2);
             geo.translate(0, 0, 0.5);
             const mesh = new THREE.Mesh(geo, skinMat);
             mesh.castShadow = true;
             scene.add(mesh);
             meshes[name] = mesh;
-        }}
+        }
         
-        function createJoint(i, r) {{
-            const mesh = new THREE.Mesh(new THREE.SphereGeometry(r, 24, 24), jointMat);
+      
+        const jointSize = {
+            11: 0.10, 12: 0.10, // 肩
+            13: 0.08, 14: 0.08, // 肘
+            15: 0.06, 16: 0.06, // 手首
+            23: 0.12, 24: 0.12, // 股関節
+            25: 0.09, 26: 0.09, // 膝
+            27: 0.07, 28: 0.07, // 足首
+            0:  0.11            // 頭の付け根
+        };
+        
+        
+        function createJoint(i) {
+            const r = jointSize[i] || 0.05;
+            const mesh = new THREE.Mesh(new THREE.SphereGeometry(r, 28, 28), jointMat);
             mesh.castShadow = true;
             scene.add(mesh);
             meshes['j' + i] = mesh;
-        }}
+        }
+                
 
         const conns = [
             [11, 13, 'L_upArm', 0.04, 0.06], [13, 15, 'L_lowArm', 0.03, 0.04],
@@ -183,8 +198,8 @@ if uploaded:
             stomachMid.z -= 0.05;
         
             // 太さ
-            const shoulderWidth = pts[11].distanceTo(pts[12]);
-            const hipWidth = pts[23].distanceTo(pts[24]);
+            const shoulderWidth = pts[11].distanceTo(pts[12]) * 1.25;
+            const hipWidth      = pts[23].distanceTo(pts[24]) * 1.15;
         
             const radUpper = shoulderWidth * 0.28;
             const radMid   = shoulderWidth * 0.22;
