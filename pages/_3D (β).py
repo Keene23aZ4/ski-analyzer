@@ -164,8 +164,8 @@ if uploaded:
         // 胴体を3分割
         createLimb('upperTorso', 0.06, 0.10);  // 肩 → 胸
         createLimb('midTorso',   0.05, 0.08);  // 胸 → みぞおち
-        createLimb('lowerTorso', 0.04, 0.07);  // みぞおち → 腰     
-        [11,12,13,14,15,16,23,24,25,26,27,28,0].forEach(i => createJoint(i, 0.05));
+        createLimb('lowerTorso', 0.04, 0.07);  // みぞおち → 腰   
+        [11,12,13,14,15,16,23,24,25,26,27,28,0].forEach(i => createJoint(i));
         meshes['head'] = new THREE.Mesh(new THREE.SphereGeometry(0.15, 32, 32), skinMat);
         scene.add(meshes['head']);
 
