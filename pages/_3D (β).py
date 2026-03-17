@@ -121,7 +121,7 @@ if uploaded:
         const jointMat = new THREE.MeshStandardMaterial({{ color: 0x00d2ff, emissive: 0x00d2ff, emissiveIntensity: 0.2 }});
         const meshes = {{}};
 
-        function createLimb(name, rStart, rEnd) {
+        function createLimb(name, rStart, rEnd) {{
             const taper = 0.65; // 中くらいの先細り
             const geo = new THREE.CylinderGeometry(rEnd * taper, rStart, 1, 20);
             geo.rotateX(-Math.PI / 2);
@@ -130,7 +130,7 @@ if uploaded:
             mesh.castShadow = true;
             scene.add(mesh);
             meshes[name] = mesh;
-        }
+        }}
         
       
         const jointSize = {
