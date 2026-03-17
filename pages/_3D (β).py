@@ -144,13 +144,13 @@ if uploaded:
         };
         
         
-        function createJoint(i) {
+        function createJoint(i) {{
             const r = jointSize[i] || 0.05;
             const mesh = new THREE.Mesh(new THREE.SphereGeometry(r, 28, 28), jointMat);
             mesh.castShadow = true;
             scene.add(mesh);
             meshes['j' + i] = mesh;
-        }
+        }}
                 
 
         const conns = [
