@@ -271,7 +271,7 @@ if uploaded:
                 const dist = chestMid.distanceTo(stomachMid);
 
                 // ★ 腹部は細く・長め
-                mid.scale.set(radMid / 0.08 * 0.9, radMid / 0.08 * 0.7, dist);
+                mid.scale.set(radMid / 0.08 * 1.1, radMid / 0.08 * 0.9, dist);
                 mid.rotateOnAxis(twistAxis, twistAngle * 0.45);
             }}
 
@@ -283,7 +283,7 @@ if uploaded:
                 const dist = stomachMid.distanceTo(hiMid);
 
                 // ★ 骨盤は張る（装甲スーツの腰）
-                lower.scale.set(radLower / 0.08 * 1.1, radLower / 0.08 * 1.0, dist);
+                lower.scale.set(radLower / 0.08 * 1.4, radLower / 0.08 * 1.2, dist);
                 lower.rotateOnAxis(twistAxis, twistAngle * 0.75);
             }}
             // ===== 腕の自然形状（YBot-lite 装甲スーツ系） =====
