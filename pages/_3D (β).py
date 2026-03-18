@@ -241,7 +241,7 @@ if uploaded:
 
             // ★ 胴体の太さ（胸郭大・腹部細・骨盤張る）
             const radUpper = shoulderWidth * 0.32;  // 胸郭：大きい
-            const radMid   = shoulderWidth * 0.18;  // 腹部：細い
+            const radMid   = shoulderWidth * 0.30;  // 腹部：細い
             const radLower = hipWidth      * 0.28;  // 骨盤：張る
 
             // ===== ひねり（肩と腰の向き差） =====
