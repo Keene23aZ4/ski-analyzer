@@ -201,7 +201,7 @@ if uploaded:
 
         // ===== 頭（ヘルメット感：大きめ） =====
         meshes["head"] = new THREE.Mesh(
-            new THREE.SphereGeometry(0.15 * 1.5, 32, 32),  // ★ 1.5倍
+            new THREE.SphereGeometry(0.15 * 1.75, 32, 32),  // ★ 1.5倍
             skinMat
         );
         scene.add(meshes["head"]);
@@ -236,7 +236,7 @@ if uploaded:
             stomachMid.z -= 0.10;
 
             // ★ 肩幅・腰幅（装甲スーツの逆三角形）
-            const shoulderWidth = pts[11].distanceTo(pts[12]) * 1.60;
+            const shoulderWidth = pts[11].distanceTo(pts[12]) * 1.95;
             const hipWidth      = pts[23].distanceTo(pts[24]) * 0.90;
 
             // ★ 胴体の太さ（胸郭大・腹部細・骨盤張る）
@@ -259,7 +259,8 @@ if uploaded:
                 const dist = shMid.distanceTo(chestMid);
 
                 // ★ 装甲スーツの胸郭：横幅広く・厚みあり
-                upper.scale.set(radUpper / 0.08 * 1.6, radUpper / 0.08 * 1.1, dist);
+                upper.scale.set(radUpper / 0.08 * 1.9, radUpper / 0.08 * 1.3, dist);
+                upper.position.z += 0.10;
                 upper.rotateOnAxis(twistAxis, twistAngle * 0.15);
             }}
 
@@ -283,7 +284,8 @@ if uploaded:
                 const dist = stomachMid.distanceTo(hiMid);
 
                 // ★ 骨盤は張る（装甲スーツの腰）
-                lower.scale.set(radLower / 0.08 * 1.4, radLower / 0.08 * 1.1, dist);
+                lower.scale.set(radLower / 0.08 * 1.6, radLower / 0.08 * 1.2, dist);
+                lower.position.z -= 0.05;
                 lower.rotateOnAxis(twistAxis, twistAngle * 0.75);
             }}
             // ===== 腕の自然形状（YBot-lite 装甲スーツ系） =====
@@ -294,11 +296,11 @@ if uploaded:
             updateArm("R_lowArm", pts[14], pts[16], shoulderWidth * 0.17,  0.12);
 
             // ===== 脚の自然形状（YBot-lite 装甲スーツ系） =====
-            updateLeg("L_thigh", pts[23], pts[25], hipWidth * 0.30,  0.12);
-            updateLeg("L_shin",  pts[25], pts[27], hipWidth * 0.22, -0.08);
+            updateLeg("L_thigh", pts[23], pts[25], hipWidth * 0.38, 0.12);
+            updateLeg("L_shin", pts[25], pts[27], hipWidth * 0.18, -0.08);
 
-            updateLeg("R_thigh", pts[24], pts[26], hipWidth * 0.30, -0.12);
-            updateLeg("R_shin",  pts[26], pts[28], hipWidth * 0.22,  0.08);
+            updateLeg("R_thigh", pts[24], pts[26], hipWidth * 0.38, -0.12);
+            updateLeg("R_shin", pts[26], pts[28], hipWidth * 0.18, -0.08);
         }}
 
         // ===== 腕の自然形状（装甲スーツ系：太め → 先細り） =====
