@@ -153,13 +153,13 @@ if uploaded:
 
         // ===== 関節サイズ（YBot-lite：+10%） =====
         const jointSize = {{
-            11: 0.11, 12: 0.11,   // 肩（+10%）
-            13: 0.088, 14: 0.088, // 肘
-            15: 0.066, 16: 0.066, // 手首
-            23: 0.132, 24: 0.132, // 股関節（+10%）
-            25: 0.099, 26: 0.099, // 膝
-            27: 0.077, 28: 0.077, // 足首
-            0:  0.121              // 頭の付け根（+10%）
+            11: 0.10, 12: 0.10,   // 肩（+10%）
+            13: 0.08, 14: 0.08, // 肘
+            15: 0.06, 16: 0.06, // 手首
+            23: 0.11, 24: 0.11, // 股関節（+10%）
+            25: 0.09, 26: 0.09, // 膝
+            27: 0.07, 28: 0.07, // 足首
+            0:  0.10              // 頭の付け根（+10%）
         }};
 
         function createJoint(i) {{
@@ -259,7 +259,7 @@ if uploaded:
                 const dist = shMid.distanceTo(chestMid);
 
                 // ★ 装甲スーツの胸郭：横幅広く・厚みあり
-                upper.scale.set(radUpper / 0.08 * 1.2, radUpper / 0.08 * 1.3, dist);
+                upper.scale.set(radUpper / 0.08 * 1.2, radUpper / 0.08 * 1.0, dist);
                 upper.rotateOnAxis(twistAxis, twistAngle * 0.15);
             }}
 
@@ -283,15 +283,15 @@ if uploaded:
                 const dist = stomachMid.distanceTo(hiMid);
 
                 // ★ 骨盤は張る（装甲スーツの腰）
-                lower.scale.set(radLower / 0.08 * 1.1, radLower / 0.08 * 1.2, dist);
+                lower.scale.set(radLower / 0.08 * 1.1, radLower / 0.08 * 1.0, dist);
                 lower.rotateOnAxis(twistAxis, twistAngle * 0.75);
             }}
             // ===== 腕の自然形状（YBot-lite 装甲スーツ系） =====
-            updateArm("L_upArm",  pts[11], pts[13], shoulderWidth * 0.22,  0.18);
-            updateArm("L_lowArm", pts[13], pts[15], shoulderWidth * 0.17, -0.12);
+            updateArm("L_upArm",  pts[11], pts[13], shoulderWidth * 0.18, 0);
+            updateArm("L_lowArm", pts[13], pts[15], shoulderWidth * 0.14, 0);
 
-            updateArm("R_upArm",  pts[12], pts[14], shoulderWidth * 0.22, -0.18);
-            updateArm("R_lowArm", pts[14], pts[16], shoulderWidth * 0.17,  0.12);
+            updateArm("R_upArm",  pts[12], pts[14], shoulderWidth * 0.18, 0);
+            updateArm("R_lowArm", pts[14], pts[16], shoulderWidth * 0.14, 0);
 
             // ===== 脚の自然形状（YBot-lite 装甲スーツ系） =====
             updateLeg("L_thigh", pts[23], pts[25], hipWidth * 0.25, 0.0);
