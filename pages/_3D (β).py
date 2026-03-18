@@ -193,8 +193,8 @@ if uploaded:
 
         // ===== 胴体 3 分割（装甲スーツ系：胸郭大・腹部細・骨盤張る） =====
         createLimb("upperTorso", 0.08, 0.14);  // 肩 → 胸（大きい）
-        createLimb("midTorso",   0.14, 0.08);  // 胸 → みぞおち（細い）
-        createLimb("lowerTorso", 0.08, 0.6);  // みぞおち → 腰（張る）
+        createLimb("midTorso",   0.07, 0.05);  // 胸 → みぞおち（細い）
+        createLimb("lowerTorso", 0.11, 0.7);  // みぞおち → 腰（張る）
 
         // 関節生成
         [11,12,13,14,15,16,23,24,25,26,27,28,0].forEach(i => createJoint(i));
