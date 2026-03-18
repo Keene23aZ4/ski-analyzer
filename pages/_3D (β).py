@@ -69,7 +69,7 @@ if uploaded:
 
     video_bytes = open(video_path, 'rb').read()
     video_b64 = base64.b64encode(video_bytes).decode()
-    payload = json.dumps({{"fps": fps, "frames": frames_data}})
+    payload = json.dumps({"fps": fps, "frames": frames_data})
 
     html_code = f"""
     <div style="display: flex; flex-direction: column; align-items: center; gap: 15px;">
