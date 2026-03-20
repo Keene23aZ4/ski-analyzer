@@ -236,8 +236,8 @@ if uploaded:
             stomachMid.z -= 0.10;
 
             // ★ 肩幅・腰幅（装甲スーツの逆三角形）
-            const shoulderWidth = pts[11].distanceTo(pts[12]) * 1.25;
-            const hipWidth      = pts[23].distanceTo(pts[24]) * 0.90;
+            const shoulderWidth = pts[11].distanceTo(pts[12]) * 1.0;
+            const hipWidth      = pts[23].distanceTo(pts[24]) * 7.0;
 
             // ★ 胴体の太さ（胸郭大・腹部細・骨盤張る）
             const radUpper = shoulderWidth * 0.30;  // 胸郭：大きい
@@ -259,7 +259,7 @@ if uploaded:
                 const dist = shMid.distanceTo(chestMid);
 
                 // ★ 装甲スーツの胸郭：横幅広く・厚みあり
-                upper.scale.set(radUpper / 0.08 * 1.10, radUpper / 0.08 * 1.0, dist);
+                upper.scale.set(radUpper / 0.08 * 1.0, radUpper / 0.08 * 1.0, dist);
                 upper.rotateOnAxis(twistAxis, twistAngle * 0.15);
             }}
 
