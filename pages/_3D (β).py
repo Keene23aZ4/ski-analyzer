@@ -187,8 +187,8 @@ if uploaded:
             const hipWidth = pts[23].distanceTo(pts[24]);
         
             const radUpper = shoulderWidth * 0.28;
-            const radMid   = shoulderWidth * 0.22;
-            const radLower = hipWidth      * 0.20;
+            const radMid   = shoulderWidth * 0.26;
+            const radLower = hipWidth      * 0.24;
         
             // ひねり
             const shoulderVec = new THREE.Vector3().subVectors(pts[12], pts[11]).normalize();
