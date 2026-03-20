@@ -202,7 +202,7 @@ if uploaded:
                 upper.position.copy(shMid);
                 upper.lookAt(chestMid);
                 const dist = shMid.distanceTo(chestMid);
-                upper.scale.set(radUpper / 0.08 * 1.3, radUpper / 0.08 * 0.8, dist);
+                upper.scale.set(radUpper / 0.08 * 0.8, radUpper / 0.08 * 1.25, dist);
                 upper.rotateOnAxis(twistAxis, twistAngle * 0.2);
             }}
         
