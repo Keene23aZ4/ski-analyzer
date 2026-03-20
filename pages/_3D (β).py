@@ -203,6 +203,7 @@ if uploaded:
                 upper.lookAt(chestMid);
                 const dist = shMid.distanceTo(chestMid);
                 uupper.scale.set(radUpper / 0.08 * 1.15, radUpper / 0.08 * 0.95, dist);
+                upper.rotateOnAxis(twistAxis, twistAngle * 0.15);
             }}
         
             // midTorso
@@ -212,6 +213,7 @@ if uploaded:
                 mid.lookAt(stomachMid);
                 const dist = chestMid.distanceTo(stomachMid);
                 mid.scale.set(radMid / 0.08 * 1.10, radMid / 0.08 * 0.85, dist);
+                mid.rotateOnAxis(twistAxis,   twistAngle * 0.35);
             }}
         
             // lowerTorso
@@ -221,6 +223,7 @@ if uploaded:
                 lower.lookAt(hiMid);
                 const dist = stomachMid.distanceTo(hiMid);
                 lower.scale.set(radLower / 0.08 * 1.05, radLower / 0.08 * 0.90, dist);
+                lower.rotateOnAxis(twistAxis, twistAngle * 0.55);
             }}
         
         
