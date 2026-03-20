@@ -271,7 +271,7 @@ if uploaded:
                 const dist = chestMid.distanceTo(stomachMid);
 
                 // ★ 腹部は細く・長め
-                mid.scale.set(radMid / 0.08 * 0.9, radMid / 0.08 * 0.7, dist);
+                mid.scale.set(radMid / 0.08 * 0.7, radMid / 0.08 * 0.9, dist);
                 mid.rotateOnAxis(twistAxis, twistAngle * 0.45);
             }}
 
