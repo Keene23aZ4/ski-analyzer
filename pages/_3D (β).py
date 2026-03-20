@@ -192,9 +192,9 @@ if uploaded:
         conns.forEach(c => createLimb(c[2], c[3], c[4]));
 
         // ===== 胴体 3 分割（装甲スーツ系：胸郭大・腹部細・骨盤張る） =====
-        createLimb("upperTorso", 0.08, 0.14);  // 肩 → 胸（大きい）
-        createLimb("midTorso",   0.05, 0.07);  // 胸 → みぞおち（細い）
-        createLimb("lowerTorso", 0.07, 0.11);  // みぞおち → 腰（張る）
+        createLimb("upperTorso", 0.10, 0.10);  // 肩 → 胸（大きい）
+        createLimb("midTorso",   0.10, 0.10);  // 胸 → みぞおち（細い）
+        createLimb("lowerTorso", 0.10, 0.10);  // みぞおち → 腰（張る）
 
         // 関節生成
         [11,12,13,14,15,16,23,24,25,26,27,28,0].forEach(i => createJoint(i));
@@ -240,9 +240,9 @@ if uploaded:
             const hipWidth      = pts[23].distanceTo(pts[24]) * 0.90;
 
             // ★ 胴体の太さ（胸郭大・腹部細・骨盤張る）
-            const radUpper = shoulderWidth * 0.25;  // 胸郭：大きい
-            const radMid   = shoulderWidth * 0.25;  // 腹部：細い
-            const radLower = hipWidth      * 0.25;  // 骨盤：張る
+            const radUpper = shoulderWidth * 0.30;  // 胸郭：大きい
+            const radMid   = shoulderWidth * 0.30;  // 腹部：細い
+            const radLower = hipWidth      * 0.30;  // 骨盤：張る
 
             // ===== ひねり（肩と腰の向き差） =====
             const shoulderVec = new THREE.Vector3().subVectors(pts[12], pts[11]).normalize();
@@ -259,7 +259,7 @@ if uploaded:
                 const dist = shMid.distanceTo(chestMid);
 
                 // ★ 装甲スーツの胸郭：横幅広く・厚みあり
-                upper.scale.set(radUpper / 0.08 * 1.2, radUpper / 0.08 * 1.0, dist);
+                upper.scale.set(radUpper / 0.08 * 1.10, radUpper / 0.08 * 1.0, dist);
                 upper.rotateOnAxis(twistAxis, twistAngle * 0.15);
             }}
 
@@ -271,7 +271,7 @@ if uploaded:
                 const dist = chestMid.distanceTo(stomachMid);
 
                 // ★ 腹部は細く・長め
-                mid.scale.set(radMid / 0.08 * 1.0, radMid / 0.08 * 0.9, dist);
+                mid.scale.set(radMid / 0.08 * 1.0, radMid / 0.08 * 1.0, dist);
                 mid.rotateOnAxis(twistAxis, twistAngle * 0.45);
             }}
 
@@ -283,7 +283,7 @@ if uploaded:
                 const dist = stomachMid.distanceTo(hiMid);
 
                 // ★ 骨盤は張る（装甲スーツの腰）
-                lower.scale.set(radLower / 0.08 * 1.1, radLower / 0.08 * 1.0, dist);
+                lower.scale.set(radLower / 0.08 * 1.0, radLower / 0.08 * 1.0, dist);
                 lower.rotateOnAxis(twistAxis, twistAngle * 0.75);
             }}
             // ===== 腕の自然形状（YBot-lite 装甲スーツ系） =====
