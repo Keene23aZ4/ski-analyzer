@@ -196,22 +196,7 @@ if uploaded:
             const hipVec      = new THREE.Vector3().subVectors(pts[24], pts[23]).normalize();
             const twistAngle = shoulderVec.angleTo(hipVec);
             const twistAxis = new THREE.Vector3().crossVectors(shoulderVec, hipVec).normalize();
-            // ===== neck =====
-            const neck = meshes['neck'];
-            if (neck) {{
-                const headBase = pts[0].clone().add(new THREE.Vector3(0, -0.12, 0)); // 頭の付け根
-                neck.position.copy(shMid);
-                neck.lookAt(headBase);
-            
-                const dist = shMid.distanceTo(headBase);
-            
-                // 首の太さ（肩幅の 40〜55% が自然）
-                const neckUpper = shoulderWidth * 0.20;  // 上（頭側）
-                const neckLower = shoulderWidth * 0.28;  // 下（胸側）
-            
-                neck.scale.set(neckUpper / 0.05, neckLower / 0.05, dist);
-            }}
-        
+
             // upperTorso
             const upper = meshes['upperTorso'];
             if (upper) {{
@@ -220,6 +205,27 @@ if uploaded:
                 const dist = shMid.distanceTo(chestMid);
                 upper.scale.set(radUpper / 0.08 * 1.15, radUpper / 0.08 * 0.95, dist);
                 upper.rotateOnAxis(twistAxis, twistAngle * 0.15);
+            }}
+                        // ===== neck =====
+            const neck = meshes['neck'];
+            if (neck) {{
+                // 頭の付け根（頭の中心より少し下）
+                const headBase = pts[0].clone().add(new THREE.Vector3(0, -0.12, 0));
+            
+                // neck の位置と向き
+                neck.position.copy(shMid);
+                neck.lookAt(headBase);
+            
+                const dist = shMid.distanceTo(headBase);
+            
+                // upper の上端（scale.x）を元の半径に戻す
+                const upperTopRadius = (radUpper / 0.08 * 0.70) * 0.08;
+            
+                // neck の半径（円台錘）
+                const neckLower = upperTopRadius;        // 下端：upper と一致
+                const neckUpper = upperTopRadius * 0.75; // 上端：自然な首の細さ
+            
+                neck.scale.set(neckUpper / 0.05, neckLower / 0.05, dist);
             }}
         
             // midTorso
