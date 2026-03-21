@@ -151,7 +151,7 @@ if uploaded:
         createLimb('midTorso',   0.07, 0.08);  // 胸 → みぞおち
         createLimb('lowerTorso', 0.05, 0.07);  // みぞおち → 腰     
         [11,12,13,14,15,16,23,24,25,26,27,28,0].forEach(i => createJoint(i, 0.05));
-        meshes['head'] = new THREE.Mesh(new THREE.SphereGeometry(0.18, 32, 32), skinMat);
+        meshes['head'] = new THREE.Mesh(new THREE.SphereGeometry(0.2, 32, 32), skinMat);
         scene.add(meshes['head']);
 
         function updateAvatar() {{
@@ -167,7 +167,7 @@ if uploaded:
             for (let i=0; i<33; i++) {{
                 if (meshes['j'+i]) meshes['j'+i].position.copy(pts[i]);
             }}
-            pts[0].z -= 1.00;
+            pts[0].z -= 0.50;
             if (meshes['head']) meshes['head'].position.copy(pts[0]);
         
         
