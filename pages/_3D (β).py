@@ -202,7 +202,7 @@ if uploaded:
                 upper.position.copy(shMid);
                 upper.lookAt(chestMid);
                 const dist = shMid.distanceTo(chestMid);
-                upper.scale.set(radUpper / 0.08 * 1.15, radUpper / 0.08 * 0.95, dist);
+                upper.scale.set(radUpper / 0.08 * 1.15, radUpper / 0.08 * 0.95, dist * 0.8);
                 upper.rotateOnAxis(twistAxis, twistAngle * 0.15);
             }}
    
@@ -212,7 +212,7 @@ if uploaded:
                 mid.position.copy(chestMid);
                 mid.lookAt(stomachMid);
                 const dist = chestMid.distanceTo(stomachMid);
-                mid.scale.set(radMid / 0.08 * 1.10, radMid / 0.08 * 0.85, dist);
+                mid.scale.set(radMid / 0.08 * 1.10, radMid / 0.08 * 0.85, dist * 1.3);
                 mid.rotateOnAxis(twistAxis,   twistAngle * 0.35);
             }}
         
@@ -222,7 +222,7 @@ if uploaded:
                 lower.position.copy(stomachMid);
                 lower.lookAt(hiMid);
                 const dist = stomachMid.distanceTo(hiMid);
-                lower.scale.set(radLower / 0.08 * 1.05, radLower / 0.08 * 0.90, dist);
+                lower.scale.set(radLower / 0.08 * 1.05, radLower / 0.08 * 0.90, dist * 0.8);
                 lower.rotateOnAxis(twistAxis, twistAngle * 0.55);
             }}
         
