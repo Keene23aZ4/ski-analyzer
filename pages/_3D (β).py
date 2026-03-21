@@ -212,7 +212,7 @@ if uploaded:
                 mid.position.copy(chestMid);
                 mid.lookAt(stomachMid);
                 const dist = chestMid.distanceTo(stomachMid);
-                mid.scale.set(radMid / 0.08 * 1.00, radMid / 0.08 * 0.75, dist * 1.3);
+                mid.scale.set(radMid / 0.08 * 1.00, radMid / 0.08 * 0.75, dist * 1.5);
                 mid.rotateOnAxis(twistAxis,   twistAngle * 0.35);
             }}
         
