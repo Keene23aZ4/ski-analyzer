@@ -175,7 +175,7 @@ if uploaded:
             const shMid = new THREE.Vector3().addVectors(pts[11], pts[12]).multiplyScalar(0.5);
             const hiMid = new THREE.Vector3().addVectors(pts[23], pts[24]).multiplyScalar(0.5);
         
-            const chestMid = shMid.clone().lerp(hiMid, 0.33);
+            const chestMid = shMid.clone().lerp(hiMid, 0.28);
             const stomachMid = shMid.clone().lerp(hiMid, 0.66);
         
             // S字カーブ
@@ -212,7 +212,7 @@ if uploaded:
                 mid.position.copy(chestMid);
                 mid.lookAt(stomachMid);
                 const dist = chestMid.distanceTo(stomachMid);
-                mid.scale.set(radMid / 0.08 * 1.00, radMid / 0.08 * 0.75, dist * 1.5);
+                mid.scale.set(radMid / 0.08 * 1.00, radMid / 0.08 * 0.75, dist * 1.3);
                 mid.rotateOnAxis(twistAxis,   twistAngle * 0.35);
             }}
         
