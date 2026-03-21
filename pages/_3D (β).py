@@ -186,7 +186,7 @@ if uploaded:
             const shoulderWidth = pts[11].distanceTo(pts[12]);
             const hipWidth = pts[23].distanceTo(pts[24]);
         
-            const radUpper = shoulderWidth * 0.28;
+            const radUpper = shoulderWidth * 0.26;
             const radMid   = shoulderWidth * 0.26;
             const radLower = hipWidth      * 0.24;
         
