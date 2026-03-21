@@ -173,6 +173,7 @@ if uploaded:
             // ===== 胴体3分割（完全版） =====
         
             const shMid = new THREE.Vector3().addVectors(pts[11], pts[12]).multiplyScalar(0.5);
+            shMid.y -= 0.1;
             const hiMid = new THREE.Vector3().addVectors(pts[23], pts[24]).multiplyScalar(0.5);
         
             const chestMid = shMid.clone().lerp(hiMid, 0.20);
