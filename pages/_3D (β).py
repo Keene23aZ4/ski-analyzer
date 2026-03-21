@@ -222,7 +222,7 @@ if uploaded:
                 lower.position.copy(stomachMid);
                 lower.lookAt(hiMid);
                 const dist = stomachMid.distanceTo(hiMid);
-                lower.scale.set(radLower / 0.08 * 1.05, radLower / 0.08 * 0.90, dist * 0.8);
+                lower.scale.set(radLower / 0.08 * 1.2, radLower / 0.08 * 1.00, dist * 0.8);
                 lower.rotateOnAxis(twistAxis, twistAngle * 0.55);
             }}
         
