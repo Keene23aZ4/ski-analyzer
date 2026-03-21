@@ -309,4 +309,8 @@ if uploaded:
         animate();
     </script>
     """
+    # === 骨格描画動画の表示 ===
+    st.subheader("Detected Skeleton Video")
+    skel_bytes = open(skel_path, "rb").read()
+    st.video(skel_bytes)
     st.components.v1.html(html_code, height=1250)
