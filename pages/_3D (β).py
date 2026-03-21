@@ -147,7 +147,6 @@ if uploaded:
 
         conns.forEach(c => createLimb(c[2], c[3], c[4]));
       
-        createLimb('neck', 0.04, 0.05);  // 下が太く、上が少し細い首
         createLimb('upperTorso', 0.06, 0.10);  // 肩 → 胸
         createLimb('midTorso',   0.05, 0.08);  // 胸 → みぞおち
         createLimb('lowerTorso', 0.04, 0.07);  // みぞおち → 腰     
@@ -206,28 +205,7 @@ if uploaded:
                 upper.scale.set(radUpper / 0.08 * 1.15, radUpper / 0.08 * 0.95, dist);
                 upper.rotateOnAxis(twistAxis, twistAngle * 0.15);
             }}
-                        // ===== neck =====
-            const neck = meshes['neck'];
-            if (neck) {{
-                // 頭の付け根（頭の中心より少し下）
-                const headBase = pts[0].clone().add(new THREE.Vector3(0, -0.12, 0));
-            
-                // neck の位置と向き
-                neck.position.copy(shMid);
-                neck.lookAt(headBase);
-            
-                const dist = shMid.distanceTo(headBase);
-            
-                // upper の上端（scale.x）を元の半径に戻す
-                const upperTopRadius = (radUpper / 0.08 * 0.70) * 0.08;
-            
-                // neck の半径（円台錘）
-                const neckLower = upperTopRadius;        // 下端：upper と一致
-                const neckUpper = upperTopRadius * 0.75; // 上端：自然な首の細さ
-            
-                neck.scale.set(neckUpper / 0.05, neckLower / 0.05, dist);
-            }}
-        
+   
             // midTorso
             const mid = meshes['midTorso'];
             if (mid) {{
