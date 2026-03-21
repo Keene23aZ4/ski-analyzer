@@ -54,17 +54,38 @@ if uploaded:
         pose_tracker = Pose(static_image_mode=False, model_complexity=1, smooth_landmarks=True)
         
         frames_data = []
+        # 骨格描画用の VideoWriter を準備
+        h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+        skel_path = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4").name
+        writer = cv2.VideoWriter(skel_path, fourcc, fps, (w, h))
         while cap.isOpened():
             ret, frame = cap.read()
-            if not ret: break
+            if not ret:
+                break
+        
             rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             results = pose_tracker.process(rgb)
+        
+            # === 3D 用データ保存 ===
             if results.pose_world_landmarks:
                 lm = results.pose_world_landmarks.landmark
                 frame_pts = [[p.x, -p.y, -p.z] for p in lm]
                 frames_data.append(frame_pts)
             else:
                 frames_data.append(None)
+        
+            # === 2D 骨格描画 ===
+            if results.pose_landmarks:
+                mp.solutions.drawing_utils.draw_landmarks(
+                    frame,
+                    results.pose_landmarks,
+                    mp_pose.POSE_CONNECTIONS,
+                    mp.solutions.drawing_styles.get_default_pose_landmarks_style()
+                )
+        
+            writer.write(frame)
         cap.release()
         pose_tracker.close()
 
