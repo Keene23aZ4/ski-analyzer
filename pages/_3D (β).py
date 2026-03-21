@@ -146,7 +146,8 @@ if uploaded:
         ];
 
         conns.forEach(c => createLimb(c[2], c[3], c[4]));
-        // 胴体を3分割
+      
+        createLimb('neck', 0.04, 0.05);  // 下が太く、上が少し細い首
         createLimb('upperTorso', 0.06, 0.10);  // 肩 → 胸
         createLimb('midTorso',   0.05, 0.08);  // 胸 → みぞおち
         createLimb('lowerTorso', 0.04, 0.07);  // みぞおち → 腰     
@@ -195,6 +196,21 @@ if uploaded:
             const hipVec      = new THREE.Vector3().subVectors(pts[24], pts[23]).normalize();
             const twistAngle = shoulderVec.angleTo(hipVec);
             const twistAxis = new THREE.Vector3().crossVectors(shoulderVec, hipVec).normalize();
+            // ===== neck =====
+            const neck = meshes['neck'];
+            if (neck) {
+                const headBase = pts[0].clone().add(new THREE.Vector3(0, -0.12, 0)); // 頭の付け根
+                neck.position.copy(shMid);
+                neck.lookAt(headBase);
+            
+                const dist = shMid.distanceTo(headBase);
+            
+                // 首の太さ（肩幅の 40〜55% が自然）
+                const neckUpper = shoulderWidth * 0.20;  // 上（頭側）
+                const neckLower = shoulderWidth * 0.28;  // 下（胸側）
+            
+                neck.scale.set(neckUpper / 0.05, neckLower / 0.05, dist);
+            }
         
             // upperTorso
             const upper = meshes['upperTorso'];
@@ -202,7 +218,7 @@ if uploaded:
                 upper.position.copy(shMid);
                 upper.lookAt(chestMid);
                 const dist = shMid.distanceTo(chestMid);
-                upper.scale.set(radUpper / 0.08 * 0.70, radUpper / 0.08 * 0.95, dist);
+                upper.scale.set(radUpper / 0.08 * 1.15, radUpper / 0.08 * 0.95, dist);
                 upper.rotateOnAxis(twistAxis, twistAngle * 0.15);
             }}
         
