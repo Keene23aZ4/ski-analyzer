@@ -198,7 +198,7 @@ if uploaded:
             const twistAxis = new THREE.Vector3().crossVectors(shoulderVec, hipVec).normalize();
             // ===== neck =====
             const neck = meshes['neck'];
-            if (neck) {
+            if (neck) {{
                 const headBase = pts[0].clone().add(new THREE.Vector3(0, -0.12, 0)); // 頭の付け根
                 neck.position.copy(shMid);
                 neck.lookAt(headBase);
@@ -210,7 +210,7 @@ if uploaded:
                 const neckLower = shoulderWidth * 0.28;  // 下（胸側）
             
                 neck.scale.set(neckUpper / 0.05, neckLower / 0.05, dist);
-            }
+            }}
         
             // upperTorso
             const upper = meshes['upperTorso'];
