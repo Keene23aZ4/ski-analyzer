@@ -147,9 +147,9 @@ if uploaded:
 
         conns.forEach(c => createLimb(c[2], c[3], c[4]));
       
-        createLimb('upperTorso', 0.08, 0.06);  // 肩 → 胸
-        createLimb('midTorso',   0.06, 0.08);  // 胸 → みぞおち
-        createLimb('lowerTorso', 0.04, 0.07);  // みぞおち → 腰     
+        createLimb('upperTorso', 0.08, 0.07);  // 肩 → 胸
+        createLimb('midTorso',   0.07, 0.08);  // 胸 → みぞおち
+        createLimb('lowerTorso', 0.05, 0.07);  // みぞおち → 腰     
         [11,12,13,14,15,16,23,24,25,26,27,28,0].forEach(i => createJoint(i, 0.05));
         meshes['head'] = new THREE.Mesh(new THREE.SphereGeometry(0.18, 32, 32), skinMat);
         scene.add(meshes['head']);
