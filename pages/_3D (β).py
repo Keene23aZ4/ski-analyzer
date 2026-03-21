@@ -167,6 +167,7 @@ if uploaded:
             for (let i=0; i<33; i++) {{
                 if (meshes['j'+i]) meshes['j'+i].position.copy(pts[i]);
             }}
+            pts[0].z -= 0.10;
             if (meshes['head']) meshes['head'].position.copy(pts[0]);
         
         
