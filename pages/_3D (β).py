@@ -54,38 +54,17 @@ if uploaded:
         pose_tracker = Pose(static_image_mode=False, model_complexity=1, smooth_landmarks=True)
         
         frames_data = []
-        # 骨格描画用の VideoWriter を準備
-        h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-        fourcc = cv2.VideoWriter_fourcc(*"mp4v")
-        skel_path = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4").name
-        writer = cv2.VideoWriter(skel_path, fourcc, fps, (w, h))
         while cap.isOpened():
             ret, frame = cap.read()
-            if not ret:
-                break
-        
+            if not ret: break
             rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             results = pose_tracker.process(rgb)
-        
-            # === 3D 用データ保存 ===
             if results.pose_world_landmarks:
                 lm = results.pose_world_landmarks.landmark
                 frame_pts = [[p.x, -p.y, -p.z] for p in lm]
                 frames_data.append(frame_pts)
             else:
                 frames_data.append(None)
-        
-            # === 2D 骨格描画 ===
-            if results.pose_landmarks:
-                mp.solutions.drawing_utils.draw_landmarks(
-                    frame,
-                    results.pose_landmarks,
-                    mp_pose.POSE_CONNECTIONS,
-                    mp.solutions.drawing_styles.get_default_pose_landmarks_style()
-                )
-        
-            writer.write(frame)
         cap.release()
         pose_tracker.close()
 
@@ -167,12 +146,12 @@ if uploaded:
         ];
 
         conns.forEach(c => createLimb(c[2], c[3], c[4]));
-      
-        createLimb('upperTorso', 0.08, 0.07);  // 肩 → 胸
-        createLimb('midTorso',   0.07, 0.08);  // 胸 → みぞおち
-        createLimb('lowerTorso', 0.05, 0.07);  // みぞおち → 腰     
+        // 胴体を3分割
+        createLimb('upperTorso', 0.06, 0.10);  // 肩 → 胸
+        createLimb('midTorso',   0.05, 0.08);  // 胸 → みぞおち
+        createLimb('lowerTorso', 0.04, 0.07);  // みぞおち → 腰     
         [11,12,13,14,15,16,23,24,25,26,27,28,0].forEach(i => createJoint(i, 0.05));
-        meshes['head'] = new THREE.Mesh(new THREE.SphereGeometry(0.25, 32, 32), skinMat);
+        meshes['head'] = new THREE.Mesh(new THREE.SphereGeometry(0.15, 32, 32), skinMat);
         scene.add(meshes['head']);
 
         function updateAvatar() {{
@@ -188,17 +167,15 @@ if uploaded:
             for (let i=0; i<33; i++) {{
                 if (meshes['j'+i]) meshes['j'+i].position.copy(pts[i]);
             }}
-
             if (meshes['head']) meshes['head'].position.copy(pts[0]);
         
         
             // ===== 胴体3分割（完全版） =====
         
             const shMid = new THREE.Vector3().addVectors(pts[11], pts[12]).multiplyScalar(0.5);
-            shMid.y -= -0.2;
             const hiMid = new THREE.Vector3().addVectors(pts[23], pts[24]).multiplyScalar(0.5);
         
-            const chestMid = shMid.clone().lerp(hiMid, 0.20);
+            const chestMid = shMid.clone().lerp(hiMid, 0.33);
             const stomachMid = shMid.clone().lerp(hiMid, 0.66);
         
             // S字カーブ
@@ -209,34 +186,34 @@ if uploaded:
             const shoulderWidth = pts[11].distanceTo(pts[12]);
             const hipWidth = pts[23].distanceTo(pts[24]);
         
-            const radUpper = shoulderWidth * 0.26;
-            const radMid   = shoulderWidth * 0.26;
-            const radLower = hipWidth      * 0.24;
+            const radUpper = shoulderWidth * 0.28;
+            const radMid   = shoulderWidth * 0.22;
+            const radLower = hipWidth      * 0.20;
         
             // ひねり
             const shoulderVec = new THREE.Vector3().subVectors(pts[12], pts[11]).normalize();
             const hipVec      = new THREE.Vector3().subVectors(pts[24], pts[23]).normalize();
             const twistAngle = shoulderVec.angleTo(hipVec);
             const twistAxis = new THREE.Vector3().crossVectors(shoulderVec, hipVec).normalize();
-
+        
             // upperTorso
             const upper = meshes['upperTorso'];
             if (upper) {{
                 upper.position.copy(shMid);
                 upper.lookAt(chestMid);
                 const dist = shMid.distanceTo(chestMid);
-                upper.scale.set(radUpper / 0.08 * 1.15, radUpper / 0.08 * 0.95, dist * 0.70);
-                upper.rotateOnAxis(twistAxis, twistAngle * 0.15);
+                upper.scale.set(radUpper / 0.08 * 1.3, radUpper / 0.08 * 0.8, dist);
+                upper.rotateOnAxis(twistAxis, twistAngle * 0.2);
             }}
-   
+        
             // midTorso
             const mid = meshes['midTorso'];
             if (mid) {{
                 mid.position.copy(chestMid);
                 mid.lookAt(stomachMid);
                 const dist = chestMid.distanceTo(stomachMid);
-                mid.scale.set(radMid / 0.08 * 1.00, radMid / 0.08 * 0.80, dist * 1.0);
-                mid.rotateOnAxis(twistAxis,   twistAngle * 0.35);
+                mid.scale.set(radMid / 0.08 * 1.25, radMid / 0.08 * 0.75, dist);
+                mid.rotateOnAxis(twistAxis, twistAngle * 0.5);
             }}
         
             // lowerTorso
@@ -245,8 +222,8 @@ if uploaded:
                 lower.position.copy(stomachMid);
                 lower.lookAt(hiMid);
                 const dist = stomachMid.distanceTo(hiMid);
-                lower.scale.set(radLower / 0.08 * 1.2, radLower / 0.08 * 1.00, dist * 0.8);
-                lower.rotateOnAxis(twistAxis, twistAngle * 0.55);
+                lower.scale.set(radLower / 0.08 * 1.2, radLower / 0.08 * 0.7, dist);
+                lower.rotateOnAxis(twistAxis, twistAngle * 0.8);
             }}
         
         
@@ -309,8 +286,4 @@ if uploaded:
         animate();
     </script>
     """
-    # === 骨格描画動画の表示 ===
-    st.subheader("Detected Skeleton Video")
-    skel_bytes = open(skel_path, "rb").read()
-    st.video(skel_bytes)
     st.components.v1.html(html_code, height=1250)
