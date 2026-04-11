@@ -121,39 +121,20 @@ if uploaded:
         const skinMat = new THREE.MeshStandardMaterial({{ color: 0x828282, roughness: 0.4 }});
         const jointMat = new THREE.MeshStandardMaterial({{ color: 0x00d2ff, emissive: 0x00d2ff, emissiveIntensity: 0.2 }});
         const meshes = {{}};
+        let currentVRM = null;
 
-        function createLimb(name, rStart, rEnd) {{
-            const geo = new THREE.CylinderGeometry(rEnd, rStart, 1, 16);
-            geo.rotateX(-Math.PI / 2);
-            geo.translate(0, 0, 0.5);
-            const mesh = new THREE.Mesh(geo, skinMat);
-            mesh.castShadow = true;
-            scene.add(mesh);
-            meshes[name] = mesh;
-        }}
+        const loader = new THREE.GLTFLoader();
+        loader.load("model.vrm", (gltf) => {
+            THREE.VRM.from(gltf).then((vrm) => {
+                currentVRM = vrm;
+                scene.add(vrm.scene);
         
-        function createJoint(i, r) {{
-            const mesh = new THREE.Mesh(new THREE.SphereGeometry(r, 24, 24), jointMat);
-            mesh.castShadow = true;
-            scene.add(mesh);
-            meshes['j' + i] = mesh;
-        }}
+                // VRM の初期姿勢を整える（任意）
+                vrm.scene.rotation.y = Math.PI; 
+            });
+        });
 
-        const conns = [
-            [11, 13, 'L_upArm', 0.04, 0.06], [13, 15, 'L_lowArm', 0.03, 0.04],
-            [12, 14, 'R_upArm', 0.04, 0.06], [14, 16, 'R_lowArm', 0.03, 0.04],
-            [23, 25, 'L_thigh', 0.08, 0.1],  [25, 27, 'L_shin', 0.04, 0.07],
-            [24, 26, 'R_thigh', 0.08, 0.1],  [26, 28, 'R_shin', 0.04, 0.07]
-        ];
 
-        conns.forEach(c => createLimb(c[2], c[3], c[4]));
-        // 胴体を3分割
-        createLimb('upperTorso', 0.06, 0.10);  // 肩 → 胸
-        createLimb('midTorso',   0.05, 0.08);  // 胸 → みぞおち
-        createLimb('lowerTorso', 0.04, 0.07);  // みぞおち → 腰     
-        [11,12,13,14,15,16,23,24,25,26,27,28,0].forEach(i => createJoint(i, 0.05));
-        meshes['head'] = new THREE.Mesh(new THREE.SphereGeometry(0.15, 32, 32), skinMat);
-        scene.add(meshes['head']);
 
         function updateAvatar() {
                 if (!animData.frames.length) return;
