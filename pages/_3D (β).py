@@ -154,19 +154,26 @@ if uploaded:
         meshes['head'] = new THREE.Mesh(new THREE.SphereGeometry(0.15, 32, 32), skinMat);
         scene.add(meshes['head']);
 
-        function updateAvatar() {{
-            if (!animData.frames.length) return;
-            let fIdx = Math.floor(video.currentTime * animData.fps);
-            if (fIdx >= animData.frames.length) fIdx = animData.frames.length - 1;
-            const raw = animData.frames[fIdx];
-            if (!raw) return;
-        
-            const pts = raw.map(p => new THREE.Vector3(p[0]*4, p[1]*4 + 2.5, p[2]*4));
-        
-            // --- joints ---
-            for (let i=0; i<33; i++) {{
-                if (meshes['j'+i]) meshes['j'+i].position.copy(pts[i]);
-            }}
+        function updateAvatar() {
+                if (!animData.frames.length) return;
+            
+                let fIdx = Math.floor(video.currentTime * animData.fps);
+                if (fIdx >= animData.frames.length) fIdx = animData.frames.length - 1;
+            
+                const raw = animData.frames[fIdx];
+                if (!raw) return;
+            
+                // MediaPipe → Kalidokit
+                const kalidoPose = Kalidokit.Pose.solve(raw, {
+                    runtime: "mediapipe",
+                });
+            
+                // Kalidokit → VRM
+                if (currentVRM) {
+                    Kalidokit.VRMUtils.animateVRM(currentVRM, kalidoPose);
+                }
+            }
+
             if (meshes['head']) meshes['head'].position.copy(pts[0]);
         
         
