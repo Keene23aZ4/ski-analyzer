@@ -68,18 +68,26 @@ if uploaded:
         cap.release()
         pose_tracker.close()
 
-    video_bytes = open(video_path, 'rb').read()
-    video_b64 = base64.b64encode(video_bytes).decode()
+    vrm_bytes = open("model.vrm", "rb").read()
+    vrm_b64 = base64.b64encode(vrm_bytes).decode()
     payload = json.dumps({"fps": fps, "frames": frames_data})
     
     # 修正ポイント: html_codeの定義から末尾までインデントを正確に揃えました
     html_code = f"""
-    <div style="display: flex; flex-direction: column; align-items: center; gap: 15px;">
-        <video id="sync_video" width="100%" controls playsinline style="border-radius: 12px; border: 1px solid #ccc;">
-            <source src="data:video/mp4;base64,{video_b64}" type="video/mp4">
-        </video>
-        <div id="container" style="width:100%; height:600px; background:#ffffff; border-radius:12px; overflow:hidden; border: 1px solid #eaeaea;"></div>
-    </div>
+    <script>
+    const vrmBase64 = "{vrm_b64}";
+    const vrmBlob = fetch("data:application/octet-stream;base64," + vrmBase64)
+      .then(res => res.arrayBuffer())
+      .then(buffer => {{
+          loader.parse(buffer, "", (gltf) => {{
+              THREE.VRM.from(gltf).then((vrm) => {{
+                  currentVRM = vrm;
+                  scene.add(vrm.scene);
+              }});
+          }});
+      }});
+    </script>
+    """
     
     <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/examples/js/controls/OrbitControls.js"></script>
