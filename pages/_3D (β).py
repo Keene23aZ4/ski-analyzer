@@ -60,6 +60,7 @@ if uploaded:
             rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             results = pose_tracker.process(rgb)
             if results.pose_world_landmarks:
+                lm = results.pose_world_landmarks.landmark  # ← これが必要
                 frame_pts = [[p.x, -p.y, -p.z] for p in lm]
                 frames_data.append(frame_pts)
             else:
