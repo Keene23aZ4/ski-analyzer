@@ -98,7 +98,7 @@ html_code = f"""
     const camera = new THREE.PerspectiveCamera(40, container.clientWidth/600, 0.1, 100);
     camera.position.set(6, 4, 8);
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    const renderer = new THREE.WebGLRenderer({{ antialias: true, alpha: true }});
     renderer.setSize(container.clientWidth, 600);
     renderer.shadowMap.enabled = true;
     container.appendChild(renderer.domElement);
@@ -119,17 +119,17 @@ html_code = f"""
     let currentVRM = null;
 
     const loader = new THREE.GLTFLoader();
-    loader.load("model.vrm", (gltf) => {
-        THREE.VRM.from(gltf).then((vrm) => {
+    loader.load("model.vrm", (gltf) => {{
+        THREE.VRM.from(gltf).then((vrm) => {{
             currentVRM = vrm;
             scene.add(vrm.scene);
 
             vrm.scene.rotation.y = Math.PI; // 初期向き調整
-        });
-    });
+        }});
+    }});
 
     // ===== VRM アニメーション =====
-    function updateAvatar() {
+    function updateAvatar() {{
         if (!animData.frames.length) return;
 
         let fIdx = Math.floor(video.currentTime * animData.fps);
@@ -138,23 +138,23 @@ html_code = f"""
         const raw = animData.frames[fIdx];
         if (!raw) return;
 
-        const kalidoPose = Kalidokit.Pose.solve(raw, {
+        const kalidoPose = Kalidokit.Pose.solve(raw, {{
             runtime: "mediapipe",
-        });
+        }});
 
-        if (currentVRM) {
+        if (currentVRM) {{
             Kalidokit.VRMUtils.animateVRM(currentVRM, kalidoPose);
-        }
-    }
+        }}
+    }}
 
-    function animate() {
+    function animate() {{
         requestAnimationFrame(animate);
         controls.update();
         updateAvatar();
         renderer.render(scene, camera);
-    }
+    }}
     animate();
 </script>
+"""
 
-    """
     st.components.v1.html(html_code, height=1250)
