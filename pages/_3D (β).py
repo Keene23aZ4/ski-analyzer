@@ -54,11 +54,7 @@ if uploaded:
         pose_tracker = Pose(static_image_mode=False, model_complexity=1, smooth_landmarks=True)
         
         frames_data = []
-        while cap.isOpened():
-            ret, frame = cap.read()
-            if not ret: break
-            rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            results = pose_tracker.process(rgb)
+
             prev_pts = None  # ← while の前に置く
 
             while cap.isOpened():
