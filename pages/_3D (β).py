@@ -67,7 +67,9 @@ if uploaded:
                 frames_data.append(None)
         cap.release()
         pose_tracker.close()
-
+    
+    video_bytes = open(video_path, "rb").read()
+    video_b64 = base64.b64encode(video_bytes).decode()
     import requests
     
     vrm_url = "https://raw.githubusercontent.com/Keene23aZ4/ski-analyzer/main/pages/model.vrm"
