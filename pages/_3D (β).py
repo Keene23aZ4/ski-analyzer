@@ -55,45 +55,45 @@ if uploaded:
         
         frames_data = []
 
-            prev_pts = None  # ← while の前に置く
+        prev_pts = None  # ← while の前に置く
 
-            while cap.isOpened():
-                ret, frame = cap.read()
-                if not ret:
-                    break
-            
-                rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                results = pose_tracker.process(rgb)
-            
-                if results.pose_world_landmarks:
-                    lm = results.pose_world_landmarks.landmark
-                    frame_pts = []
-            
-                    # 33 点すべてをチェック
-                    for i in range(33):
-                        p = lm[i]
-                        if p.visibility < 0.5:
-                            frame_pts.append(None)
-                        else:
-                            frame_pts.append([p.x, -p.y, -p.z])
-            
-                    # 欠損を前フレームで補完
-                    if prev_pts is not None:
-                        for i in range(33):
-                            if frame_pts[i] is None:
-                                frame_pts[i] = prev_pts[i]
-            
-                    prev_pts = frame_pts
-                    frames_data.append(frame_pts)
-            
-                else:
-                    # 完全欠損 → 前フレームをコピー
-                    if prev_pts is not None:
-                        frames_data.append(prev_pts)
+        while cap.isOpened():
+            ret, frame = cap.read()
+            if not ret:
+                break
+        
+            rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            results = pose_tracker.process(rgb)
+        
+            if results.pose_world_landmarks:
+                lm = results.pose_world_landmarks.landmark
+                frame_pts = []
+        
+                # 33 点すべてをチェック
+                for i in range(33):
+                    p = lm[i]
+                    if p.visibility < 0.5:
+                        frame_pts.append(None)
                     else:
-                        frames_data.append([[0,0,0]] * 33)
-        cap.release()
-        pose_tracker.close()
+                        frame_pts.append([p.x, -p.y, -p.z])
+        
+                # 欠損を前フレームで補完
+                if prev_pts is not None:
+                    for i in range(33):
+                        if frame_pts[i] is None:
+                            frame_pts[i] = prev_pts[i]
+        
+                prev_pts = frame_pts
+                frames_data.append(frame_pts)
+        
+            else:
+                # 完全欠損 → 前フレームをコピー
+                if prev_pts is not None:
+                    frames_data.append(prev_pts)
+                else:
+                    frames_data.append([[0,0,0]] * 33)
+    cap.release()
+    pose_tracker.close()
     
     video_bytes = open(video_path, "rb").read()
     video_b64 = base64.b64encode(video_bytes).decode()
