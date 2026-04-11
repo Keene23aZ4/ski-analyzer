@@ -64,7 +64,7 @@ if uploaded:
                 frame_pts = [[p.x, -p.y, -p.z] for p in lm]
                 frames_data.append(frame_pts)
             else:
-                frames_data.append(None)
+                frames_data.append([])
         cap.release()
         pose_tracker.close()
     
