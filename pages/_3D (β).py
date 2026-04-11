@@ -151,27 +151,39 @@ if uploaded:
         light.castShadow = true;
         scene.add(light);
     
-        // ===== VRM ローダー =====
+        // ===== VRM ローダー（Web版対応） =====
         let currentVRM = null;
         const loader = new THREE.GLTFLoader();
-    
-        // ★ ここはローカル用。Web 版にするなら後で base64 版に差し替える
-        loader.load(
-            "/static/model.vrm",
-            (gltf) => {{
-                THREE.VRM.from(gltf).then((vrm) => {{
-                    currentVRM = vrm;
-                    scene.add(vrm.scene);
-    
-                    vrm.scene.rotation.y = Math.PI;
-                    vrm.scene.scale.set(0.1, 0.1, 0.1);
-                }});
-            }},
-            undefined,
-            (err) => {{
-                console.error("VRM load error:", err);
-            }}
-        );
+        
+        const vrmBase64 = "{vrm_b64}";
+        
+        // base64 → ArrayBuffer
+        function base64ToArrayBuffer(base64) {
+            const binary = atob(base64);
+            const len = binary.length;
+            const buffer = new ArrayBuffer(len);
+            const view = new Uint8Array(buffer);
+            for (let i = 0; i < len; i++) {
+                view[i] = binary.charCodeAt(i);
+            }
+            return buffer;
+        }
+        
+        const vrmBuffer = base64ToArrayBuffer(vrmBase64);
+        
+        // GLTFLoader.parse を使って VRM を読み込む
+        loader.parse(vrmBuffer, "", (gltf) => {
+            THREE.VRM.from(gltf).then((vrm) => {
+                currentVRM = vrm;
+                scene.add(vrm.scene);
+        
+                vrm.scene.rotation.y = Math.PI;
+                vrm.scene.scale.set(0.1, 0.1, 0.1);
+            });
+        }, (err) => {
+            console.error("VRM parse error:", err);
+        });
+
     
         // ===== VRM アニメーション =====
         function updateAvatar() {{
