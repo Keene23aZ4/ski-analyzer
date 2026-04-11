@@ -74,20 +74,12 @@ if uploaded:
     
     # 修正ポイント: html_codeの定義から末尾までインデントを正確に揃えました
     html_code = f"""
-    <script>
-    const vrmBase64 = "{vrm_b64}";
-    const vrmBlob = fetch("data:application/octet-stream;base64," + vrmBase64)
-      .then(res => res.arrayBuffer())
-      .then(buffer => {{
-          loader.parse(buffer, "", (gltf) => {{
-              THREE.VRM.from(gltf).then((vrm) => {{
-                  currentVRM = vrm;
-                  scene.add(vrm.scene);
-              }});
-          }});
-      }});
-    </script>
-    """
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 15px;">
+        <video id="sync_video" width="100%" controls playsinline style="border-radius: 12px; border: 1px solid #ccc;">
+            <source src="data:video/mp4;base64,{video_b64}" type="video/mp4">
+        </video>
+        <div id="container" style="width:100%; height:600px; background:#ffffff; border-radius:12px; overflow:hidden; border: 1px solid #eaeaea;"></div>
+    </div>
     
     <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/examples/js/controls/OrbitControls.js"></script>
@@ -125,9 +117,11 @@ if uploaded:
     
         // ===== VRM ローダー =====
         let currentVRM = null;
-    
         const loader = new THREE.GLTFLoader();
-        loader.load("/static/model.vrm",
+    
+        // ★ ここはローカル用。Web 版にするなら後で base64 版に差し替える
+        loader.load(
+            "/static/model.vrm",
             (gltf) => {{
                 THREE.VRM.from(gltf).then((vrm) => {{
                     currentVRM = vrm;
@@ -142,9 +136,6 @@ if uploaded:
                 console.error("VRM load error:", err);
             }}
         );
-        const raw = animData.frames[fIdx];
-        console.log("RAW FRAME:", raw);
-
     
         // ===== VRM アニメーション =====
         function updateAvatar() {{
@@ -154,6 +145,7 @@ if uploaded:
             if (fIdx >= animData.frames.length) fIdx = animData.frames.length - 1;
     
             const raw = animData.frames[fIdx];
+            console.log("RAW FRAME:", raw);
     
             if (!raw || !Array.isArray(raw) || raw.length === 0) return;
             if (!raw[0] || raw[0].length < 3) return;
@@ -176,4 +168,5 @@ if uploaded:
         animate();
     </script>
     """
+    
     st.components.v1.html(html_code, height=1250)
