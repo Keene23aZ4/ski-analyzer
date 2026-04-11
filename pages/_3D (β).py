@@ -73,97 +73,87 @@ if uploaded:
     payload = json.dumps({"fps": fps, "frames": frames_data})
     
     # 修正ポイント: html_codeの定義から末尾までインデントを正確に揃えました
-    html_code = f"""
-    <div style="display: flex; flex-direction: column; align-items: center; gap: 15px;">
-        <video id="sync_video" width="100%" controls playsinline style="border-radius: 12px; border: 1px solid #ccc;">
-            <source src="data:video/mp4;base64,{video_b64}" type="video/mp4">
-        </video>
-        <div id="container" style="width:100%; height:600px; background:#ffffff; border-radius:12px; overflow:hidden; border: 1px solid #eaeaea;"></div>
-    </div>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 15px;">
+    <video id="sync_video" width="100%" controls playsinline style="border-radius: 12px; border: 1px solid #ccc;">
+        <source src="data:video/mp4;base64,{video_b64}" type="video/mp4">
+    </video>
+    <div id="container" style="width:100%; height:600px; background:#ffffff; border-radius:12px; overflow:hidden; border: 1px solid #eaeaea;"></div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/examples/js/loaders/GLTFLoader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@1.0.11/lib/three-vrm.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/kalidokit@1.1.0/dist/kalidokit.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.141.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.141.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.141.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@1.0.11/lib/three-vrm.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/kalidokit@1.1.0/dist/kalidokit.umd.js"></script>
 
-    <script>
-        const video = document.getElementById('sync_video');
-        const container = document.getElementById('container');
-        const animData = {payload}; 
-        
-        const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x1c2833);
-        
-        const camera = new THREE.PerspectiveCamera(40, container.clientWidth/600, 0.1, 100);
-        camera.position.set(6, 4, 8);
-        
-        const renderer = new THREE.WebGLRenderer({{ antialias: true, alpha: true }});
-        renderer.setSize(container.clientWidth, 600);
-        renderer.shadowMap.enabled = true;
-        container.appendChild(renderer.domElement);
-        
-        const controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;
+<script>
+    const video = document.getElementById('sync_video');
+    const container = document.getElementById('container');
+    const animData = {payload};
 
-        scene.add(new THREE.GridHelper(10, 20, 0x0088ff, 0xdddddd));
-        const gridXY = new THREE.GridHelper(10, 20, 0x888888, 0xeeeeee);
-        gridXY.rotation.x = Math.PI / 2; gridXY.position.set(0, 5, -5); scene.add(gridXY);
-        const gridYZ = new THREE.GridHelper(10, 20, 0x888888, 0xeeeeee);
-        gridYZ.rotation.z = Math.PI / 2; gridYZ.position.set(-5, 5, 0); scene.add(gridYZ);
-        scene.add(new THREE.AxesHelper(5));
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x1c2833);
 
-        scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-        const light = new THREE.DirectionalLight(0xffffff, 0.7);
-        light.position.set(5, 10, 5); light.castShadow = true; scene.add(light);
+    const camera = new THREE.PerspectiveCamera(40, container.clientWidth/600, 0.1, 100);
+    camera.position.set(6, 4, 8);
 
-        const plane = new THREE.Mesh(new THREE.PlaneGeometry(20, 20), new THREE.ShadowMaterial({{ opacity: 0.1 }}));
-        plane.rotation.x = -Math.PI / 2; plane.receiveShadow = true; scene.add(plane);
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(container.clientWidth, 600);
+    renderer.shadowMap.enabled = true;
+    container.appendChild(renderer.domElement);
 
-        const skinMat = new THREE.MeshStandardMaterial({{ color: 0x828282, roughness: 0.4 }});
-        const jointMat = new THREE.MeshStandardMaterial({{ color: 0x00d2ff, emissive: 0x00d2ff, emissiveIntensity: 0.2 }});
-        const meshes = {{}};
-        let currentVRM = null;
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
 
-        const loader = new THREE.GLTFLoader();
-        loader.load("model.vrm", (gltf) => {
-            THREE.VRM.from(gltf).then((vrm) => {
-                currentVRM = vrm;
-                scene.add(vrm.scene);
-        
-                // VRM の初期姿勢を整える（任意）
-                vrm.scene.rotation.y = Math.PI; 
-            });
+    scene.add(new THREE.GridHelper(10, 20, 0x0088ff, 0xdddddd));
+    scene.add(new THREE.AxesHelper(5));
+
+    scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+    const light = new THREE.DirectionalLight(0xffffff, 0.7);
+    light.position.set(5, 10, 5);
+    light.castShadow = true;
+    scene.add(light);
+
+    // ===== VRM ローダー =====
+    let currentVRM = null;
+
+    const loader = new THREE.GLTFLoader();
+    loader.load("model.vrm", (gltf) => {
+        THREE.VRM.from(gltf).then((vrm) => {
+            currentVRM = vrm;
+            scene.add(vrm.scene);
+
+            vrm.scene.rotation.y = Math.PI; // 初期向き調整
+        });
+    });
+
+    // ===== VRM アニメーション =====
+    function updateAvatar() {
+        if (!animData.frames.length) return;
+
+        let fIdx = Math.floor(video.currentTime * animData.fps);
+        if (fIdx >= animData.frames.length) fIdx = animData.frames.length - 1;
+
+        const raw = animData.frames[fIdx];
+        if (!raw) return;
+
+        const kalidoPose = Kalidokit.Pose.solve(raw, {
+            runtime: "mediapipe",
         });
 
+        if (currentVRM) {
+            Kalidokit.VRMUtils.animateVRM(currentVRM, kalidoPose);
+        }
+    }
 
+    function animate() {
+        requestAnimationFrame(animate);
+        controls.update();
+        updateAvatar();
+        renderer.render(scene, camera);
+    }
+    animate();
+</script>
 
-        function updateAvatar() {
-                if (!animData.frames.length) return;
-            
-                let fIdx = Math.floor(video.currentTime * animData.fps);
-                if (fIdx >= animData.frames.length) fIdx = animData.frames.length - 1;
-            
-                const raw = animData.frames[fIdx];
-                if (!raw) return;
-            
-                // MediaPipe → Kalidokit
-                const kalidoPose = Kalidokit.Pose.solve(raw, {
-                    runtime: "mediapipe",
-                });
-            
-                // Kalidokit → VRM
-                if (currentVRM) {
-                    Kalidokit.VRMUtils.animateVRM(currentVRM, kalidoPose);
-                }
-            }
-
-
-        function animate() {{
-            requestAnimationFrame(animate);
-            controls.update();
-            updateAvatar();
-            renderer.render(scene, camera);
-        }}
-        animate();
-    </script>
     """
     st.components.v1.html(html_code, height=1250)
