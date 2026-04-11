@@ -137,7 +137,7 @@ if uploaded:
         );
     
         // ===== VRM アニメーション =====
-        function updateAvatar() {
+        function updateAvatar() {{
             if (!animData.frames.length) return;
         
             let fIdx = Math.floor(video.currentTime * animData.fps);
@@ -156,7 +156,7 @@ if uploaded:
             if (currentVRM) {
                 Kalidokit.VRMUtils.animateVRM(currentVRM, kalidoPose);
             }
-        }
+        }}
     
         function animate() {{
             requestAnimationFrame(animate);
