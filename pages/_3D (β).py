@@ -119,14 +119,22 @@ if uploaded:
         let currentVRM = null;
     
         const loader = new THREE.GLTFLoader();
-        loader.load("model.vrm", (gltf) => {{
-            THREE.VRM.from(gltf).then((vrm) => {{
-                currentVRM = vrm;
-                scene.add(vrm.scene);
-    
-                vrm.scene.rotation.y = Math.PI; // 初期向き調整
-            }});
-        }});
+        loader.load(
+            "model.vrm",
+            (gltf) => {
+                THREE.VRM.from(gltf).then((vrm) => {
+                    currentVRM = vrm;
+                    scene.add(vrm.scene);
+        
+                    vrm.scene.rotation.y = Math.PI;
+                    vrm.scene.scale.set(0.1, 0.1, 0.1); // ← 安全のため追加
+                });
+            },
+            undefined,
+            (err) => {
+                console.error("VRM load error:", err);
+            }
+        );
     
         // ===== VRM アニメーション =====
         function updateAvatar() {{
