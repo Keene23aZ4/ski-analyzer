@@ -73,6 +73,7 @@ if uploaded:
     payload = json.dumps({"fps": fps, "frames": frames_data})
     
     # 修正ポイント: html_codeの定義から末尾までインデントを正確に揃えました
+html_code = f"""
 <div style="display: flex; flex-direction: column; align-items: center; gap: 15px;">
     <video id="sync_video" width="100%" controls playsinline style="border-radius: 12px; border: 1px solid #ccc;">
         <source src="data:video/mp4;base64,{video_b64}" type="video/mp4">
