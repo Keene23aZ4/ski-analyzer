@@ -81,9 +81,10 @@ if uploaded:
         <div id="container" style="width:100%; height:600px; background:#ffffff; border-radius:12px; overflow:hidden; border: 1px solid #eaeaea;"></div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/build/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/examples/js/controls/OrbitControls.js"></script>
-    
+    <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@1.0.11/lib/three-vrm.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/kalidokit@1.1.0/dist/kalidokit.umd.js"></script>
+
     <script>
         const video = document.getElementById('sync_video');
         const container = document.getElementById('container');
@@ -174,115 +175,6 @@ if uploaded:
                 }
             }
 
-            if (meshes['head']) meshes['head'].position.copy(pts[0]);
-        
-        
-            // ===== 胴体3分割（完全版） =====
-        
-            const shMid = new THREE.Vector3().addVectors(pts[11], pts[12]).multiplyScalar(0.5);
-            const hiMid = new THREE.Vector3().addVectors(pts[23], pts[24]).multiplyScalar(0.5);
-        
-            const chestMid = shMid.clone().lerp(hiMid, 0.33);
-            const stomachMid = shMid.clone().lerp(hiMid, 0.66);
-        
-            // S字カーブ
-            chestMid.z += 0.05;
-            stomachMid.z -= 0.05;
-        
-            // 太さ
-            const shoulderWidth = pts[11].distanceTo(pts[12]);
-            const hipWidth = pts[23].distanceTo(pts[24]);
-        
-            const radUpper = shoulderWidth * 0.28;
-            const radMid   = shoulderWidth * 0.22;
-            const radLower = hipWidth      * 0.20;
-        
-            // ひねり
-            const shoulderVec = new THREE.Vector3().subVectors(pts[12], pts[11]).normalize();
-            const hipVec      = new THREE.Vector3().subVectors(pts[24], pts[23]).normalize();
-            const twistAngle = shoulderVec.angleTo(hipVec);
-            const twistAxis = new THREE.Vector3().crossVectors(shoulderVec, hipVec).normalize();
-        
-            // upperTorso
-            const upper = meshes['upperTorso'];
-            if (upper) {{
-                upper.position.copy(shMid);
-                upper.lookAt(chestMid);
-                const dist = shMid.distanceTo(chestMid);
-                upper.scale.set(radUpper / 0.08 * 1.3, radUpper / 0.08 * 0.8, dist);
-                upper.rotateOnAxis(twistAxis, twistAngle * 0.2);
-            }}
-        
-            // midTorso
-            const mid = meshes['midTorso'];
-            if (mid) {{
-                mid.position.copy(chestMid);
-                mid.lookAt(stomachMid);
-                const dist = chestMid.distanceTo(stomachMid);
-                mid.scale.set(radMid / 0.08 * 1.25, radMid / 0.08 * 0.75, dist);
-                mid.rotateOnAxis(twistAxis, twistAngle * 0.5);
-            }}
-        
-            // lowerTorso
-            const lower = meshes['lowerTorso'];
-            if (lower) {{
-                lower.position.copy(stomachMid);
-                lower.lookAt(hiMid);
-                const dist = stomachMid.distanceTo(hiMid);
-                lower.scale.set(radLower / 0.08 * 1.2, radLower / 0.08 * 0.7, dist);
-                lower.rotateOnAxis(twistAxis, twistAngle * 0.8);
-            }}
-        
-        
-            // ===== 腕と脚の自然形状 =====
-            updateArm('L_upArm',  pts[11], pts[13], shoulderWidth * 0.18,  0.15);
-            updateArm('L_lowArm', pts[13], pts[15], shoulderWidth * 0.14, -0.10);
-        
-            updateArm('R_upArm',  pts[12], pts[14], shoulderWidth * 0.18, -0.15);
-            updateArm('R_lowArm', pts[14], pts[16], shoulderWidth * 0.14,  0.10);
-        
-            updateLeg('L_thigh', pts[23], pts[25], hipWidth * 0.22,  0.10);
-            updateLeg('L_shin',  pts[25], pts[27], hipWidth * 0.18, -0.05);
-        
-            updateLeg('R_thigh', pts[24], pts[26], hipWidth * 0.22, -0.10);
-            updateLeg('R_shin',  pts[26], pts[28], hipWidth * 0.18,  0.05);
-        }}
-        // ===== 腕の自然形状 =====
-        function updateArm(name, pA, pB, baseRadius, twist=0) {{
-            const m = meshes[name];
-            if (!m) return;
-        
-            const length = pA.distanceTo(pB);
-        
-            m.position.copy(pA);
-            m.lookAt(pB);
-        
-            const scaleX = baseRadius * 0.65;
-            const scaleY = baseRadius * 0.5;
-        
-            m.scale.set(scaleX / 0.05, scaleY / 0.05, length);
-        
-            m.rotateZ(twist);
-        }}
-        
-        
-        // ===== 脚の自然形状 =====
-        function updateLeg(name, pA, pB, baseRadius, twist=0) {{
-            const m = meshes[name];
-            if (!m) return;
-        
-            const length = pA.distanceTo(pB);
-        
-            m.position.copy(pA);
-            m.lookAt(pB);
-        
-            const scaleX = baseRadius * 0.8;
-            const scaleY = baseRadius * 0.65;
-        
-            m.scale.set(scaleX / 0.06, scaleY / 0.06, length);
-        
-            m.rotateZ(twist);
-        }}
 
         function animate() {{
             requestAnimationFrame(animate);
