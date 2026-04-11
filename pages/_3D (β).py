@@ -68,7 +68,9 @@ if uploaded:
         cap.release()
         pose_tracker.close()
 
-    vrm_bytes = open("model.vrm", "rb").read()
+    import requests
+    vrm_url = "https://github.com/Keene23aZ4/ski-analyzer/blob/main/pages/model.vrm"
+    vrm_bytes = requests.get(vrm_url).content
     vrm_b64 = base64.b64encode(vrm_bytes).decode()
     payload = json.dumps({"fps": fps, "frames": frames_data})
     
