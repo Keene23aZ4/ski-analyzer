@@ -151,9 +151,9 @@ if uploaded:
     
             const raw = animData.frames[fIdx];
             console.log("RAW FRAME:", raw);
-    
+            
             if (!raw || !Array.isArray(raw) || raw.length === 0) return;
-            if (!raw[0] || raw[0].length < 3) return;
+            if (!Array.isArray(raw[0]) || raw[0].length < 3) return;
     
             const kalidoPose = Kalidokit.Pose.solve(raw, {{
                 runtime: "mediapipe",
