@@ -156,5 +156,4 @@ html_code = f"""
     animate();
 </script>
 """
-
-    st.components.v1.html(html_code, height=1250)
+st.components.v1.html(html_code, height=1250)
