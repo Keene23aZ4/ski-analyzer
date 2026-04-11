@@ -139,23 +139,22 @@ if uploaded:
         // ===== VRM アニメーション =====
         function updateAvatar() {{
             if (!animData.frames.length) return;
-        
+    
             let fIdx = Math.floor(video.currentTime * animData.fps);
             if (fIdx >= animData.frames.length) fIdx = animData.frames.length - 1;
-        
+    
             const raw = animData.frames[fIdx];
-        
-            // ★ 追加：raw が壊れている場合はスキップ
+    
             if (!raw || !Array.isArray(raw) || raw.length === 0) return;
             if (!raw[0] || raw[0].length < 3) return;
-        
-            const kalidoPose = Kalidokit.Pose.solve(raw, {
+    
+            const kalidoPose = Kalidokit.Pose.solve(raw, {{
                 runtime: "mediapipe",
-            });
-        
-            if (currentVRM) {
+            }});
+    
+            if (currentVRM) {{
                 Kalidokit.VRMUtils.animateVRM(currentVRM, kalidoPose);
-            }
+            }}
         }}
     
         function animate() {{
