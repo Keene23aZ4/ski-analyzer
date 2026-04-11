@@ -135,6 +135,9 @@ if uploaded:
                 console.error("VRM load error:", err);
             }}
         );
+        const raw = animData.frames[fIdx];
+        console.log("RAW FRAME:", raw);
+
     
         // ===== VRM アニメーション =====
         function updateAvatar() {{
