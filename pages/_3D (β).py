@@ -119,8 +119,7 @@ if uploaded:
         let currentVRM = null;
     
         const loader = new THREE.GLTFLoader();
-        loader.load(
-            "model.vrm",
+        loader.load("/static/model.vrm",
             (gltf) => {{
                 THREE.VRM.from(gltf).then((vrm) => {{
                     currentVRM = vrm;
