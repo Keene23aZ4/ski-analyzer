@@ -59,8 +59,8 @@ if uploaded:
             if not ret: break
             rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             results = pose_tracker.process(rgb)
-            prev_pts = None  # ← ループの前に置く
-            
+            prev_pts = None  # ← while の前に置く
+
             while cap.isOpened():
                 ret, frame = cap.read()
                 if not ret:
@@ -76,13 +76,12 @@ if uploaded:
                     # 33 点すべてをチェック
                     for i in range(33):
                         p = lm[i]
-                        # ★ visibility が低い点は欠損扱い
                         if p.visibility < 0.5:
                             frame_pts.append(None)
                         else:
                             frame_pts.append([p.x, -p.y, -p.z])
             
-                    # ★ 欠損を前フレームで補完
+                    # 欠損を前フレームで補完
                     if prev_pts is not None:
                         for i in range(33):
                             if frame_pts[i] is None:
@@ -92,7 +91,7 @@ if uploaded:
                     frames_data.append(frame_pts)
             
                 else:
-                    # ★ 完全に検出できなかったフレームは前フレームをコピー
+                    # 完全欠損 → 前フレームをコピー
                     if prev_pts is not None:
                         frames_data.append(prev_pts)
                     else:
