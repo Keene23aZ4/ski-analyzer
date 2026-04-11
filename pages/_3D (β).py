@@ -150,12 +150,7 @@ if uploaded:
         light.position.set(5, 10, 5);
         light.castShadow = true;
         scene.add(light);
-    
-        // ===== VRM ローダー（Web版対応） =====
-        let currentVRM = null;
-        const loader = new THREE.GLTFLoader();
-        
-        const vrmBase64 = "{vrm_b64}";
+
         
         // ===== VRM ローダー（Web版対応） =====
         let currentVRM = null;
