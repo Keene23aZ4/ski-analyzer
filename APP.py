@@ -5,49 +5,6 @@ from pathlib import Path
 from analyzer import process_video
 
 
-# 翻訳辞書
-translations = {
-    "English": {
-        "title": "Motion Analyzer",
-        "sidebar_title": "FOR ALL SKIERs",
-        "background": "Background",
-        "background_options": ["Show", "Hide"],
-        "select_all": "Select all joint angles",
-        "angle_prompt": "Joint angles to display",
-        "upload": "Upload your video (16×9 aspect ratio is preferabel) ",
-        "analyzing": "ANALYZING... {percent}/100%",
-        "done": "Successfully done",
-        "download": "Download here",
-        "Knee Ext/Flex": "Knee Ext/Flex",
-        "Knee Abd/Add": "Knee Abd/Add",
-        "Hip Ext/Flex": "Hip Ext/Flex",
-        "Hip Abd/Add": "Hip Abd/Add",
-        "Torso Tilt": "Torso Tilt",
-        "Inclination Angle": "Inclination Angle"
-    },
-    "日本語": {
-        "title": "滑走分析アプリ",
-        "sidebar_title": "",
-        "background": "動画の背景",
-        "background_options": ["表示", "非表示 (骨格のみ抽出)"],
-        "select_all": "すべての関節角度を選択する",
-        "angle_prompt": "表示する関節角度",
-        "upload": "推奨 : アスペクト比は16×9 (横長の動画)、ファイルサイズは5.00MB以下",
-        "analyzing": "解析中... {percent}/100%",
-        "done": "解析完了",
-        "download": "ダウンロード",
-        "Knee Ext/Flex": "膝関節 伸展・屈曲",
-        "Knee Abd/Add": "膝関節 内外転",
-        "Hip Ext/Flex": "股関節 伸展・屈曲",
-        "Hip Abd/Add": "股関節 内外転",
-        "Torso Tilt": "前傾角度",
-        "Inclination Angle": "内傾角度"
-    }
-}
-lang = st.session_state.get("language", "English")
-t = translations[lang]
-
-
 def set_background():
     img_path = Path(__file__).parent / "static" / "1704273575813.jpg"
     if img_path.exists():
