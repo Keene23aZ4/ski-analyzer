@@ -188,33 +188,33 @@ if uploaded:
         // 前フレームの landmark を保持
         let prevLandmarks = null;
         
-        function updateAvatar() {{
-            if (!animData.frames.length) return;
-        
-            let fIdx = Math.floor(video.currentTime * animData.fps);
-            if (fIdx >= animData.frames.length) fIdx = animData.frames.length - 1;
-        
-            const raw = animData.frames[fIdx];
-        
-            if (!raw || !Array.isArray(raw) || raw.length !== 33) return;
- 
-            const mpLandmarks = raw.map((p, i) => {{
-                if (!p) {{
-                    return prevLandmarks ? prevLandmarks[i] : {{ x: 0, y: 0, z: 0 }};
-                }}
-                return {{ x: p[0], y: p[1], z: p[2] }};
-            }});
-        
-            prevLandmarks = mpLandmarks;
-        
-            const kalidoPose = Kalidokit.Pose.solve(mpLandmarks, {{
-                runtime: "mediapipe",
-            }});
-        
-            if (currentVRM) {{
-                Kalidokit.VRMUtils.animateVRM(currentVRM, kalidoPose);
+       function updateAvatar() {{
+        if (!animData.frames.length) return;
+    
+        let fIdx = Math.floor(video.currentTime * animData.fps);
+        if (fIdx >= animData.frames.length) fIdx = animData.frames.length - 1;
+    
+        const raw = animData.frames[fIdx];
+        if (!raw || !Array.isArray(raw) || raw.length !== 33) return;
+    
+        const mpLandmarks = raw.map((p, i) => {{
+            if (!p) {{
+                return prevLandmarks ? prevLandmarks[i] : {{ x: 0, y: 0, z: 0 }};
             }}
+            return {{ x: p[0], y: p[1], z: p[2] }};
+        }});
+    
+        prevLandmarks = mpLandmarks;
+    
+        const kalidoPose = Kalidokit.Pose.solve(mpLandmarks, {{
+            runtime: "mediapipe",
+        }});
+    
+        if (currentVRM) {{
+            Kalidokit.VRMUtils.animateVRM(currentVRM, kalidoPose);
         }}
+    }}
+    
 
     
         function animate() {{
