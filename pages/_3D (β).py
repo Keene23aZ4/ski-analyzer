@@ -115,7 +115,7 @@ if uploaded:
     <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/examples/js/loaders/GLTFLoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@1.0.11/lib/three-vrm.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/kalidokit@1.1.0/dist/kalidokit.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@1.0.11/lib/three-vrm.js"></script>
     
     <script>
         const video = document.getElementById('sync_video');
@@ -184,26 +184,33 @@ if uploaded:
 
     
         // ===== VRM アニメーション =====
-        function updateAvatar() {{
+        function updateAvatar() {
             if (!animData.frames.length) return;
-    
+        
             let fIdx = Math.floor(video.currentTime * animData.fps);
             if (fIdx >= animData.frames.length) fIdx = animData.frames.length - 1;
-    
+        
             const raw = animData.frames[fIdx];
             console.log("RAW FRAME:", raw);
-            
+        
             if (!raw || !Array.isArray(raw) || raw.length === 0) return;
             if (!Array.isArray(raw[0]) || raw[0].length < 3) return;
-    
-            const kalidoPose = Kalidokit.Pose.solve(raw, {{
+        
+            // ★ ここを追加： [x,y,z] → {x:..., y:..., z:...} に変換
+            const mpLandmarks = raw.map((p) => {
+                if (!p) return null;
+                return { x: p[0], y: p[1], z: p[2] };
+            }).filter(p => p !== null);
+        
+            const kalidoPose = Kalidokit.Pose.solve(mpLandmarks, {
                 runtime: "mediapipe",
-            }});
-    
-            if (currentVRM) {{
+            });
+        
+            if (currentVRM) {
                 Kalidokit.VRMUtils.animateVRM(currentVRM, kalidoPose);
-            }}
-        }}
+            }
+        }
+
     
         function animate() {{
             requestAnimationFrame(animate);
