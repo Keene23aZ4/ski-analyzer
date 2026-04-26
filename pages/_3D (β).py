@@ -187,7 +187,7 @@ if uploaded:
         // 前フレームの landmark を保持
         let prevLandmarks = null;
         
-        function updateAvatar() {
+        function updateAvatar() {{
             if (!animData.frames.length) return;
         
             let fIdx = Math.floor(video.currentTime * animData.fps);
@@ -214,15 +214,15 @@ if uploaded:
             if (currentVRM) {
                 Kalidokit.VRMUtils.animateVRM(currentVRM, kalidoPose);
             }
-        }
+        }}
 
     
-        function animate() {
+        function animate() {{
             requestAnimationFrame(animate);
             controls.update();
             updateAvatar();
             renderer.render(scene, camera);
-        }
+        }}
         animate();
     </script>
     """
