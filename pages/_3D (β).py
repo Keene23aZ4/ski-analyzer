@@ -67,23 +67,32 @@ if uploaded:
             if results.pose_world_landmarks:
                 lm = results.pose_world_landmarks.landmark
                 frame_pts = []
-        
+            
                 for i in range(33):
                     p = lm[i]
                     if p.visibility < 0.5:
                         frame_pts.append(None)
                     else:
                         frame_pts.append([p.x, -p.y, -p.z])
-        
+            
                 # 欠損補完
                 if prev_pts is not None:
                     for i in range(33):
                         if frame_pts[i] is None:
                             frame_pts[i] = prev_pts[i]
-        
+            
                 prev_pts = frame_pts
-                frames_data.append(frame_pts)
-        
+            
+                # ★ Kalidokit が期待する順番に並べ替え
+                ORDER = [
+                    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+                    11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22,
+                    23, 24, 25, 26, 27, 28, 29, 30, 31, 32
+                ]
+                ordered_pts = [frame_pts[i] for i in ORDER]
+            
+                frames_data.append(ordered_pts)
+
             else:
                 if prev_pts is not None:
                     frames_data.append(prev_pts)
