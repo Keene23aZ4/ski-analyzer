@@ -187,7 +187,7 @@ if uploaded:
         // ===== VRM アニメーション =====
         // 前フレームの landmark を保持
         let prevLandmarks = null;
-        function updateAvatar() {
+        function updateAvatar() {{
             if (!animData.frames.length) return;
             
             let fIdx = Math.floor(video.currentTime * animData.fps);
@@ -197,23 +197,23 @@ if uploaded:
             if (!raw || !Array.isArray(raw) || raw.length !== 33) return;
             
             // ★ f-string の {} 問題を完全回避するため JSON 経由で変換
-            const mpLandmarks = JSON.parse(JSON.stringify(raw.map((p, i) => {
-                if (!p) {
-                    return prevLandmarks ? prevLandmarks[i] : { "x": 0, "y": 0, "z": 0 };
-                }
-                return { "x": p[0], "y": p[1], "z": p[2] };
-            })));
+            const mpLandmarks = JSON.parse(JSON.stringify(raw.map((p, i) => {{
+                if (!p) {{
+                    return prevLandmarks ? prevLandmarks[i] : {{ "x": 0, "y": 0, "z": 0 }};
+                }}
+                return{{ "x": p[0], "y": p[1], "z": p[2] }};
+            }})));
             
             prevLandmarks = mpLandmarks;
             
-            const kalidoPose = Kalidokit.Pose.solve(mpLandmarks, {
+            const kalidoPose = Kalidokit.Pose.solve(mpLandmarks, {{
                 runtime: "mediapipe",
-            });
+            }});
             
-            if (currentVRM) {
+            if (currentVRM) {{
                 Kalidokit.VRMUtils.animateVRM(currentVRM, kalidoPose);
-            }
-        }
+            }}
+        }}
 
     
 
