@@ -207,7 +207,7 @@ if uploaded:
         
             prevLandmarks = mpLandmarks;
         
-            const kalidoPose = Kalidokit.Pose.solve(mpLandmarks, {
+            const kalidoPose = Kalidokit.Pose.solve(mpLandmarks, {{
                 runtime: "mediapipe",
             });
         
