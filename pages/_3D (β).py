@@ -209,7 +209,7 @@ if uploaded:
         
             const kalidoPose = Kalidokit.Pose.solve(mpLandmarks, {{
                 runtime: "mediapipe",
-            });
+            }});
         
             if (currentVRM) {{
                 Kalidokit.VRMUtils.animateVRM(currentVRM, kalidoPose);
