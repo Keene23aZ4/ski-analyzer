@@ -196,7 +196,7 @@ if uploaded:
             const raw = animData.frames[fIdx];
             if (!raw || !Array.isArray(raw) || raw.length !== 33) return;
             
-            // ★ f-string の {} 問題を完全回避するため JSON 経由で変換
+           
             const mpLandmarks = JSON.parse(JSON.stringify(raw.map((p, i) => {{
                 if (!p) {{
                     return prevLandmarks ? prevLandmarks[i] : {{ "x": 0, "y": 0, "z": 0 }};
