@@ -54,9 +54,8 @@ if uploaded:
         pose_tracker = Pose(static_image_mode=False, model_complexity=1, smooth_landmarks=True)
         
         frames_data = []
-
         prev_pts = None  # ← while の前に置く
-
+        
         while cap.isOpened():
             ret, frame = cap.read()
             if not ret:
@@ -69,7 +68,6 @@ if uploaded:
                 lm = results.pose_world_landmarks.landmark
                 frame_pts = []
         
-                # 33 点すべてをチェック
                 for i in range(33):
                     p = lm[i]
                     if p.visibility < 0.5:
@@ -77,7 +75,6 @@ if uploaded:
                     else:
                         frame_pts.append([p.x, -p.y, -p.z])
         
-                # 欠損を前フレームで補完
                 if prev_pts is not None:
                     for i in range(33):
                         if frame_pts[i] is None:
@@ -87,11 +84,11 @@ if uploaded:
                 frames_data.append(frame_pts)
         
             else:
-                # 完全欠損 → 前フレームをコピー
                 if prev_pts is not None:
                     frames_data.append(prev_pts)
                 else:
                     frames_data.append([[0,0,0]] * 33)
+
     cap.release()
     pose_tracker.close()
     
