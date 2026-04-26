@@ -199,9 +199,9 @@ if uploaded:
         
             // [x,y,z] → {x,y,z} に変換しつつ、None を前フレームで補完
             const mpLandmarks = raw.map((p, i) => {
-                if (!p) {
+                if (!p) {{
                     return prevLandmarks ? prevLandmarks[i] : { x: 0, y: 0, z: 0 };
-                }
+                }}
                 return { x: p[0], y: p[1], z: p[2] };
             });
         
@@ -211,9 +211,9 @@ if uploaded:
                 runtime: "mediapipe",
             });
         
-            if (currentVRM) {
+            if (currentVRM) {{
                 Kalidokit.VRMUtils.animateVRM(currentVRM, kalidoPose);
-            }
+            }}
         }}
 
     
