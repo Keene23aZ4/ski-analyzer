@@ -184,6 +184,9 @@ if uploaded:
 
     
         // ===== VRM アニメーション =====
+        // 前フレームの landmark を保持
+        let prevLandmarks = null;
+        
         function updateAvatar() {
             if (!animData.frames.length) return;
         
@@ -191,16 +194,18 @@ if uploaded:
             if (fIdx >= animData.frames.length) fIdx = animData.frames.length - 1;
         
             const raw = animData.frames[fIdx];
-            console.log("RAW FRAME:", raw);
         
-            if (!raw || !Array.isArray(raw) || raw.length === 0) return;
-            if (!Array.isArray(raw[0]) || raw[0].length < 3) return;
+            if (!raw || !Array.isArray(raw) || raw.length !== 33) return;
         
-            // ★ ここを追加： [x,y,z] → {x:..., y:..., z:...} に変換
-            const mpLandmarks = raw.map((p) => {
-                if (!p) return null;
+            // [x,y,z] → {x,y,z} に変換しつつ、None を前フレームで補完
+            const mpLandmarks = raw.map((p, i) => {
+                if (!p) {
+                    return prevLandmarks ? prevLandmarks[i] : { x: 0, y: 0, z: 0 };
+                }
                 return { x: p[0], y: p[1], z: p[2] };
-            }).filter(p => p !== null);
+            });
+        
+            prevLandmarks = mpLandmarks;
         
             const kalidoPose = Kalidokit.Pose.solve(mpLandmarks, {
                 runtime: "mediapipe",
