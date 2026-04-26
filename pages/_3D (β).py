@@ -115,7 +115,7 @@ if uploaded:
     <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/examples/js/loaders/GLTFLoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@1.0.11/lib/three-vrm.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@1.0.11/lib/three-vrm.js"></script>
+
     
     <script>
         const video = document.getElementById('sync_video');
@@ -212,12 +212,12 @@ if uploaded:
         }
 
     
-        function animate() {{
+        function animate() {
             requestAnimationFrame(animate);
             controls.update();
             updateAvatar();
             renderer.render(scene, camera);
-        }}
+        }
         animate();
     </script>
     """
