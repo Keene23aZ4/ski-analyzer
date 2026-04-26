@@ -54,7 +54,7 @@ if uploaded:
         pose_tracker = Pose(static_image_mode=False, model_complexity=1, smooth_landmarks=True)
         
         frames_data = []
-        prev_pts = None  # ← while の前に置く
+        prev_pts = None  # ← 正しい位置
         
         while cap.isOpened():
             ret, frame = cap.read()
@@ -75,6 +75,7 @@ if uploaded:
                     else:
                         frame_pts.append([p.x, -p.y, -p.z])
         
+                # 欠損補完
                 if prev_pts is not None:
                     for i in range(33):
                         if frame_pts[i] is None:
