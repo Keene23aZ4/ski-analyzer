@@ -198,7 +198,7 @@ if uploaded:
             if (!raw || !Array.isArray(raw) || raw.length !== 33) return;
         
             // [x,y,z] → {x,y,z} に変換しつつ、None を前フレームで補完
-            const mpLandmarks = raw.map((p, i) => {
+            const mpLandmarks = raw.map((p, i) => {{
                 if (!p) {{
                     return prevLandmarks ? prevLandmarks[i] : {{ x: 0, y: 0, z: 0 }};
                 }}
