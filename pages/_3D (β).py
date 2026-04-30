@@ -235,6 +235,7 @@ if uploaded:
                     depth: 0       // ★ Kalidokit が必須
                 }};
             }});
+            
 
 
             
@@ -248,6 +249,14 @@ if uploaded:
                 Kalidokit.VRMUtils.animateVRM(currentVRM, kalidoPose);
             }}
         }}
+        
+        for (let i = 0; i < mpLandmarks.length; i++) {
+            const p = mpLandmarks[i];
+            if (!p || p.x === undefined || p.y === undefined || p.z === undefined) {
+                console.error("❌ BAD FRAME DETECTED at index", i, mpLandmarks);
+                return; // ← このフレームは Kalidokit に渡さない
+            }
+        }
 
     
 
