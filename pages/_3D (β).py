@@ -218,17 +218,24 @@ if uploaded:
            
             const mpLandmarks = raw.map((p, i) => {{
                 if (!p) {{
-                    return prevLandmarks ? prevLandmarks[i] : {{ x: 0, y: 0, z: 0 }};
+                    return prevLandmarks ? prevLandmarks[i] : {{
+                        x: 0, y: 0, z: 0,
+                        visibility: 1,
+                        presence: 1,
+                        depth: 0
+                    }};
                 }}
             
-                // ★ Kalidokit が期待する 2D 座標に変換
                 return {{
-                    x: p[0],          // そのまま
-                    y: p[1],          // そのまま
-                    z: 0,             // ★ 2D 前提なので z を 0 にする
-                    visibility: 1.0   // ★ Kalidokit が必要とする visibility を追加
+                    x: p[0],
+                    y: p[1],
+                    z: 0,
+                    visibility: 1,
+                    presence: 1,   // ★ Kalidokit が必須
+                    depth: 0       // ★ Kalidokit が必須
                 }};
             }});
+
 
             
             prevLandmarks = mpLandmarks;
