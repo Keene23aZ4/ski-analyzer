@@ -250,14 +250,22 @@ if uploaded:
             }}
         }}
         
-        // ★ Kalidokit に渡す前に landmark の完全性チェック
+        let badFrame = false;
+
         for (let i = 0; i < mpLandmarks.length; i++) {{
             const p = mpLandmarks[i];
             if (!p || p.x === undefined || p.y === undefined || p.z === undefined) {{
                 console.error("❌ BAD FRAME DETECTED at index", i, mpLandmarks);
-                return; // ← このフレームはスキップ
+                badFrame = true;
+                break;
             }}
         }}
+        
+        if (badFrame) {{
+            // ★ フレームをスキップするだけ。return は使わない。
+            return;
+        }}
+
         
 
     
