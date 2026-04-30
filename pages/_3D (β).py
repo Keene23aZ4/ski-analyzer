@@ -189,18 +189,19 @@ if uploaded:
             vrmBuffer,
             "",
             (gltf) => {{
-                THREE.VRM.from(gltf).then((vrm) => {{
-                    currentVRM = vrm;
-                    scene.add(vrm.scene);
+                THREE.VRM.from(gltf).then((loadedVRM) => {{
+                    currentVRM = loadedVRM;
+                    scene.add(loadedVRM.scene);
         
-                    vrm.scene.rotation.y = Math.PI;
-                    vrm.scene.scale.set(0.1, 0.1, 0.1);
+                    loadedVRM.scene.rotation.y = Math.PI;
+                    loadedVRM.scene.scale.set(0.1, 0.1, 0.1);
                 }});
             }},
             (err) => {{
                 console.error("VRM parse error:", err);
             }}
         );
+
 
     
         // ===== VRM アニメーション =====
