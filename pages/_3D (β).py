@@ -51,7 +51,14 @@ if uploaded:
     with st.spinner("MODELING..."):
         cap = cv2.VideoCapture(video_path)
         fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
-        pose_tracker = Pose(static_image_mode=False, model_complexity=1, smooth_landmarks=True)
+        pose_tracker = Pose(
+            static_image_mode=False,
+            model_complexity=2,              # ★ 精度アップ
+            smooth_landmarks=True,
+            min_detection_confidence=0.6,    # ★ 検出しやすくする
+            min_tracking_confidence=0.6
+        )
+
         
         frames_data = []
         prev_pts = None  # ← 正しい位置
@@ -62,7 +69,10 @@ if uploaded:
                 break
         
             rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            results = pose_tracker.process(rgb)
+            rgb_small = cv2.resize(rgb, (256, 256))
+            
+            results = pose_tracker.process(rgb_small)
+
             if results.pose_landmarks:
                 lm = results.pose_landmarks.landmark
                 frame_pts = []
