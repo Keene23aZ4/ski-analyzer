@@ -53,11 +53,12 @@ if uploaded:
         fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
         pose_tracker = Pose(
             static_image_mode=False,
-            model_complexity=2,              # ★ 精度アップ
+            model_complexity=1,   # ★ heavy を使わない
             smooth_landmarks=True,
-            min_detection_confidence=0.6,    # ★ 検出しやすくする
+            min_detection_confidence=0.6,
             min_tracking_confidence=0.6
         )
+
 
         
         frames_data = []
