@@ -208,14 +208,13 @@ if uploaded:
         let prevLandmarks = null;
         function updateAvatar() {{
             if (!animData.frames.length) return;
-            
+        
             let fIdx = Math.floor(video.currentTime * animData.fps);
             if (fIdx >= animData.frames.length) fIdx = animData.frames.length - 1;
-            
+        
             const raw = animData.frames[fIdx];
             if (!raw || !Array.isArray(raw) || raw.length !== 33) return;
-            
-           
+        
             const mpLandmarks = raw.map((p, i) => {{
                 if (!p) {{
                     return prevLandmarks ? prevLandmarks[i] : {{
@@ -225,52 +224,37 @@ if uploaded:
                         depth: 0
                     }};
                 }}
-            
+        
                 return {{
                     x: p[0],
                     y: p[1],
                     z: 0,
                     visibility: 1,
-                    presence: 1,   // ★ Kalidokit が必須
-                    depth: 0       // ★ Kalidokit が必須
+                    presence: 1,
+                    depth: 0
                 }};
             }});
-            
-
-
-            
+        
+            for (let i = 0; i < mpLandmarks.length; i++) {{
+                const p = mpLandmarks[i];
+                if (!p || p.x === undefined || p.y === undefined || p.z === undefined) {{
+                    console.error("❌ BAD FRAME DETECTED at index", i, mpLandmarks);
+                    return; // 
+                }}
+            }}
+        
             prevLandmarks = mpLandmarks;
-            console.log("mpLandmarks:", mpLandmarks);
+        
             const kalidoPose = Kalidokit.Pose.solve(mpLandmarks, {{
                 runtime: "mediapipe",
             }});
-            
+        
             if (currentVRM) {{
                 Kalidokit.VRMUtils.animateVRM(currentVRM, kalidoPose);
             }}
         }}
-        
-        let badFrame = false;
 
-        for (let i = 0; i < mpLandmarks.length; i++) {{
-            const p = mpLandmarks[i];
-            if (!p || p.x === undefined || p.y === undefined || p.z === undefined) {{
-                console.error("❌ BAD FRAME DETECTED at index", i, mpLandmarks);
-                badFrame = true;
-                break;
-            }}
-        }}
-        
-        if (badFrame) {{
-            // ★ フレームをスキップするだけ。return は使わない。
-            return;
-        }}
 
-        
-
-    
-
-    
         function animate() {{
             requestAnimationFrame(animate);
             controls.update();
