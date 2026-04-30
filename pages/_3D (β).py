@@ -63,9 +63,8 @@ if uploaded:
         
             rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             results = pose_tracker.process(rgb)
-        
-            if results.pose_world_landmarks:
-                lm = results.pose_world_landmarks.landmark
+            if results.pose_landmarks:
+                lm = results.pose_landmarks.landmark
                 frame_pts = []
             
                 for i in range(33):
