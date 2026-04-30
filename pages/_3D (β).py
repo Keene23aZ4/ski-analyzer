@@ -83,7 +83,8 @@ if uploaded:
                     if p.visibility < 0.5:
                         frame_pts.append(None)
                     else:
-                        frame_pts.append([p.x, -p.y, -p.z])
+                        frame_pts.append([p.x, p.y, p.z])
+
             
                 # 欠損補完
                 if prev_pts is not None:
