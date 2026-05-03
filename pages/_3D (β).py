@@ -229,6 +229,5 @@ if uploaded:
                              .replace("VAR_PAYLOAD", payload)
     
     st.components.v1.html(html_code, height=1250)
-    """
     
     st.components.v1.html(html_code, height=1250)
