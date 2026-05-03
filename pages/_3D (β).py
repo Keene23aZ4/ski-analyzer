@@ -128,16 +128,16 @@ if uploaded:
         <video id="sync_video" width="100%" controls playsinline style="border-radius: 12px; border: 1px solid #ccc;">
             <source src="data:video/mp4;base64,{video_b64}" type="video/mp4">
         </video>
-        <div id="container" style="width:100%; height:600px; background:#ffffff; border-radius:12px; overflow:hidden; border: 1px solid #eaeaea;"></div>
+        <div id="container" style="width:100%; height:600px; background:#1c2833; border-radius:12px; overflow:hidden; border: 1px solid #eaeaea;"></div>
     </div>
     
     <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/examples/js/loaders/GLTFLoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/kalidokit@1.1.0/dist/kalidokit.umd.js"></script>
+    <!-- VRMライブラリのグローバル変数は threevrm です -->
     <script src="https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@1.0.11/lib/three-vrm.js"></script>
 
-    
     <script>
         const video = document.getElementById('sync_video');
         const container = document.getElementById('container');
@@ -147,123 +147,97 @@ if uploaded:
         scene.background = new THREE.Color(0x1c2833);
     
         const camera = new THREE.PerspectiveCamera(40, container.clientWidth/600, 0.1, 100);
-        camera.position.set(6, 4, 8);
+        camera.position.set(0, 1.5, 4); // カメラ位置をアバターの正面に調整
     
-        const renderer = new THREE.WebGLRenderer({{ antialias: true, alpha: true }});
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(container.clientWidth, 600);
         renderer.shadowMap.enabled = true;
         container.appendChild(renderer.domElement);
     
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.target.set(0, 1, 0); // アバターの腰付近を回転中心に
         controls.enableDamping = true;
     
-        scene.add(new THREE.GridHelper(10, 20, 0x0088ff, 0xdddddd));
-        scene.add(new THREE.AxesHelper(5));
-    
-        scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-        const light = new THREE.DirectionalLight(0xffffff, 0.7);
+        scene.add(new THREE.GridHelper(10, 20, 0x0088ff, 0x444444));
+        scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+        const light = new THREE.DirectionalLight(0xffffff, 1.0);
         light.position.set(5, 10, 5);
-        light.castShadow = true;
         scene.add(light);
 
-        
-        // ===== VRM ローダー（Web版対応） =====
         let currentVRM = null;
         const loader = new THREE.GLTFLoader();
         
-        const vrmBase64 = "{vrm_b64}";
-        
-        function base64ToArrayBuffer(base64) {{
+        function base64ToArrayBuffer(base64) {
             const binary = atob(base64);
             const len = binary.length;
             const buffer = new ArrayBuffer(len);
             const view = new Uint8Array(buffer);
-            for (let i = 0; i < len; i++) {{
+            for (let i = 0; i < len; i++) {
                 view[i] = binary.charCodeAt(i);
-            }}
+            }
             return buffer;
-        }}
+        }
         
-        const vrmBuffer = base64ToArrayBuffer(vrmBase64);
+        const vrmBuffer = base64ToArrayBuffer("{vrm_b64}");
         
-        loader.parse(
-            vrmBuffer,
-            "",
-            (gltf) => {{
-                THREE.VRM.from(gltf).then((loadedVRM) => {{
-                    currentVRM = loadedVRM;
-                    scene.add(loadedVRM.scene);
-        
-                    loadedVRM.scene.rotation.y = Math.PI;
-                    loadedVRM.scene.scale.set(0.1, 0.1, 0.1);
-                }});
-            }},
-            (err) => {{
-                console.error("VRM parse error:", err);
-            }}
-        );
+        loader.parse(vrmBuffer, "", (gltf) => {
+            // three-vrm 1.x の正しい呼び出し方
+            threevrm.VRM.from(gltf).then((vrm) => {
+                currentVRM = vrm;
+                scene.add(vrm.scene);
+                vrm.scene.rotation.y = Math.PI; // 正面を向ける
+                console.log("VRM Model Loaded");
+            }).catch(err => console.error("VRM from error:", err));
+        }, (err) => {
+            console.error("GLTF parse error:", err);
+        });
 
-
-    
-        // ===== VRM アニメーション =====
-        // 前フレームの landmark を保持
-        let prevLandmarks = null;
-        function updateAvatar() {{
-            if (!animData.frames.length) return;
+        function updateAvatar() {
+            if (!currentVRM || !animData.frames.length) return;
         
             let fIdx = Math.floor(video.currentTime * animData.fps);
             if (fIdx >= animData.frames.length) fIdx = animData.frames.length - 1;
         
             const raw = animData.frames[fIdx];
-            if (!raw || !Array.isArray(raw) || raw.length !== 33) return;
-        
-            const mpLandmarks = raw.map((p, i) => {{
-                if (!p) {{
-                    return prevLandmarks ? prevLandmarks[i] : {{
-                        x: 0, y: 0, z: 0,
-                        visibility: 1,
-                        presence: 1,
-                        depth: 0
-                    }};
-                }}
-        
-                return {{
+            if (!raw || raw.length < 33) return;
+
+            // データの整形と検証
+            const mpLandmarks = raw.map((p) => {
+                if (!p || p.length < 3) {
+                    return { x: 0, y: 0, z: 0, visibility: 0 };
+                }
+                return {
                     x: p[0],
-                    y: p[1],
-                    z: 0,
-                    visibility: 1,
-                    presence: 1,
-                    depth: 0
-                }};
-            }});
-        
-            for (let i = 0; i < mpLandmarks.length; i++) {{
-                const p = mpLandmarks[i];
-                if (!p || p.x === undefined || p.y === undefined || p.z === undefined) {{
-                    console.error("❌ BAD FRAME DETECTED at index", i, mpLandmarks);
-                    return; // 
-                }}
-            }}
-        
-            prevLandmarks = mpLandmarks;
-        
-            const kalidoPose = Kalidokit.Pose.solve(mpLandmarks, {{
+                    y: 1 - p[1], // MediaPipeの座標系をUnity/Three.js系に変換
+                    z: -p[2],    // 奥行きを考慮
+                    visibility: 1
+                };
+            });
+
+            // Kalidokitで計算
+            const kalidoPose = Kalidokit.Pose.solve(mpLandmarks, {
                 runtime: "mediapipe",
-            }});
+            });
         
-            if (currentVRM) {{
+            if (kalidoPose) {
                 Kalidokit.VRMUtils.animateVRM(currentVRM, kalidoPose);
-            }}
-        }}
+            }
+        }
 
-
-        function animate() {{
+        function animate() {
             requestAnimationFrame(animate);
             controls.update();
             updateAvatar();
             renderer.render(scene, camera);
-        }}
+        }
         animate();
+
+        // リサイズ対応
+        window.addEventListener('resize', () => {
+            camera.aspect = container.clientWidth / 600;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, 600);
+        });
     </script>
     """
     
