@@ -135,6 +135,7 @@ if uploaded:
         <div id="container" style="width:100%; height:600px; background:#1c2833; border-radius:12px; overflow:hidden; border: 1px solid #eaeaea;"></div>
     </div>
     
+    <!-- ライブラリ読み込み -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/examples/js/loaders/GLTFLoader.js"></script>
@@ -150,11 +151,11 @@ if uploaded:
         scene.background = new THREE.Color(0x1c2833);
     
         const camera = new THREE.PerspectiveCamera(40, container.clientWidth/600, 0.1, 100);
-        camera.position.set(0, 1.5, 4);
+        camera.position.set(0, 1.5, 5);
     
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(container.clientWidth, 600);
-        renderer.shadowMap.enabled = true;
+        renderer.setPixelRatio(window.devicePixelRatio);
         container.appendChild(renderer.domElement);
     
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -162,14 +163,15 @@ if uploaded:
         controls.enableDamping = true;
     
         scene.add(new THREE.GridHelper(10, 20, 0x0088ff, 0x444444));
-        scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+        scene.add(new THREE.AmbientLight(0xffffff, 0.7));
         const light = new THREE.DirectionalLight(0xffffff, 1.0);
-        light.position.set(5, 10, 5);
+        light.position.set(1, 5, 3);
         scene.add(light);
 
         let currentVRM = null;
-        const loader = new THREE.GLTFLoader();
         
+        // --- VRM読み込み処理 ---
+        const loader = new THREE.GLTFLoader();
         function base64ToArrayBuffer(base64) {
             const binary = atob(base64);
             const len = binary.length;
@@ -180,36 +182,64 @@ if uploaded:
             }
             return buffer;
         }
-        
-        const vrmBuffer = base64ToArrayBuffer("VAR_VRM_B64");
-        
-        loader.parse(vrmBuffer, "", (gltf) => {
-            threevrm.VRM.from(gltf).then((vrm) => {
-                currentVRM = vrm;
-                scene.add(vrm.scene);
-                vrm.scene.rotation.y = Math.PI;
-            }).catch(err => console.error(err));
-        });
 
+        try {
+            const vrmBuffer = base64ToArrayBuffer("VAR_VRM_B64");
+            loader.parse(vrmBuffer, "", (gltf) => {
+                // Namespaceの解決 (threevrm か THREE.VRM かを自動判定)
+                const VRM_LIB = (typeof threevrm !== 'undefined') ? threevrm : (THREE.VRM ? THREE : null);
+                
+                if (VRM_LIB && (VRM_LIB.VRM || VRM_LIB.from)) {
+                    const vrmFactory = VRM_LIB.VRM || VRM_LIB;
+                    vrmFactory.from(gltf).then((vrm) => {
+                        currentVRM = vrm;
+                        scene.add(vrm.scene);
+                        vrm.scene.rotation.y = Math.PI;
+                        console.log("VRM Loaded successfully");
+                    }).catch(err => console.error("VRM Factory Error:", err));
+                } else {
+                    console.error("VRM Library not found in expected namespaces");
+                }
+            }, (err) => console.error("GLTF Parse Error:", err));
+        } catch (e) {
+            console.error("Base64 Decode Error:", e);
+        }
+
+        // --- アニメーション更新処理 ---
         function updateAvatar() {
-            if (!currentVRM || !animData.frames.length) return;
+            if (!currentVRM || !animData || !animData.frames || animData.frames.length === 0) return;
         
             let fIdx = Math.floor(video.currentTime * animData.fps);
             if (fIdx >= animData.frames.length) fIdx = animData.frames.length - 1;
         
             const raw = animData.frames[fIdx];
-            if (!raw || raw.length < 33) return;
+            if (!raw || !Array.isArray(raw)) return;
 
-            const mpLandmarks = raw.map((p) => ({
-                x: p[0],
-                y: 1 - p[1],
-                z: -p[2] || 0,
-                visibility: 1
-            }));
+            // 重要: null/undefined対策を徹底
+            const mpLandmarks = raw.map((p) => {
+                if (!p || !Array.isArray(p) || p.length < 3) {
+                    return { x: 0, y: 0, z: 0, visibility: 0 };
+                }
+                return {
+                    x: p[0] || 0,
+                    y: 1 - (p[1] || 0),
+                    z: -(p[2] || 0),
+                    visibility: 1
+                };
+            });
 
-            const kalidoPose = Kalidokit.Pose.solve(mpLandmarks, { runtime: "mediapipe" });
-            if (kalidoPose) {
-                Kalidokit.VRMUtils.animateVRM(currentVRM, kalidoPose);
+            try {
+                // Kalidokitによる計算
+                const kalidoPose = Kalidokit.Pose.solve(mpLandmarks, {
+                    runtime: "mediapipe",
+                });
+            
+                if (kalidoPose && currentVRM) {
+                    Kalidokit.VRMUtils.animateVRM(currentVRM, kalidoPose);
+                }
+            } catch (err) {
+                // 特定のフレームでのエラーを無視して続行
+                if (fIdx % 100 === 0) console.warn("Animation skip at frame", fIdx, err);
             }
         }
 
@@ -220,6 +250,12 @@ if uploaded:
             renderer.render(scene, camera);
         }
         animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = container.clientWidth / 600;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, 600);
+        });
     </script>
     """
     
