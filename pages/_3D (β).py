@@ -122,11 +122,15 @@ if uploaded:
     vrm_b64 = base64.b64encode(vrm_bytes).decode()
     payload = json.dumps({"fps": fps, "frames": frames_data})
     
-    # 修正ポイント: html_codeの定義から末尾までインデントを正確に揃えました
-    html_code = f"""
+    # --- (省略) ---
+    vrm_b64 = base64.b64encode(vrm_bytes).decode()
+    payload = json.dumps({"fps": fps, "frames": frames_data})
+    
+    # f""" ではなく通常の文字列 """ として定義（波括弧をそのまま書ける）
+    html_template = """
     <div style="display: flex; flex-direction: column; align-items: center; gap: 15px;">
         <video id="sync_video" width="100%" controls playsinline style="border-radius: 12px; border: 1px solid #ccc;">
-            <source src="data:video/mp4;base64,{video_b64}" type="video/mp4">
+            <source src="data:video/mp4;base64,VAR_VIDEO_B64" type="video/mp4">
         </video>
         <div id="container" style="width:100%; height:600px; background:#1c2833; border-radius:12px; overflow:hidden; border: 1px solid #eaeaea;"></div>
     </div>
@@ -135,19 +139,18 @@ if uploaded:
     <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/examples/js/loaders/GLTFLoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/kalidokit@1.1.0/dist/kalidokit.umd.js"></script>
-    <!-- VRMライブラリのグローバル変数は threevrm です -->
     <script src="https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@1.0.11/lib/three-vrm.js"></script>
 
     <script>
         const video = document.getElementById('sync_video');
         const container = document.getElementById('container');
-        const animData = {payload};
+        const animData = VAR_PAYLOAD;
     
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x1c2833);
     
         const camera = new THREE.PerspectiveCamera(40, container.clientWidth/600, 0.1, 100);
-        camera.position.set(0, 1.5, 4); // カメラ位置をアバターの正面に調整
+        camera.position.set(0, 1.5, 4);
     
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(container.clientWidth, 600);
@@ -155,7 +158,7 @@ if uploaded:
         container.appendChild(renderer.domElement);
     
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.target.set(0, 1, 0); // アバターの腰付近を回転中心に
+        controls.target.set(0, 1, 0);
         controls.enableDamping = true;
     
         scene.add(new THREE.GridHelper(10, 20, 0x0088ff, 0x444444));
@@ -178,18 +181,14 @@ if uploaded:
             return buffer;
         }
         
-        const vrmBuffer = base64ToArrayBuffer("{vrm_b64}");
+        const vrmBuffer = base64ToArrayBuffer("VAR_VRM_B64");
         
         loader.parse(vrmBuffer, "", (gltf) => {
-            // three-vrm 1.x の正しい呼び出し方
             threevrm.VRM.from(gltf).then((vrm) => {
                 currentVRM = vrm;
                 scene.add(vrm.scene);
-                vrm.scene.rotation.y = Math.PI; // 正面を向ける
-                console.log("VRM Model Loaded");
-            }).catch(err => console.error("VRM from error:", err));
-        }, (err) => {
-            console.error("GLTF parse error:", err);
+                vrm.scene.rotation.y = Math.PI;
+            }).catch(err => console.error(err));
         });
 
         function updateAvatar() {
@@ -201,24 +200,14 @@ if uploaded:
             const raw = animData.frames[fIdx];
             if (!raw || raw.length < 33) return;
 
-            // データの整形と検証
-            const mpLandmarks = raw.map((p) => {
-                if (!p || p.length < 3) {
-                    return { x: 0, y: 0, z: 0, visibility: 0 };
-                }
-                return {
-                    x: p[0],
-                    y: 1 - p[1], // MediaPipeの座標系をUnity/Three.js系に変換
-                    z: -p[2],    // 奥行きを考慮
-                    visibility: 1
-                };
-            });
+            const mpLandmarks = raw.map((p) => ({
+                x: p[0],
+                y: 1 - p[1],
+                z: -p[2] || 0,
+                visibility: 1
+            }));
 
-            // Kalidokitで計算
-            const kalidoPose = Kalidokit.Pose.solve(mpLandmarks, {
-                runtime: "mediapipe",
-            });
-        
+            const kalidoPose = Kalidokit.Pose.solve(mpLandmarks, { runtime: "mediapipe" });
             if (kalidoPose) {
                 Kalidokit.VRMUtils.animateVRM(currentVRM, kalidoPose);
             }
@@ -231,14 +220,15 @@ if uploaded:
             renderer.render(scene, camera);
         }
         animate();
-
-        // リサイズ対応
-        window.addEventListener('resize', () => {
-            camera.aspect = container.clientWidth / 600;
-            camera.updateProjectionMatrix();
-            renderer.setSize(container.clientWidth, 600);
-        });
     </script>
+    """
+    
+    # 最後に .replace() で変数を流し込む
+    html_code = html_template.replace("VAR_VIDEO_B64", video_b64)\
+                             .replace("VAR_VRM_B64", vrm_b64)\
+                             .replace("VAR_PAYLOAD", payload)
+    
+    st.components.v1.html(html_code, height=1250)
     """
     
     st.components.v1.html(html_code, height=1250)
