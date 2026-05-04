@@ -83,11 +83,12 @@ if uploaded:
         <div id="c" style="width:100%; height:500px; background:#1c2833; margin-top:10px; border-radius:10px;"></div>
     </div>
 
-    <!-- ライブラリ読み込み -->
+    <!-- ライブラリ読み込み: 順番とソースを微調整 -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/examples/js/loaders/GLTFLoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/kalidokit@1.1.0/dist/kalidokit.umd.js"></script>
+    <!-- VRMライブラリ: window.threevrm を確実に作るビルドを指定 -->
     <script src="https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@1.0.11/lib/three-vrm.js"></script>
 
     <script>
@@ -110,17 +111,24 @@ if uploaded:
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.target.set(0, 1.0, 0);
         scene.add(new THREE.GridHelper(10, 20, 0x444444, 0x222222));
-        scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+        scene.add(new THREE.AmbientLight(0xffffff, 0.8));
         const light = new THREE.DirectionalLight(0xffffff, 1.0);
         light.position.set(1, 2, 3);
         scene.add(light);
 
-        // --- VRM読み込み (ライブラリ待機付き) ---
+        // --- ライブラリの存在確認を強化 ---
+        function getVRMLib() {
+            // window.threevrm または THREE.VRM を探す
+            if (typeof threevrm !== 'undefined') return threevrm;
+            if (THREE && THREE.VRM) return THREE;
+            return null;
+        }
+
         function loadVRM() {
-            const vrmLib = window.threevrm;
+            const vrmLib = getVRMLib();
             if (!vrmLib) {
-                console.log("Waiting for three-vrm...");
-                setTimeout(loadVRM, 100); // 0.1秒待って再試行
+                console.log("Still waiting for VRM Library...");
+                setTimeout(loadVRM, 500); // 待機時間を少し伸ばして再試行
                 return;
             }
 
@@ -130,13 +138,15 @@ if uploaded:
             for (let i=0; i<binary.length; i++) buf[i] = binary.charCodeAt(i);
 
             loader.parse(buf.buffer, "", (gltf) => {
-                vrmLib.VRM.from(gltf).then((vrm) => {
+                // vrmLib自体に .VRM があるか、vrmLib.VRM に .from があるか
+                const factory = vrmLib.VRM || vrmLib;
+                factory.from(gltf).then((vrm) => {
                     currentVRM = vrm;
                     scene.add(vrm.scene);
                     vrm.scene.rotation.y = Math.PI;
-                    console.log("VRM Loaded Successfully");
-                }).catch(e => console.error("VRM initialization error:", e));
-            }, (err) => console.error("GLTF parse error:", err));
+                    console.log("✅ VRM Model Loaded!");
+                }).catch(e => console.error("VRM Factory Error:", e));
+            }, (err) => console.error("GLTF Parse Error:", err));
         }
         loadVRM();
 
@@ -149,24 +159,19 @@ if uploaded:
             
             if (!pts || pts.length < 33) return;
 
-            // データの安全な抽出
-            const mpLandmarks = pts.map(p => {
-                return {
-                    x: p[0] || 0,
-                    y: 1 - (p[1] || 0),
-                    z: -(p[2] || 0),
-                    visibility: 1
-                };
-            });
+            const mpLandmarks = pts.map(p => ({
+                x: p[0] || 0,
+                y: 1 - (p[1] || 0),
+                z: -(p[2] || 0),
+                visibility: 1
+            }));
 
             try {
                 const pose = Kalidokit.Pose.solve(mpLandmarks, { runtime: "mediapipe" });
                 if (pose) {
                     Kalidokit.VRMUtils.animateVRM(currentVRM, pose);
                 }
-            } catch (err) {
-                // エラーを無視して描画を止めない
-            }
+            } catch (err) {}
         }
 
         function animate() {
