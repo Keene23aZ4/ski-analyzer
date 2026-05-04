@@ -76,25 +76,23 @@ if uploaded:
     payload = json.dumps({"fps": fps, "frames": frames_data})
 
     html_template = """
-    <div id="root" style="width:100%; display:flex; flex-direction:column; align-items:center; font-family: sans-serif;">
-        <video id="v" width="100%" controls style="border-radius:10px; background:#000;">
+    <div id="root" style="width:100%; display:flex; flex-direction:column; align-items:center;">
+        <video id="v" width="100%" controls playsinline style="border-radius:10px; background:#000;">
             <source src="data:video/mp4;base64,VAR_VIDEO_B64">
         </video>
-        <div id="c" style="width:100%; height:500px; background:#1c2833; margin-top:10px; border-radius:10px; position:relative;">
-            <!-- 画面上に状態を表示するインジケーター -->
-            <div id="status" style="position:absolute; top:10px; left:10px; color:white; background:rgba(0,0,0,0.5); padding:5px 10px; border-radius:5px; font-size:12px; z-index:100;">
-                Initializing...
+        <div id="c" style="width:100%; height:500px; background:#1c2833; margin-top:10px; border-radius:10px; position:relative; overflow:hidden;">
+            <div id="status" style="position:absolute; top:10px; left:10px; color:#00ff00; background:rgba(0,0,0,0.7); padding:5px 12px; border-radius:5px; font-family:monospace; font-size:12px; z-index:100; border:1px solid #00ff00;">
+                Initializing System...
             </div>
         </div>
     </div>
 
-    <!-- ライブラリ読み込み -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <!-- ライブラリ読み込み順序を厳格化 -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/examples/js/loaders/GLTFLoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/kalidokit@1.1.0/dist/kalidokit.umd.js"></script>
-    <!-- unpkg版を使用（広告ブロックに強い傾向があります） -->
-    <script src="https://unpkg.com/@pixiv/three-vrm@1.0.11/lib/three-vrm.js"></script>
+    <script id="vrm-script" src="https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@1.0.11/lib/three-vrm.js"></script>
 
     <script>
     (function() {
@@ -103,47 +101,45 @@ if uploaded:
         const video = document.getElementById('v');
         const statusEl = document.getElementById('status');
         let currentVRM = null;
+        let vrmLib = null;
 
-        // --- Three.js 基本設定 ---
+        // --- Three.js Setup ---
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x1c2833);
         const camera = new THREE.PerspectiveCamera(40, container.clientWidth/500, 0.1, 100);
-        camera.position.set(0, 1.4, 3.5);
+        camera.position.set(0, 1.4, 3.8);
 
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(container.clientWidth, 500);
         renderer.outputEncoding = THREE.sRGBEncoding;
         container.appendChild(renderer.domElement);
 
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.target.set(0, 1.0, 0);
-        scene.add(new THREE.GridHelper(10, 20));
-        scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+        scene.add(new THREE.GridHelper(10, 20, 0x444444, 0x222222));
+        scene.add(new THREE.AmbientLight(0xffffff, 0.6));
         const light = new THREE.DirectionalLight(0xffffff, 1.0);
-        light.position.set(1, 2, 3);
+        light.position.set(1, 3, 2);
         scene.add(light);
 
-        // --- ライブラリを探すための強力なロジック ---
-        let loadAttempts = 0;
-        function initVRM() {
-            loadAttempts++;
-            statusEl.innerText = `Loading VRM Library (Attempt ${loadAttempts})...`;
+        // --- ライブラリ発見・モデルロード ---
+        function findVRMLib() {
+            // あらゆる可能性を探索
+            return window.threevrm || 
+                   (THREE && THREE.VRM ? THREE.VRM : null) || 
+                   window['@pixiv/three-vrm'];
+        }
 
-            // 1. 複数の名前空間をチェック
-            const vrmLib = window.threevrm || (THREE ? THREE.VRM : null);
+        function startLoading() {
+            vrmLib = findVRMLib();
             
             if (!vrmLib) {
-                if (loadAttempts > 50) {
-                    statusEl.style.color = "red";
-                    statusEl.innerText = "Error: VRM Library Blocked. Please disable AdBlock.";
-                    return;
-                }
-                setTimeout(initVRM, 200);
+                statusEl.innerText = "Searching for VRM Engine...";
+                setTimeout(startLoading, 500);
                 return;
             }
 
-            statusEl.innerText = "Library Found. Loading Model...";
-            
+            statusEl.innerText = "Engine Connected. Parsing VRM Model...";
             const loader = new THREE.GLTFLoader();
             try {
                 const binary = atob("VAR_VRM_B64");
@@ -151,34 +147,33 @@ if uploaded:
                 for (let i=0; i<binary.length; i++) buf[i] = binary.charCodeAt(i);
 
                 loader.parse(buf.buffer, "", (gltf) => {
-                    // vrmLibが直接 from を持っているか、.VRM 下にあるか
-                    const factory = vrmLib.from ? vrmLib : vrmLib.VRM;
-                    if (!factory || !factory.from) {
-                        console.error("Factory not found in", vrmLib);
-                        return;
-                    }
-
+                    // three-vrm 1.x の from() メソッドを呼び出す
+                    const factory = vrmLib.VRM || vrmLib;
                     factory.from(gltf).then((vrm) => {
                         currentVRM = vrm;
                         scene.add(vrm.scene);
                         vrm.scene.rotation.y = Math.PI;
-                        statusEl.innerText = "✅ Ready";
-                        setTimeout(() => statusEl.style.display = "none", 2000);
+                        statusEl.innerText = "✅ SYSTEM ONLINE";
+                        setTimeout(() => statusEl.style.display = 'none', 3000);
                     }).catch(e => {
-                        console.error(e);
-                        statusEl.innerText = "Model Initialization Error";
+                        statusEl.innerText = "VRM Init Error: " + e.message;
+                        statusEl.style.color = "#ff4444";
                     });
+                }, (err) => {
+                    statusEl.innerText = "GLTF Parse Error";
+                    statusEl.style.color = "#ff4444";
                 });
             } catch (e) {
-                console.error(e);
-                statusEl.innerText = "Base64 Decode Error";
+                statusEl.innerText = "Model Data Error";
+                statusEl.style.color = "#ff4444";
             }
         }
-        initVRM();
 
-        // --- アニメーションループ ---
+        startLoading();
+
+        // --- リギング計算 ---
         function updateAvatar() {
-            if (!currentVRM || !animData || !animData.frames) return;
+            if (!currentVRM || !animData.frames.length) return;
             
             let f = Math.floor(video.currentTime * animData.fps);
             if (f >= animData.frames.length) f = animData.frames.length - 1;
@@ -186,11 +181,10 @@ if uploaded:
             
             if (!pts || pts.length < 33) return;
 
-            // データがundefinedでも止まらないようにガード
             const mpLandmarks = pts.map(p => ({
-                x: p ? (p[0] || 0) : 0,
-                y: p ? (1 - (p[1] || 0)) : 0,
-                z: p ? (-(p[2] || 0)) : 0,
+                x: p[0] || 0.5,
+                y: 1 - (p[1] || 0.5),
+                z: -(p[2] || 0),
                 visibility: 1
             }));
 
@@ -209,6 +203,12 @@ if uploaded:
             renderer.render(scene, camera);
         }
         animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = container.clientWidth / 500;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, 500);
+        });
     })();
     </script>
     """
