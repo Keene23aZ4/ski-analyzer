@@ -76,28 +76,35 @@ if uploaded:
     payload = json.dumps({"fps": fps, "frames": frames_data})
 
     html_template = """
-    <div id="root" style="width:100%; display:flex; flex-direction:column; align-items:center;">
+    <div id="root" style="width:100%; display:flex; flex-direction:column; align-items:center; font-family: sans-serif;">
         <video id="v" width="100%" controls style="border-radius:10px; background:#000;">
             <source src="data:video/mp4;base64,VAR_VIDEO_B64">
         </video>
-        <div id="c" style="width:100%; height:500px; background:#1c2833; margin-top:10px; border-radius:10px;"></div>
+        <div id="c" style="width:100%; height:500px; background:#1c2833; margin-top:10px; border-radius:10px; position:relative;">
+            <!-- 画面上に状態を表示するインジケーター -->
+            <div id="status" style="position:absolute; top:10px; left:10px; color:white; background:rgba(0,0,0,0.5); padding:5px 10px; border-radius:5px; font-size:12px; z-index:100;">
+                Initializing...
+            </div>
+        </div>
     </div>
 
-    <!-- ライブラリ読み込み: 順番とソースを微調整 -->
-    <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/build/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/examples/js/controls/OrbitControls.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/examples/js/loaders/GLTFLoader.js"></script>
+    <!-- ライブラリ読み込み -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/kalidokit@1.1.0/dist/kalidokit.umd.js"></script>
-    <!-- VRMライブラリ: window.threevrm を確実に作るビルドを指定 -->
-    <script src="https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@1.0.11/lib/three-vrm.js"></script>
+    <!-- unpkg版を使用（広告ブロックに強い傾向があります） -->
+    <script src="https://unpkg.com/@pixiv/three-vrm@1.0.11/lib/three-vrm.js"></script>
 
     <script>
     (function() {
         const animData = VAR_PAYLOAD;
         const container = document.getElementById('c');
         const video = document.getElementById('v');
+        const statusEl = document.getElementById('status');
         let currentVRM = null;
 
+        // --- Three.js 基本設定 ---
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x1c2833);
         const camera = new THREE.PerspectiveCamera(40, container.clientWidth/500, 0.1, 100);
@@ -110,48 +117,68 @@ if uploaded:
 
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.target.set(0, 1.0, 0);
-        scene.add(new THREE.GridHelper(10, 20, 0x444444, 0x222222));
-        scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+        scene.add(new THREE.GridHelper(10, 20));
+        scene.add(new THREE.AmbientLight(0xffffff, 0.7));
         const light = new THREE.DirectionalLight(0xffffff, 1.0);
         light.position.set(1, 2, 3);
         scene.add(light);
 
-        // --- ライブラリの存在確認を強化 ---
-        function getVRMLib() {
-            // window.threevrm または THREE.VRM を探す
-            if (typeof threevrm !== 'undefined') return threevrm;
-            if (THREE && THREE.VRM) return THREE;
-            return null;
-        }
+        // --- ライブラリを探すための強力なロジック ---
+        let loadAttempts = 0;
+        function initVRM() {
+            loadAttempts++;
+            statusEl.innerText = `Loading VRM Library (Attempt ${loadAttempts})...`;
 
-        function loadVRM() {
-            const vrmLib = getVRMLib();
+            // 1. 複数の名前空間をチェック
+            const vrmLib = window.threevrm || (THREE ? THREE.VRM : null);
+            
             if (!vrmLib) {
-                console.log("Still waiting for VRM Library...");
-                setTimeout(loadVRM, 500); // 待機時間を少し伸ばして再試行
+                if (loadAttempts > 50) {
+                    statusEl.style.color = "red";
+                    statusEl.innerText = "Error: VRM Library Blocked. Please disable AdBlock.";
+                    return;
+                }
+                setTimeout(initVRM, 200);
                 return;
             }
 
+            statusEl.innerText = "Library Found. Loading Model...";
+            
             const loader = new THREE.GLTFLoader();
-            const binary = atob("VAR_VRM_B64");
-            const buf = new Uint8Array(binary.length);
-            for (let i=0; i<binary.length; i++) buf[i] = binary.charCodeAt(i);
+            try {
+                const binary = atob("VAR_VRM_B64");
+                const buf = new Uint8Array(binary.length);
+                for (let i=0; i<binary.length; i++) buf[i] = binary.charCodeAt(i);
 
-            loader.parse(buf.buffer, "", (gltf) => {
-                // vrmLib自体に .VRM があるか、vrmLib.VRM に .from があるか
-                const factory = vrmLib.VRM || vrmLib;
-                factory.from(gltf).then((vrm) => {
-                    currentVRM = vrm;
-                    scene.add(vrm.scene);
-                    vrm.scene.rotation.y = Math.PI;
-                    console.log("✅ VRM Model Loaded!");
-                }).catch(e => console.error("VRM Factory Error:", e));
-            }, (err) => console.error("GLTF Parse Error:", err));
+                loader.parse(buf.buffer, "", (gltf) => {
+                    // vrmLibが直接 from を持っているか、.VRM 下にあるか
+                    const factory = vrmLib.from ? vrmLib : vrmLib.VRM;
+                    if (!factory || !factory.from) {
+                        console.error("Factory not found in", vrmLib);
+                        return;
+                    }
+
+                    factory.from(gltf).then((vrm) => {
+                        currentVRM = vrm;
+                        scene.add(vrm.scene);
+                        vrm.scene.rotation.y = Math.PI;
+                        statusEl.innerText = "✅ Ready";
+                        setTimeout(() => statusEl.style.display = "none", 2000);
+                    }).catch(e => {
+                        console.error(e);
+                        statusEl.innerText = "Model Initialization Error";
+                    });
+                });
+            } catch (e) {
+                console.error(e);
+                statusEl.innerText = "Base64 Decode Error";
+            }
         }
-        loadVRM();
+        initVRM();
 
+        // --- アニメーションループ ---
         function updateAvatar() {
-            if (!currentVRM || !animData.frames.length) return;
+            if (!currentVRM || !animData || !animData.frames) return;
             
             let f = Math.floor(video.currentTime * animData.fps);
             if (f >= animData.frames.length) f = animData.frames.length - 1;
@@ -159,10 +186,11 @@ if uploaded:
             
             if (!pts || pts.length < 33) return;
 
+            // データがundefinedでも止まらないようにガード
             const mpLandmarks = pts.map(p => ({
-                x: p[0] || 0,
-                y: 1 - (p[1] || 0),
-                z: -(p[2] || 0),
+                x: p ? (p[0] || 0) : 0,
+                y: p ? (1 - (p[1] || 0)) : 0,
+                z: p ? (-(p[2] || 0)) : 0,
                 visibility: 1
             }));
 
