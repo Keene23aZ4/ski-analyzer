@@ -9,7 +9,7 @@ import requests
 
 # --- Page Setup ---
 st.set_page_config(page_title="3D Plot Avatar", layout="centered")
-st.title("3D Motion Analysis (β)")
+st.title("3D Motion Analysis")
 # 背景設定（省略可）
 def set_background():
     img_path = Path("static/1704273575813.jpg")
