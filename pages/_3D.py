@@ -125,13 +125,12 @@ if uploaded:
             return;
         }}
     
-        vrmLib.from(gltf).then(vrm => {{
+        THREE.VRM.from(gltf).then(vrm => {{
             currentVRM = vrm;
             scene.add(vrm.scene);
-            vrm.scene.position.set(0, -1, 0);
-        }}).catch(e => {{
-            console.error("VRM load error:", e);
+            vrm.scene.rotation.y = Math.PI;
         }});
+
     
     }});
     // --- ボーン適用 ---
