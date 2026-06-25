@@ -7,31 +7,24 @@ import base64
 from pathlib import Path
 import requests
 
-# --- Page Setup ---
 st.set_page_config(page_title="3D Plot Avatar", layout="centered")
 st.title("3D Motion Analysis")
-# 背景設定（省略可）
+
+# 背景（任意）
 def set_background():
     img_path = Path("static/1704273575813.jpg")
     if img_path.exists():
         encoded = base64.b64encode(img_path.read_bytes()).decode()
-        mime = "image/jpeg"
-        st.markdown(
-            f"""
-            <style>
-            .stApp {{
-                background-image: url("data:{mime};base64,{encoded}");
-                background-size: cover;
-                background-position: center;
-                background-repeat: no-repeat;
-            }}
-            </style>
-            """,
-            unsafe_allow_html=True
-        )
+        st.markdown(f"""
+        <style>
+        .stApp {{
+            background-image: url("data:image/jpeg;base64,{encoded}");
+            background-size: cover;
+        }}
+        </style>
+        """, unsafe_allow_html=True)
+
 set_background()
-
-
 
 uploaded = st.file_uploader("Upload your video", type=["mp4", "mov"])
 
@@ -42,10 +35,11 @@ if uploaded:
 
     with st.spinner("Analyzing Pose..."):
         import mediapipe as mp
-        from mediapipe.python.solutions import pose as mp_pose
-        
+        mp_pose = mp.solutions.pose
+
         cap = cv2.VideoCapture(video_path)
         fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
+
         pose_tracker = mp_pose.Pose(
             static_image_mode=False,
             model_complexity=1,
@@ -54,13 +48,15 @@ if uploaded:
         )
 
         frames_data = []
-        last_valid_frame = [[0, 0, 0]] * 33
-        
+        last_valid_frame = [[0, 0, 0] for _ in range(33)]  # ← バグ修正
+
         while cap.isOpened():
             ret, frame = cap.read()
-            if not ret: break
+            if not ret:
+                break
+
             rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            results = pose_tracker.process(cv2.resize(rgb, (320, 320)))
+            results = pose_tracker.process(rgb)  # ← 解像度低下防止
 
             if results.pose_landmarks:
                 current_frame = [[lm.x, lm.y, lm.z] for lm in results.pose_landmarks.landmark]
@@ -68,153 +64,141 @@ if uploaded:
                 last_valid_frame = current_frame
             else:
                 frames_data.append(last_valid_frame)
+
         cap.release()
 
     video_b64 = base64.b64encode(open(video_path, "rb").read()).decode()
     vrm_url = "https://raw.githubusercontent.com/Keene23aZ4/ski-analyzer/main/pages/model.vrm"
     vrm_b64 = base64.b64encode(requests.get(vrm_url).content).decode()
+
     payload = json.dumps({"fps": fps, "frames": frames_data})
 
-    html_template = """
-    <div id="root" style="width:100%; display:flex; flex-direction:column; align-items:center;">
-        <video id="v" width="100%" controls playsinline style="border-radius:10px; background:#000;">
-            <source src="data:video/mp4;base64,VAR_VIDEO_B64">
+    html = f"""
+    <div style="width:100%; text-align:center;">
+        <video id="v" width="100%" controls>
+            <source src="data:video/mp4;base64,{video_b64}">
         </video>
-        <div id="c" style="width:100%; height:500px; background:#1c2833; margin-top:10px; border-radius:10px; position:relative; overflow:hidden;">
-            <div id="status" style="position:absolute; top:10px; left:10px; color:#00ff00; background:rgba(0,0,0,0.7); padding:5px 12px; border-radius:5px; font-family:monospace; font-size:12px; z-index:100; border:1px solid #00ff00;">
-                Initializing System...
-            </div>
-        </div>
+        <div id="c" style="width:100%; height:500px;"></div>
     </div>
 
-    <!-- ライブラリ読み込み順序を厳格化 -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/examples/js/loaders/GLTFLoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/kalidokit@1.1.0/dist/kalidokit.umd.js"></script>
-    <script id="vrm-script" src="https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@1.0.11/lib/three-vrm.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@1.0.11/lib/three-vrm.js"></script>
 
     <script>
-    (function() {
-        const animData = VAR_PAYLOAD;
-        const container = document.getElementById('c');
-        const video = document.getElementById('v');
-        const statusEl = document.getElementById('status');
-        let currentVRM = null;
-        let vrmLib = null;
+    const animData = {payload};
+    const video = document.getElementById("v");
+    const container = document.getElementById("c");
 
-        // --- Three.js Setup ---
-        const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x1c2833);
-        const camera = new THREE.PerspectiveCamera(40, container.clientWidth/500, 0.1, 100);
-        camera.position.set(0, 1.4, 3.8);
+    let currentVRM;
 
-        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(40, container.clientWidth/500, 0.1, 100);
+    camera.position.set(0, 1.4, 3);
+
+    const renderer = new THREE.WebGLRenderer({antialias:true});
+    renderer.setSize(container.clientWidth, 500);
+    container.appendChild(renderer.domElement);
+
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+    scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+    const light = new THREE.DirectionalLight(0xffffff, 1);
+    light.position.set(1,3,2);
+    scene.add(light);
+
+    // --- VRMロード ---
+    const loader = new THREE.GLTFLoader();
+    const binary = atob("{vrm_b64}");
+    const buf = new Uint8Array(binary.length);
+    for (let i=0; i<binary.length; i++) buf[i] = binary.charCodeAt(i);
+
+    loader.parse(buf.buffer, "", gltf => {{
+        THREE.VRM.from(gltf).then(vrm => {{
+            currentVRM = vrm;
+            scene.add(vrm.scene);
+
+            vrm.scene.rotation.y = 0;
+            vrm.scene.position.set(0, -1, 0);
+        }});
+    }});
+
+    // --- ボーン適用 ---
+    const rigRotation = (name, rot, damp=1, lerp=0.3) => {{
+        const bone = currentVRM.humanoid.getBoneNode(name);
+        if (!bone || !rot) return;
+
+        const euler = new THREE.Euler(
+            rot.x * damp,
+            rot.y * damp,
+            rot.z * damp
+        );
+
+        const quat = new THREE.Quaternion().setFromEuler(euler);
+        bone.quaternion.slerp(quat, lerp);
+    }};
+
+    function updateAvatar() {{
+        if (!currentVRM) return;
+
+        const time = video.currentTime * animData.fps;
+        const f0 = Math.floor(time);
+        const f1 = Math.min(f0+1, animData.frames.length-1);
+        const t = time - f0;
+
+        if (!animData.frames[f0]) return;
+
+        // 補間
+        const pts = animData.frames[f0].map((p,i)=>[
+            p[0]*(1-t)+animData.frames[f1][i][0]*t,
+            p[1]*(1-t)+animData.frames[f1][i][1]*t,
+            p[2]*(1-t)+animData.frames[f1][i][2]*t
+        ]);
+
+        // ✅ 座標変換（最重要修正）
+        const mp = pts.map(p => ({
+            x: (p[0]-0.5)*2,
+            y: (0.5-p[1])*2,
+            z: -(p[2])*2,
+            visibility:1
+        }));
+
+        const pose = Kalidokit.Pose.solve(mp, {{runtime:"mediapipe"}});
+
+        if (pose) {{
+            rigRotation("Hips", pose.Hips.rotation, 0.7);
+            rigRotation("Spine", pose.Spine, 0.7);
+
+            rigRotation("LeftUpperArm", pose.LeftUpperArm);
+            rigRotation("LeftLowerArm", pose.LeftLowerArm);
+            rigRotation("RightUpperArm", pose.RightUpperArm);
+            rigRotation("RightLowerArm", pose.RightLowerArm);
+
+            rigRotation("LeftUpperLeg", pose.LeftUpperLeg);
+            rigRotation("LeftLowerLeg", pose.LeftLowerLeg);
+            rigRotation("RightUpperLeg", pose.RightUpperLeg);
+            rigRotation("RightLowerLeg", pose.RightLowerLeg);
+        }}
+    }}
+
+    function animate() {{
+        requestAnimationFrame(animate);
+        updateAvatar();
+        controls.update();
+        renderer.render(scene,camera);
+    }}
+
+    animate();
+
+    window.addEventListener("resize", ()=>{
+        camera.aspect = container.clientWidth / 500;
+        camera.updateProjectionMatrix();
         renderer.setSize(container.clientWidth, 500);
-        renderer.outputEncoding = THREE.sRGBEncoding;
-        container.appendChild(renderer.domElement);
+    });
 
-        const controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.target.set(0, 1.0, 0);
-        scene.add(new THREE.GridHelper(10, 20, 0x444444, 0x222222));
-        scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-        const light = new THREE.DirectionalLight(0xffffff, 1.0);
-        light.position.set(1, 3, 2);
-        scene.add(light);
-
-        // --- ライブラリ発見・モデルロード ---
-        function findVRMLib() {
-            // あらゆる可能性を探索
-            return window.threevrm || 
-                   (THREE && THREE.VRM ? THREE.VRM : null) || 
-                   window['@pixiv/three-vrm'];
-        }
-
-        function startLoading() {
-            vrmLib = findVRMLib();
-            
-            if (!vrmLib) {
-                statusEl.innerText = "Searching for VRM Engine...";
-                setTimeout(startLoading, 500);
-                return;
-            }
-
-            statusEl.innerText = "Engine Connected. Parsing VRM Model...";
-            const loader = new THREE.GLTFLoader();
-            try {
-                const binary = atob("VAR_VRM_B64");
-                const buf = new Uint8Array(binary.length);
-                for (let i=0; i<binary.length; i++) buf[i] = binary.charCodeAt(i);
-
-                loader.parse(buf.buffer, "", (gltf) => {
-                    // three-vrm 1.x の from() メソッドを呼び出す
-                    const factory = vrmLib.VRM || vrmLib;
-                    factory.from(gltf).then((vrm) => {
-                        currentVRM = vrm;
-                        scene.add(vrm.scene);
-                        vrm.scene.rotation.y = Math.PI;
-                        statusEl.innerText = "✅ SYSTEM ONLINE";
-                        setTimeout(() => statusEl.style.display = 'none', 3000);
-                    }).catch(e => {
-                        statusEl.innerText = "VRM Init Error: " + e.message;
-                        statusEl.style.color = "#ff4444";
-                    });
-                }, (err) => {
-                    statusEl.innerText = "GLTF Parse Error";
-                    statusEl.style.color = "#ff4444";
-                });
-            } catch (e) {
-                statusEl.innerText = "Model Data Error";
-                statusEl.style.color = "#ff4444";
-            }
-        }
-
-        startLoading();
-
-        // --- リギング計算 ---
-        function updateAvatar() {
-            if (!currentVRM || !animData.frames.length) return;
-            
-            let f = Math.floor(video.currentTime * animData.fps);
-            if (f >= animData.frames.length) f = animData.frames.length - 1;
-            const pts = animData.frames[f];
-            
-            if (!pts || pts.length < 33) return;
-
-            const mpLandmarks = pts.map(p => ({
-                x: p[0] || 0.5,
-                y: 1 - (p[1] || 0.5),
-                z: -(p[2] || 0),
-                visibility: 1
-            }));
-
-            try {
-                const pose = Kalidokit.Pose.solve(mpLandmarks, { runtime: "mediapipe" });
-                if (pose) {
-                    Kalidokit.VRMUtils.animateVRM(currentVRM, pose);
-                }
-            } catch (err) {}
-        }
-
-        function animate() {
-            requestAnimationFrame(animate);
-            updateAvatar();
-            controls.update();
-            renderer.render(scene, camera);
-        }
-        animate();
-
-        window.addEventListener('resize', () => {
-            camera.aspect = container.clientWidth / 500;
-            camera.updateProjectionMatrix();
-            renderer.setSize(container.clientWidth, 500);
-        });
-    })();
     </script>
     """
 
-    html_code = html_template.replace("VAR_VIDEO_B64", video_b64)\
-                             .replace("VAR_VRM_B64", vrm_b64)\
-                             .replace("VAR_PAYLOAD", payload)
-    
-    st.components.v1.html(html_code, height=1100, scrolling=False)
+    st.components.v1.html(html, height=1000)
