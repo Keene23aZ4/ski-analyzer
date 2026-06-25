@@ -116,15 +116,23 @@ if uploaded:
     for (let i=0; i<binary.length; i++) buf[i] = binary.charCodeAt(i);
 
     loader.parse(buf.buffer, "", gltf => {{
-        THREE.VRM.from(gltf).then(vrm => {{
+
+        const vrmLib = window.VRM || THREE.VRM;
+    
+        if (!vrmLib) {{
+            console.error("VRM not found");
+            return;
+        }}
+    
+        vrmLib.from(gltf).then(vrm => {{
             currentVRM = vrm;
             scene.add(vrm.scene);
-
-            vrm.scene.rotation.y = 0;
             vrm.scene.position.set(0, -1, 0);
+        }}).catch(e => {{
+            console.error("VRM load error:", e);
         }});
+    
     }});
-
     // --- ボーン適用 ---
     const rigRotation = (name, rot, damp=1, lerp=0.3) => {{
         const bone = currentVRM.humanoid.getBoneNode(name);
