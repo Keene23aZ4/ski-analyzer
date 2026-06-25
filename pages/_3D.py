@@ -158,12 +158,12 @@ if uploaded:
         ]);
 
         // ✅ 座標変換（最重要修正）
-        const mp = pts.map(p => ({
+        const mp = pts.map(p => ({{
             x: (p[0]-0.5)*2,
             y: (0.5-p[1])*2,
             z: -(p[2])*2,
             visibility:1
-        }));
+        }}));
 
         const pose = Kalidokit.Pose.solve(mp, {{runtime:"mediapipe"}});
 
