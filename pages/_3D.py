@@ -81,10 +81,10 @@ if uploaded:
         <div id="c" style="width:100%; height:500px;"></div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/build/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r124/three.min.js"></script>
     <script src="https://unpkg.com/@pixiv/three-vrm@0.6.7/lib/three-vrm.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/examples/js/loaders/GLTFLoader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r124/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r124/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/kalidokit@1.1.0/dist/kalidokit.umd.js"></script>
 
 
@@ -173,7 +173,13 @@ if uploaded:
             visibility:1
         }}));
 
-        const pose = Kalidokit.Pose.solve(mp, {{runtime:"mediapipe"}});
+        if (!mp || mp.length < 33) return;
+
+        const pose = Kalidokit.Pose.solve(mp, {{
+            runtime: "mediapipe",
+            video: video,
+        }});
+
 
         if (pose) {{
             rigRotation("Hips", pose.Hips.rotation, 0.7);
