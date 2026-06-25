@@ -98,7 +98,7 @@ if uploaded:
     const camera = new THREE.PerspectiveCamera(40, container.clientWidth/500, 0.1, 100);
     camera.position.set(0, 1.4, 3);
 
-    const renderer = new THREE.WebGLRenderer({antialias:true});
+    const renderer = new THREE.WebGLRenderer({{antialias:true}});
     renderer.setSize(container.clientWidth, 500);
     container.appendChild(renderer.domElement);
 
