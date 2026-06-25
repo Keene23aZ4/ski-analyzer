@@ -192,11 +192,11 @@ if uploaded:
 
     animate();
 
-    window.addEventListener("resize", ()=>{
+    window.addEventListener("resize", ()=>{{
         camera.aspect = container.clientWidth / 500;
         camera.updateProjectionMatrix();
         renderer.setSize(container.clientWidth, 500);
-    });
+    }});
 
     </script>
     """
